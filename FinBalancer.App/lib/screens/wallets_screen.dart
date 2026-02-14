@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 import '../theme/app_theme.dart';
 import '../providers/data_provider.dart';
 import '../models/wallet.dart';
+import '../l10n/app_localizations.dart';
 
 class WalletsScreen extends StatefulWidget {
   const WalletsScreen({super.key});
@@ -88,11 +89,11 @@ class _WalletsScreenState extends State<WalletsScreen> {
     final ok = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Delete wallet?'),
-        content: Text('Remove "${w.name}"? Transactions linked to this wallet may be affected.'),
+        title: Text(AppLocalizations.of(context)!.deleteWalletQuestion),
+        content: Text('${AppLocalizations.of(context)!.removeWalletQuestion(w.name)} ${AppLocalizations.of(context)!.transactionsMayBeAffected}'),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancel')),
-          TextButton(onPressed: () => Navigator.pop(ctx, true), child: Text('Delete', style: TextStyle(color: AppTheme.expense(context)))),
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text(AppLocalizations.of(context)!.cancel)),
+          TextButton(onPressed: () => Navigator.pop(ctx, true), child: Text(AppLocalizations.of(context)!.delete, style: TextStyle(color: AppTheme.expense(context)))),
         ],
       ),
     );
@@ -173,32 +174,32 @@ class _WalletsScreenState extends State<WalletsScreen> {
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
                         Text(
-                          _editingWallet != null ? 'Edit Wallet' : 'New Wallet',
+                          _editingWallet != null ? AppLocalizations.of(context)!.editWallet : AppLocalizations.of(context)!.newWallet,
                           style: Theme.of(context).textTheme.titleLarge,
                         ),
                         const SizedBox(height: 16),
                         TextField(
                           controller: _nameController,
-                          decoration: const InputDecoration(
-                            labelText: 'Name',
-                            hintText: 'e.g. Main Account',
+                          decoration: InputDecoration(
+                            labelText: AppLocalizations.of(context)!.nameLabel,
+                            hintText: AppLocalizations.of(context)!.walletNameHint,
                           ),
                         ),
                         const SizedBox(height: 16),
                         TextField(
                           controller: _balanceController,
                           keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                          decoration: const InputDecoration(
-                            labelText: 'Initial Balance',
+                          decoration: InputDecoration(
+                            labelText: AppLocalizations.of(context)!.initialBalance,
                             prefixText: '€ ',
                           ),
                         ),
                         const SizedBox(height: 16),
                         TextField(
                           controller: _currencyController,
-                          decoration: const InputDecoration(
-                            labelText: 'Currency',
-                            hintText: 'EUR',
+                          decoration: InputDecoration(
+                            labelText: AppLocalizations.of(context)!.currency,
+                            hintText: AppLocalizations.of(context)!.currencyHint,
                           ),
                         ),
                         if (_error != null) ...[
@@ -223,7 +224,7 @@ class _WalletsScreenState extends State<WalletsScreen> {
                                           _balanceController.clear();
                                           _currencyController.clear();
                                         }),
-                                child: const Text('Cancel'),
+                                child: Text(AppLocalizations.of(context)!.cancel),
                               ),
                             ),
                             const SizedBox(width: 12),
@@ -238,7 +239,7 @@ class _WalletsScreenState extends State<WalletsScreen> {
                                           strokeWidth: 2,
                                         ),
                                       )
-                                    : Text(_editingWallet != null ? 'Save' : 'Add'),
+                                    : Text(_editingWallet != null ? AppLocalizations.of(context)!.save : AppLocalizations.of(context)!.add),
                               ),
                             ),
                           ],
@@ -253,7 +254,7 @@ class _WalletsScreenState extends State<WalletsScreen> {
                     child: OutlinedButton.icon(
                       onPressed: () => setState(() => _showAddForm = true),
                       icon: const Icon(Icons.add),
-                      label: const Text('Add Wallet'),
+                      label: Text(AppLocalizations.of(context)!.addWallet),
                       style: OutlinedButton.styleFrom(
                         side: BorderSide(color: AppTheme.accent(context)),
                       ),

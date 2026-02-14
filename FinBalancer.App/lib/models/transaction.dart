@@ -67,7 +67,7 @@ class Transaction {
       'subcategoryId': subcategoryId,
       'walletId': walletId,
       'note': note,
-      'tags': tags.isNotEmpty ? tags : null,
+      'tags': tags.isEmpty ? [] : tags,
       'project': project,
       'projectId': projectId,
     };

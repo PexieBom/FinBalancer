@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../theme/app_theme.dart';
 import '../providers/locale_provider.dart';
+import '../providers/data_provider.dart';
 import '../l10n/app_localizations.dart';
 
 // Languages with full ARB translations
@@ -96,7 +97,12 @@ class SettingsScreen extends StatelessWidget {
                       return ListTile(
                         title: Text(name),
                         trailing: isSelected ? Icon(Icons.check, color: AppTheme.accent(context)) : null,
-                        onTap: () => provider.setLocale(Locale(code)),
+                        onTap: () async {
+                          await provider.setLocale(Locale(code));
+                          if (context.mounted) {
+                            context.read<DataProvider>().loadCategories(locale: code);
+                          }
+                        },
                       );
                     }).toList(),
                   ),

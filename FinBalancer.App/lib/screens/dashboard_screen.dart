@@ -25,8 +25,6 @@ class DashboardScreen extends StatefulWidget {
 }
 
 class _DashboardScreenState extends State<DashboardScreen> {
-  String? _selectedWalletId;
-
   @override
   void initState() {
     super.initState();
@@ -130,7 +128,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
             },
             itemBuilder: (_) => [
               PopupMenuItem(value: 'categories', child: Text(AppLocalizations.of(context)!.categories)),
-              PopupMenuItem(value: 'projects', child: const Text('Projects')),
+              PopupMenuItem(value: 'projects', child: Text(AppLocalizations.of(context)!.projects)),
               PopupMenuItem(value: 'achievements', child: Text(AppLocalizations.of(context)!.achievements)),
               PopupMenuItem(value: 'export', child: Text(AppLocalizations.of(context)!.exportData)),
               PopupMenuItem(value: 'premium', child: Text(AppLocalizations.of(context)!.premiumFeatures)),
@@ -227,7 +225,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           Padding(
                             padding: const EdgeInsets.only(bottom: 8),
                             child: DropdownButtonFormField<String?>(
-                              value: _selectedWalletId,
+                              value: provider.filterWalletId,
                               decoration: InputDecoration(
                                 isDense: true,
                                 contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
@@ -244,18 +242,21 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                       child: Text(w.name),
                                     )),
                               ],
-                              onChanged: (v) => setState(() => _selectedWalletId = v),
+                              onChanged: (v) async {
+                                provider.setFilter(walletId: v);
+                                await provider.loadTransactions();
+                              },
                             ),
                           ),
                         BalanceCard(
                           title: () {
-                            if (_selectedWalletId == null) return l10n.allWallets;
-                            final w = provider.wallets.where((x) => x.id == _selectedWalletId).toList();
+                            if (provider.filterWalletId == null) return l10n.allWallets;
+                            final w = provider.wallets.where((x) => x.id == provider.filterWalletId).toList();
                             return w.isEmpty ? l10n.allWallets : w.first.name;
                           }(),
                           amount: () {
-                            if (_selectedWalletId == null) return provider.totalBalance;
-                            final w = provider.wallets.where((x) => x.id == _selectedWalletId).toList();
+                            if (provider.filterWalletId == null) return provider.totalBalance;
+                            final w = provider.wallets.where((x) => x.id == provider.filterWalletId).toList();
                             return w.isEmpty ? provider.totalBalance : w.first.balance;
                           }(),
                           currencyFormat: fmt,

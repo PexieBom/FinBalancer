@@ -54,20 +54,7 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
     if (!_formKey.currentState!.validate()) return;
 
     final provider = context.read<DataProvider>();
-    if (_selectedWalletId == null) {
-      setState(() => _error = AppLocalizations.of(context)!.pleaseSelectWallet);
-      return;
-    }
-    if (_selectedCategoryId == null) {
-      setState(() => _error = AppLocalizations.of(context)!.pleaseSelectCategory);
-      return;
-    }
-
-    final amount = double.tryParse(_amountController.text.replaceAll(',', '.'));
-    if (amount == null || amount <= 0) {
-      setState(() => _error = AppLocalizations.of(context)!.pleaseEnterValidAmount);
-      return;
-    }
+    final amount = double.tryParse(_amountController.text.replaceAll(',', '.'))!;
 
     setState(() {
       _isLoading = true;
@@ -184,16 +171,16 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
                       children: [
                         Center(
                           child: SegmentedButton<bool>(
-                            segments: const [
+                            segments: [
                               ButtonSegment(
                                 value: false,
-                                label: Text('Expense'),
-                                icon: Icon(Icons.remove_circle_outline),
+                                label: Text(AppLocalizations.of(context)!.expenseLabel),
+                                icon: const Icon(Icons.remove_circle_outline),
                               ),
                               ButtonSegment(
                                 value: true,
-                                label: Text('Income'),
-                                icon: Icon(Icons.add_circle_outline),
+                                label: Text(AppLocalizations.of(context)!.incomeLabel),
+                                icon: const Icon(Icons.add_circle_outline),
                               ),
                             ],
                             selected: {_isIncome},
@@ -210,21 +197,23 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
                         TextFormField(
                           controller: _amountController,
                           keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                          decoration: const InputDecoration(
-                            labelText: 'Amount',
+                          decoration: InputDecoration(
+                            labelText: AppLocalizations.of(context)!.amount,
                             prefixText: '€ ',
                           ),
                           validator: (v) {
-                            if (v == null || v.isEmpty) return 'Required';
+                            final l10n = AppLocalizations.of(context)!;
+                            if (v == null || v.isEmpty) return l10n.required;
                             final n = double.tryParse(v.replaceAll(',', '.'));
-                            if (n == null || n <= 0) return 'Enter valid amount';
+                            if (n == null || n <= 0) return l10n.enterValidAmount;
                             return null;
                           },
                         ),
                         const SizedBox(height: 16),
                         DropdownButtonFormField<String>(
                           value: _selectedCategoryId,
-                          decoration: const InputDecoration(labelText: 'Category'),
+                          decoration: InputDecoration(labelText: AppLocalizations.of(context)!.category),
+                          validator: (v) => v == null ? AppLocalizations.of(context)!.pleaseSelectCategory : null,
                           items: categories
                               .map<DropdownMenuItem<String>>((c) => DropdownMenuItem<String>(
                                     value: c.id,
@@ -255,9 +244,9 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
                               if (subcats.isEmpty) return const SizedBox.shrink();
                               return DropdownButtonFormField<String>(
                                 value: _selectedSubcategoryId,
-                                decoration: const InputDecoration(labelText: 'Subcategory (optional)'),
+                                decoration: InputDecoration(labelText: AppLocalizations.of(context)!.subcategoryOptional),
                                 items: [
-                                  const DropdownMenuItem(value: null, child: Text('— None —')),
+                                  DropdownMenuItem(value: null, child: Text(AppLocalizations.of(context)!.none)),
                                   ...subcats.map((s) => DropdownMenuItem(
                                         value: s.id,
                                         child: Text(s.name),
@@ -271,7 +260,8 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
                         const SizedBox(height: 16),
                         DropdownButtonFormField<String>(
                           value: _selectedWalletId,
-                          decoration: const InputDecoration(labelText: 'Wallet'),
+                          decoration: InputDecoration(labelText: AppLocalizations.of(context)!.wallet),
+                          validator: (v) => v == null ? AppLocalizations.of(context)!.pleaseSelectWallet : null,
                           items: wallets
                               .map((w) => DropdownMenuItem(
                                     value: w.id,
@@ -284,7 +274,7 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
                         const SizedBox(height: 16),
                         TextFormField(
                           controller: _noteController,
-                          decoration: const InputDecoration(labelText: 'Note (optional)'),
+                          decoration: InputDecoration(labelText: AppLocalizations.of(context)!.noteOptional),
                           maxLines: 2,
                         ),
                         const SizedBox(height: 16),
@@ -293,12 +283,12 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
                             final projects = prov.projects;
                             return DropdownButtonFormField<String?>(
                               value: _selectedProjectId,
-                              decoration: const InputDecoration(
-                                labelText: 'Project (optional)',
-                                hintText: '— None —',
+                              decoration: InputDecoration(
+                                labelText: AppLocalizations.of(context)!.projectOptional,
+                                hintText: AppLocalizations.of(context)!.none,
                               ),
                               items: [
-                                const DropdownMenuItem(value: null, child: Text('— None —')),
+                                DropdownMenuItem(value: null, child: Text(AppLocalizations.of(context)!.none)),
                                 ...projects.map((p) => DropdownMenuItem(value: p.id, child: Text(p.name))),
                               ],
                               onChanged: (v) => setState(() => _selectedProjectId = v),
@@ -309,10 +299,12 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
                         TextButton.icon(
                           onPressed: () => Navigator.pushNamed(context, '/projects').then((_) => provider.loadAll(locale: context.read<LocaleProvider>().localeCode)),
                           icon: const Icon(Icons.add),
-                          label: const Text('Manage projects'),
+                          label: Text(AppLocalizations.of(context)!.manageProjects),
                         ),
                         const SizedBox(height: 16),
                         _TagsInput(
+                          tagsOptional: AppLocalizations.of(context)!.tagsOptional,
+                          tagHint: AppLocalizations.of(context)!.tagHint,
                           tags: _tags,
                           tagController: _tagController,
                           onAdd: (tag) {
@@ -355,16 +347,16 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
                             : AppTheme.accent(context),
                         foregroundColor: Colors.white,
                       ),
-                      child: _isLoading
-                          ? const SizedBox(
-                              height: 24,
-                              width: 24,
-                              child: CircularProgressIndicator(
-                                color: Colors.white,
-                                strokeWidth: 2,
-                              ),
-                            )
-                          : const Text('Save Transaction'),
+                          child: _isLoading
+                              ? const SizedBox(
+                                  height: 24,
+                                  width: 24,
+                                  child: CircularProgressIndicator(
+                                    color: Colors.white,
+                                    strokeWidth: 2,
+                                  ),
+                                )
+                              : Text(AppLocalizations.of(context)!.saveTransaction),
                     ),
                   ),
                 ],
@@ -394,12 +386,16 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
 }
 
 class _TagsInput extends StatelessWidget {
+  final String tagsOptional;
+  final String tagHint;
   final List<String> tags;
   final TextEditingController tagController;
   final void Function(String) onAdd;
   final void Function(String) onRemove;
 
   const _TagsInput({
+    required this.tagsOptional,
+    required this.tagHint,
     required this.tags,
     required this.tagController,
     required this.onAdd,
@@ -411,7 +407,7 @@ class _TagsInput extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text('Tags (optional)', style: TextStyle(fontSize: 12, color: Colors.grey)),
+        Text(tagsOptional, style: const TextStyle(fontSize: 12, color: Colors.grey)),
         const SizedBox(height: 8),
         Wrap(
           spacing: 8,
@@ -425,10 +421,10 @@ class _TagsInput extends StatelessWidget {
               width: 120,
               child: TextField(
                 controller: tagController,
-                decoration: const InputDecoration(
-                  hintText: '+ tag',
+                decoration: InputDecoration(
+                  hintText: tagHint,
                   isDense: true,
-                  contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                 ),
                 onSubmitted: onAdd,
               ),

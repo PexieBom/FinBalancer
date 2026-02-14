@@ -380,6 +380,18 @@ abstract class AppLocalizations {
   /// **'Add Wallet'**
   String get addWallet;
 
+  /// No description provided for @editWallet.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit Wallet'**
+  String get editWallet;
+
+  /// No description provided for @newWallet.
+  ///
+  /// In en, this message translates to:
+  /// **'New Wallet'**
+  String get newWallet;
+
   /// No description provided for @expenseLabel.
   ///
   /// In en, this message translates to:
@@ -691,6 +703,216 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'PDF (HTML)'**
   String get pdfHtml;
+
+  /// No description provided for @manageProjects.
+  ///
+  /// In en, this message translates to:
+  /// **'Manage projects'**
+  String get manageProjects;
+
+  /// No description provided for @projects.
+  ///
+  /// In en, this message translates to:
+  /// **'Projects'**
+  String get projects;
+
+  /// No description provided for @period.
+  ///
+  /// In en, this message translates to:
+  /// **'Period'**
+  String get period;
+
+  /// No description provided for @last1Month.
+  ///
+  /// In en, this message translates to:
+  /// **'Last 1 month'**
+  String get last1Month;
+
+  /// No description provided for @last3Months.
+  ///
+  /// In en, this message translates to:
+  /// **'Last 3 months'**
+  String get last3Months;
+
+  /// No description provided for @last6Months.
+  ///
+  /// In en, this message translates to:
+  /// **'Last 6 months'**
+  String get last6Months;
+
+  /// No description provided for @last12Months.
+  ///
+  /// In en, this message translates to:
+  /// **'Last 12 months'**
+  String get last12Months;
+
+  /// No description provided for @thisYear.
+  ///
+  /// In en, this message translates to:
+  /// **'This year'**
+  String get thisYear;
+
+  /// No description provided for @customRange.
+  ///
+  /// In en, this message translates to:
+  /// **'Custom range'**
+  String get customRange;
+
+  /// No description provided for @resetToDefault.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset to default'**
+  String get resetToDefault;
+
+  /// No description provided for @noCategoriesYet.
+  ///
+  /// In en, this message translates to:
+  /// **'No categories yet'**
+  String get noCategoriesYet;
+
+  /// No description provided for @categoriesLoadFromApi.
+  ///
+  /// In en, this message translates to:
+  /// **'Categories are loaded from the API'**
+  String get categoriesLoadFromApi;
+
+  /// No description provided for @newCustomCategory.
+  ///
+  /// In en, this message translates to:
+  /// **'New custom category'**
+  String get newCustomCategory;
+
+  /// No description provided for @deleteCategoryQuestion.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete category?'**
+  String get deleteCategoryQuestion;
+
+  /// No description provided for @removeCategoryQuestion.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove \"{name}\"?'**
+  String removeCategoryQuestion(String name);
+
+  /// No description provided for @nameLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Name'**
+  String get nameLabel;
+
+  /// No description provided for @walletNameHint.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. Main Account'**
+  String get walletNameHint;
+
+  /// No description provided for @initialBalance.
+  ///
+  /// In en, this message translates to:
+  /// **'Initial Balance'**
+  String get initialBalance;
+
+  /// No description provided for @currencyHint.
+  ///
+  /// In en, this message translates to:
+  /// **'EUR'**
+  String get currencyHint;
+
+  /// No description provided for @deleteWalletQuestion.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete wallet?'**
+  String get deleteWalletQuestion;
+
+  /// No description provided for @removeWalletQuestion.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove \"{name}\"?'**
+  String removeWalletQuestion(String name);
+
+  /// No description provided for @transactionsMayBeAffected.
+  ///
+  /// In en, this message translates to:
+  /// **'Transactions linked to this wallet may be affected.'**
+  String get transactionsMayBeAffected;
+
+  /// No description provided for @deleteProjectQuestion.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete Project?'**
+  String get deleteProjectQuestion;
+
+  /// No description provided for @removeProjectQuestion.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove \"{name}\"?'**
+  String removeProjectQuestion(String name);
+
+  /// No description provided for @projectsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Projects'**
+  String get projectsTitle;
+
+  /// No description provided for @noProjectsYet.
+  ///
+  /// In en, this message translates to:
+  /// **'No projects yet'**
+  String get noProjectsYet;
+
+  /// No description provided for @projectsSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Add a project to group transactions'**
+  String get projectsSubtitle;
+
+  /// No description provided for @descriptionOptional.
+  ///
+  /// In en, this message translates to:
+  /// **'Description (optional)'**
+  String get descriptionOptional;
+
+  /// No description provided for @save.
+  ///
+  /// In en, this message translates to:
+  /// **'Save'**
+  String get save;
+
+  /// No description provided for @projectNameHint.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. Vacation 2025'**
+  String get projectNameHint;
+
+  /// No description provided for @noAchievementsYet.
+  ///
+  /// In en, this message translates to:
+  /// **'No achievements yet'**
+  String get noAchievementsYet;
+
+  /// No description provided for @achievementsSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Add transactions and reach goals to unlock achievements'**
+  String get achievementsSubtitle;
+
+  /// No description provided for @unlocked.
+  ///
+  /// In en, this message translates to:
+  /// **'Unlocked'**
+  String get unlocked;
+
+  /// No description provided for @allAchievements.
+  ///
+  /// In en, this message translates to:
+  /// **'All Achievements'**
+  String get allAchievements;
+
+  /// No description provided for @unlockedOn.
+  ///
+  /// In en, this message translates to:
+  /// **'Unlocked: {date}'**
+  String unlockedOn(String date);
 }
 
 class _AppLocalizationsDelegate

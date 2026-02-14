@@ -42,3 +42,4 @@ C:\Users\tpe\Desktop\side\FinBalancer\FinBalancer.Api\bin\Debug\net8.0\Data\goal
 C:\Users\tpe\Desktop\side\FinBalancer\FinBalancer.Api\bin\Debug\net8.0\Data\subcategories.json
 C:\Users\tpe\Desktop\side\FinBalancer\FinBalancer.Api\bin\Debug\net8.0\Data\user_preferences.json
 C:\Users\tpe\Desktop\side\FinBalancer\FinBalancer.Api\bin\Debug\net8.0\Data\refresh_tokens.json
+C:\Users\tpe\Desktop\side\FinBalancer\FinBalancer.Api\bin\Debug\net8.0\Data\custom_categories.json

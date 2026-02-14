@@ -157,6 +157,12 @@ class AppLocalizationsDe extends AppLocalizations {
   String get addWallet => 'Geldbörse hinzufügen';
 
   @override
+  String get editWallet => 'Edit Wallet';
+
+  @override
+  String get newWallet => 'New Wallet';
+
+  @override
   String get expenseLabel => 'Ausgabe';
 
   @override
@@ -313,4 +319,119 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get pdfHtml => 'PDF (HTML)';
+
+  @override
+  String get manageProjects => 'Manage projects';
+
+  @override
+  String get projects => 'Projects';
+
+  @override
+  String get period => 'Period';
+
+  @override
+  String get last1Month => 'Last 1 month';
+
+  @override
+  String get last3Months => 'Last 3 months';
+
+  @override
+  String get last6Months => 'Last 6 months';
+
+  @override
+  String get last12Months => 'Last 12 months';
+
+  @override
+  String get thisYear => 'This year';
+
+  @override
+  String get customRange => 'Custom range';
+
+  @override
+  String get resetToDefault => 'Reset to default';
+
+  @override
+  String get noCategoriesYet => 'No categories yet';
+
+  @override
+  String get categoriesLoadFromApi => 'Categories are loaded from the API';
+
+  @override
+  String get newCustomCategory => 'New custom category';
+
+  @override
+  String get deleteCategoryQuestion => 'Delete category?';
+
+  @override
+  String removeCategoryQuestion(String name) {
+    return 'Remove \"$name\"?';
+  }
+
+  @override
+  String get nameLabel => 'Name';
+
+  @override
+  String get walletNameHint => 'e.g. Main Account';
+
+  @override
+  String get initialBalance => 'Initial Balance';
+
+  @override
+  String get currencyHint => 'EUR';
+
+  @override
+  String get deleteWalletQuestion => 'Delete wallet?';
+
+  @override
+  String removeWalletQuestion(String name) {
+    return 'Remove \"$name\"?';
+  }
+
+  @override
+  String get transactionsMayBeAffected =>
+      'Transactions linked to this wallet may be affected.';
+
+  @override
+  String get deleteProjectQuestion => 'Delete Project?';
+
+  @override
+  String removeProjectQuestion(String name) {
+    return 'Remove \"$name\"?';
+  }
+
+  @override
+  String get projectsTitle => 'Projects';
+
+  @override
+  String get noProjectsYet => 'No projects yet';
+
+  @override
+  String get projectsSubtitle => 'Add a project to group transactions';
+
+  @override
+  String get descriptionOptional => 'Description (optional)';
+
+  @override
+  String get save => 'Save';
+
+  @override
+  String get projectNameHint => 'e.g. Vacation 2025';
+
+  @override
+  String get noAchievementsYet => 'No achievements yet';
+
+  @override
+  String get achievementsSubtitle =>
+      'Add transactions and reach goals to unlock achievements';
+
+  @override
+  String get unlocked => 'Unlocked';
+
+  @override
+  String get allAchievements => 'All Achievements';
+
+  @override
+  String unlockedOn(String date) {
+    return 'Unlocked: $date';
+  }
 }

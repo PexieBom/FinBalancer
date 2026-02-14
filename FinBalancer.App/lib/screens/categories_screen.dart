@@ -5,6 +5,7 @@ import '../theme/app_theme.dart';
 import '../providers/data_provider.dart';
 import '../providers/locale_provider.dart';
 import '../models/category.dart' as app_models;
+import '../l10n/app_localizations.dart';
 
 class CategoriesScreen extends StatefulWidget {
   const CategoriesScreen({super.key});
@@ -54,7 +55,7 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
         backgroundColor: Theme.of(context).appBarTheme.backgroundColor,
         elevation: 0,
         title: Text(
-          'Categories',
+          AppLocalizations.of(context)!.categories,
           style: Theme.of(context).textTheme.headlineMedium?.copyWith(
                 color: Theme.of(context).colorScheme.onSurface,
                 fontWeight: FontWeight.bold,
@@ -75,12 +76,12 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                   Icon(Icons.category, size: 64, color: Colors.grey.shade300),
                   const SizedBox(height: 16),
                   Text(
-                    'No categories',
+                    AppLocalizations.of(context)!.noCategoriesYet,
                     style: Theme.of(context).textTheme.titleLarge,
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    'Categories are loaded from the API',
+                    AppLocalizations.of(context)!.categoriesLoadFromApi,
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                           color: Colors.grey.shade600,
                         ),
@@ -108,14 +109,14 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                     child: OutlinedButton.icon(
                       onPressed: () => setState(() => _showAddForm = true),
                       icon: const Icon(Icons.add),
-                      label: const Text('Add custom category'),
+                      label: Text(AppLocalizations.of(context)!.newCustomCategory),
                       style: OutlinedButton.styleFrom(side: BorderSide(color: AppTheme.accent(context))),
                     ),
                   ),
                 if (!_showAddForm) const SizedBox(height: 24),
-                _buildSection(context, provider, 'Income', incomeCategories, AppTheme.income(context)),
+                _buildSection(context, provider, AppLocalizations.of(context)!.incomeLabel, incomeCategories, AppTheme.income(context)),
                 const SizedBox(height: 24),
-                _buildSection(context, provider, 'Expense', expenseCategories, AppTheme.expense(context)),
+                _buildSection(context, provider, AppLocalizations.of(context)!.expenseLabel, expenseCategories, AppTheme.expense(context)),
               ],
             ),
           );
@@ -141,12 +142,12 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Text('New custom category', style: Theme.of(context).textTheme.titleLarge),
+          Text(AppLocalizations.of(context)!.newCustomCategory, style: Theme.of(context).textTheme.titleLarge),
           const SizedBox(height: 16),
           SegmentedButton<String>(
-            segments: const [
-              ButtonSegment(value: 'expense', label: Text('Expense'), icon: Icon(Icons.remove_circle_outline)),
-              ButtonSegment(value: 'income', label: Text('Income'), icon: Icon(Icons.add_circle_outline)),
+            segments: [
+              ButtonSegment(value: 'expense', label: Text(AppLocalizations.of(context)!.expenseLabel), icon: const Icon(Icons.remove_circle_outline)),
+              ButtonSegment(value: 'income', label: Text(AppLocalizations.of(context)!.incomeLabel), icon: const Icon(Icons.add_circle_outline)),
             ],
             selected: {_addType},
             onSelectionChanged: (s) => setState(() => _addType = s.first),
@@ -154,7 +155,7 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
           const SizedBox(height: 16),
           TextField(
             controller: _nameController,
-            decoration: const InputDecoration(labelText: 'Name'),
+            decoration: InputDecoration(labelText: AppLocalizations.of(context)!.nameLabel),
           ),
           if (_error != null) ...[
             const SizedBox(height: 8),
@@ -163,9 +164,9 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
           const SizedBox(height: 16),
           Row(
             children: [
-              Expanded(child: OutlinedButton(onPressed: () => setState(() { _showAddForm = false; _error = null; _nameController.clear(); }), child: const Text('Cancel'))),
+              Expanded(child: OutlinedButton(onPressed: () => setState(() { _showAddForm = false; _error = null; _nameController.clear(); }), child: Text(AppLocalizations.of(context)!.cancel))),
               const SizedBox(width: 12),
-              Expanded(child: ElevatedButton(onPressed: () => _addCustomCategory(provider), child: const Text('Add'))),
+              Expanded(child: ElevatedButton(onPressed: () => _addCustomCategory(provider), child: Text(AppLocalizations.of(context)!.add))),
             ],
           ),
         ],
@@ -193,11 +194,11 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                 final ok = await showDialog<bool>(
                   context: context,
                   builder: (ctx) => AlertDialog(
-                    title: const Text('Delete category?'),
-                    content: Text('Remove "${c.name}"?'),
+                    title: Text(AppLocalizations.of(context)!.deleteCategoryQuestion),
+                    content: Text(AppLocalizations.of(context)!.removeCategoryQuestion(c.name)),
                     actions: [
-                      TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancel')),
-                      TextButton(onPressed: () => Navigator.pop(ctx, true), child: Text('Delete', style: TextStyle(color: AppTheme.expense(context)))),
+                      TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text(AppLocalizations.of(context)!.cancel)),
+                      TextButton(onPressed: () => Navigator.pop(ctx, true), child: Text(AppLocalizations.of(context)!.delete, style: TextStyle(color: AppTheme.expense(context)))),
                     ],
                   ),
                 );

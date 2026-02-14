@@ -1,56 +1,11 @@
 [
-  {
-    "id": "bddaf735-c68c-4d37-a519-8a5d414c6ffa",
-    "name": "Hrana",
-    "icon": "restaurant",
-    "type": "expense"
-  },
-  {
-    "id": "454e5ad1-116f-4d4d-b874-da4ca72383c5",
-    "name": "Transport",
-    "icon": "directions_car",
-    "type": "expense"
-  },
-  {
-    "id": "fd67a85f-d605-42b2-8952-77a59def8b49",
-    "name": "Stanovanje",
-    "icon": "home",
-    "type": "expense"
-  },
-  {
-    "id": "eae56227-03f7-4acc-b8b1-55bc9b4df4c4",
-    "name": "Zabava",
-    "icon": "movie",
-    "type": "expense"
-  },
-  {
-    "id": "40d2f1ce-64c5-4227-a371-c7ea3c3df851",
-    "name": "Zdravlje",
-    "icon": "local_hospital",
-    "type": "expense"
-  },
-  {
-    "id": "e9a32c4f-8abe-4ada-aa81-327b164d8c9a",
-    "name": "Ostalo",
-    "icon": "category",
-    "type": "expense"
-  },
-  {
-    "id": "de94859f-944f-4b86-8a7e-97ceaad1d8d2",
-    "name": "Pla\u0107a",
-    "icon": "account_balance_wallet",
-    "type": "income"
-  },
-  {
-    "id": "6bb8814b-4bfc-425a-9547-b2e81198e50b",
-    "name": "Bonus",
-    "icon": "star",
-    "type": "income"
-  },
-  {
-    "id": "f071be05-fd89-4fae-b7e9-7b7d03609d9b",
-    "name": "Ostali prihod",
-    "icon": "attach_money",
-    "type": "income"
-  }
+  {"id":"bddaf735-c68c-4d37-a519-8a5d414c6ffa","name":"Hrana","translations":{"en":"Food","hr":"Hrana","de":"Essen","fr":"Alimentation","es":"Comida","it":"Cibo","pt":"Alimentação","nl":"Voedsel"},"icon":"restaurant","type":"expense"},
+  {"id":"454e5ad1-116f-4d4d-b874-da4ca72383c5","name":"Transport","translations":{"en":"Transport","hr":"Transport","de":"Transport","fr":"Transport","es":"Transporte","it":"Trasporto","pt":"Transporte","nl":"Vervoer"},"icon":"directions_car","type":"expense"},
+  {"id":"fd67a85f-d605-42b2-8952-77a59def8b49","name":"Stanovanje","translations":{"en":"Housing","hr":"Stanovanje","de":"Wohnen","fr":"Logement","es":"Vivienda","it":"Abitazione","pt":"Habitação","nl":"Wonen"},"icon":"home","type":"expense"},
+  {"id":"eae56227-03f7-4acc-b8b1-55bc9b4df4c4","name":"Zabava","translations":{"en":"Entertainment","hr":"Zabava","de":"Unterhaltung","fr":"Divertissement","es":"Entretenimiento","it":"Intrattenimento","pt":"Entretenimento","nl":"Entertainment"},"icon":"movie","type":"expense"},
+  {"id":"40d2f1ce-64c5-4227-a371-c7ea3c3df851","name":"Zdravlje","translations":{"en":"Health","hr":"Zdravlje","de":"Gesundheit","fr":"Santé","es":"Salud","it":"Salute","pt":"Saúde","nl":"Gezondheid"},"icon":"local_hospital","type":"expense"},
+  {"id":"e9a32c4f-8abe-4ada-aa81-327b164d8c9a","name":"Ostalo","translations":{"en":"Other","hr":"Ostalo","de":"Sonstiges","fr":"Autre","es":"Otros","it":"Altro","pt":"Outros","nl":"Overig"},"icon":"category","type":"expense"},
+  {"id":"de94859f-944f-4b86-8a7e-97ceaad1d8d2","name":"Plaća","translations":{"en":"Salary","hr":"Plaća","de":"Gehalt","fr":"Salaire","es":"Salario","it":"Stipendio","pt":"Salário","nl":"Salaris"},"icon":"account_balance_wallet","type":"income"},
+  {"id":"6bb8814b-4bfc-425a-9547-b2e81198e50b","name":"Bonus","translations":{"en":"Bonus","hr":"Bonus","de":"Bonus","fr":"Bonus","es":"Bonus","it":"Bonus","pt":"Bônus","nl":"Bonus"},"icon":"star","type":"income"},
+  {"id":"f071be05-fd89-4fae-b7e9-7b7d03609d9b","name":"Ostali prihod","translations":{"en":"Other income","hr":"Ostali prihod","de":"Sonstige Einnahmen","fr":"Autres revenus","es":"Otros ingresos","it":"Altri guadagni","pt":"Outras receitas","nl":"Overige inkomsten"},"icon":"attach_money","type":"income"}
 ]

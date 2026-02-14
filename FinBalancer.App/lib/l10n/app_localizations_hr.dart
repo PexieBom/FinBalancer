@@ -157,6 +157,12 @@ class AppLocalizationsHr extends AppLocalizations {
   String get addWallet => 'Dodaj novčanik';
 
   @override
+  String get editWallet => 'Uredi novčanik';
+
+  @override
+  String get newWallet => 'Novi novčanik';
+
+  @override
   String get expenseLabel => 'Rashod';
 
   @override
@@ -312,4 +318,119 @@ class AppLocalizationsHr extends AppLocalizations {
 
   @override
   String get pdfHtml => 'PDF (HTML)';
+
+  @override
+  String get manageProjects => 'Upravljaj projektima';
+
+  @override
+  String get projects => 'Projekti';
+
+  @override
+  String get period => 'Razdoblje';
+
+  @override
+  String get last1Month => 'Zadnjih 1 mjesec';
+
+  @override
+  String get last3Months => 'Zadnjih 3 mjeseca';
+
+  @override
+  String get last6Months => 'Zadnjih 6 mjeseci';
+
+  @override
+  String get last12Months => 'Zadnjih 12 mjeseci';
+
+  @override
+  String get thisYear => 'Ova godina';
+
+  @override
+  String get customRange => 'Prilagođeni raspon';
+
+  @override
+  String get resetToDefault => 'Vrati na zadano';
+
+  @override
+  String get noCategoriesYet => 'Još nema kategorija';
+
+  @override
+  String get categoriesLoadFromApi => 'Kategorije se učitavaju s API-ja';
+
+  @override
+  String get newCustomCategory => 'Nova prilagođena kategorija';
+
+  @override
+  String get deleteCategoryQuestion => 'Izbrisati kategoriju?';
+
+  @override
+  String removeCategoryQuestion(String name) {
+    return 'Ukloniti \"$name\"?';
+  }
+
+  @override
+  String get nameLabel => 'Naziv';
+
+  @override
+  String get walletNameHint => 'npr. Glavni račun';
+
+  @override
+  String get initialBalance => 'Početni saldo';
+
+  @override
+  String get currencyHint => 'EUR';
+
+  @override
+  String get deleteWalletQuestion => 'Izbrisati novčanik?';
+
+  @override
+  String removeWalletQuestion(String name) {
+    return 'Ukloniti \"$name\"?';
+  }
+
+  @override
+  String get transactionsMayBeAffected =>
+      'Transakcije povezane s ovim novčanikom mogu biti pogođene.';
+
+  @override
+  String get deleteProjectQuestion => 'Izbrisati projekt?';
+
+  @override
+  String removeProjectQuestion(String name) {
+    return 'Ukloniti \"$name\"?';
+  }
+
+  @override
+  String get projectsTitle => 'Projekti';
+
+  @override
+  String get noProjectsYet => 'Još nema projekata';
+
+  @override
+  String get projectsSubtitle => 'Dodajte projekt za grupiranje transakcija';
+
+  @override
+  String get descriptionOptional => 'Opis (opcionalno)';
+
+  @override
+  String get save => 'Spremi';
+
+  @override
+  String get projectNameHint => 'npr. Odmor 2025';
+
+  @override
+  String get noAchievementsYet => 'Još nema postignuća';
+
+  @override
+  String get achievementsSubtitle =>
+      'Dodajte transakcije i postignite ciljeve za otključavanje postignuća';
+
+  @override
+  String get unlocked => 'Otključano';
+
+  @override
+  String get allAchievements => 'Sva postignuća';
+
+  @override
+  String unlockedOn(String date) {
+    return 'Otključano: $date';
+  }
 }
