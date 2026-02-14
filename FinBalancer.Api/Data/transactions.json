@@ -84,5 +84,19 @@
     ],
     "project": null,
     "dateCreated": "2026-02-14T14:13:05.152468Z"
+  },
+  {
+    "id": "df20a79c-375e-42ca-8098-f2ed7c37951d",
+    "amount": 82,
+    "type": "expense",
+    "categoryId": "e9a32c4f-8abe-4ada-aa81-327b164d8c9a",
+    "subcategoryId": null,
+    "walletId": "813cf0bc-19cf-4a39-a24a-ba4b80b2fc23",
+    "note": "struja",
+    "tags": [
+      "rezije"
+    ],
+    "project": null,
+    "dateCreated": "2026-02-14T16:32:46.8618275Z"
   }
 ]

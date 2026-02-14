@@ -8,6 +8,7 @@ class BalanceCard extends StatelessWidget {
   final double amount;
   final Color? color;
   final IconData? icon;
+  final NumberFormat? currencyFormat;
 
   const BalanceCard({
     super.key,
@@ -15,15 +16,16 @@ class BalanceCard extends StatelessWidget {
     required this.amount,
     this.color,
     this.icon,
+    this.currencyFormat,
   });
 
   @override
   Widget build(BuildContext context) {
-    final currencyFormat = NumberFormat.currency(locale: 'hr_HR', symbol: '€');
+    final format = currencyFormat ?? NumberFormat.currency(locale: 'en_US', symbol: '€');
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Theme.of(context).cardTheme.color,
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
@@ -39,7 +41,7 @@ class BalanceCard extends StatelessWidget {
           Row(
             children: [
               if (icon != null) ...[
-                Icon(icon, color: color ?? AppTheme.accentColor, size: 24),
+                Icon(icon, color: color ?? Theme.of(context).colorScheme.primary, size: 24),
                 const SizedBox(width: 8),
               ],
               Text(
@@ -52,7 +54,7 @@ class BalanceCard extends StatelessWidget {
           ),
           const SizedBox(height: 8),
           Text(
-            currencyFormat.format(amount),
+            format.format(amount),
             style: Theme.of(context).textTheme.headlineMedium?.copyWith(
                   color: color ?? AppTheme.primaryColor,
                   fontWeight: FontWeight.bold,

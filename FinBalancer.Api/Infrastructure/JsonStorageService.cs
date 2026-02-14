@@ -75,6 +75,34 @@ public class JsonStorageService
         await File.WriteAllTextAsync(filePath, json);
     }
 
+    public async Task<T?> ReadObjectAsync<T>(string fileName) where T : class
+    {
+        var semaphore = GetFileLock(fileName);
+        await semaphore.WaitAsync();
+        try
+        {
+            var filePath = GetFilePath(fileName);
+            if (!File.Exists(filePath)) return null;
+            var json = await File.ReadAllTextAsync(filePath);
+            if (string.IsNullOrWhiteSpace(json)) return null;
+            return JsonSerializer.Deserialize<T>(json, JsonOptions);
+        }
+        finally { semaphore.Release(); }
+    }
+
+    public async Task WriteObjectAsync<T>(string fileName, T data) where T : class
+    {
+        var semaphore = GetFileLock(fileName);
+        await semaphore.WaitAsync();
+        try
+        {
+            var filePath = GetFilePath(fileName);
+            var json = JsonSerializer.Serialize(data, JsonOptions);
+            await File.WriteAllTextAsync(filePath, json);
+        }
+        finally { semaphore.Release(); }
+    }
+
     internal async Task ExecuteInLockAsync(string fileName, Func<Task> action)
     {
         var semaphore = GetFileLock(fileName);

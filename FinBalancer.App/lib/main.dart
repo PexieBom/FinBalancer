@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:provider/provider.dart';
 
 import 'theme/app_theme.dart';
 import 'providers/app_provider.dart';
 import 'providers/data_provider.dart';
+import 'providers/locale_provider.dart';
+import 'l10n/app_localizations.dart';
 import 'screens/splash_screen.dart';
 import 'screens/login_screen.dart';
 import 'screens/dashboard_screen.dart';
@@ -14,6 +17,7 @@ import 'screens/register_screen.dart';
 import 'screens/reset_password_screen.dart';
 import 'screens/statistics_screen.dart';
 import 'screens/goals_screen.dart';
+import 'screens/settings_screen.dart';
 
 void main() {
   runApp(const FinBalancerApp());
@@ -28,12 +32,24 @@ class FinBalancerApp extends StatelessWidget {
       providers: [
         ChangeNotifierProvider(create: (_) => AppProvider()),
         ChangeNotifierProvider(create: (_) => DataProvider()),
+        ChangeNotifierProvider(create: (_) => LocaleProvider()),
       ],
-      child: MaterialApp(
-        title: 'FinBalancer',
-        debugShowCheckedModeBanner: false,
-        theme: AppTheme.lightTheme,
-        initialRoute: '/',
+      child: Consumer<LocaleProvider>(
+        builder: (context, localeProvider, _) => MaterialApp(
+          title: 'FinBalancer',
+          debugShowCheckedModeBanner: false,
+          theme: AppTheme.lightTheme,
+          darkTheme: AppTheme.darkTheme,
+          themeMode: localeProvider.themeMode,
+          locale: localeProvider.locale,
+          localizationsDelegates: const [
+            AppLocalizations.delegate,
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+          ],
+          supportedLocales: AppLocalizations.supportedLocales,
+          initialRoute: '/',
         routes: {
           '/': (context) => const _AppRouter(),
           '/dashboard': (context) => const DashboardScreen(),
@@ -44,7 +60,9 @@ class FinBalancerApp extends StatelessWidget {
           '/reset-password': (context) => const ResetPasswordScreen(),
           '/statistics': (context) => const StatisticsScreen(),
           '/goals': (context) => const GoalsScreen(),
+          '/settings': (context) => const SettingsScreen(),
         },
+        ),
       ),
     );
   }

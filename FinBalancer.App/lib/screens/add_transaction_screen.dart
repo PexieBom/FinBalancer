@@ -4,9 +4,11 @@ import 'package:intl/intl.dart';
 
 import '../theme/app_theme.dart';
 import '../providers/data_provider.dart';
+import '../providers/locale_provider.dart';
 import '../models/transaction.dart';
 import '../models/category.dart' as app_models;
-import '../models/wallet.dart';
+import '../utils/currency_formatter.dart';
+import '../l10n/app_localizations.dart';
 
 class AddTransactionScreen extends StatefulWidget {
   const AddTransactionScreen({super.key});
@@ -52,17 +54,17 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
 
     final provider = context.read<DataProvider>();
     if (_selectedWalletId == null) {
-      setState(() => _error = 'Please select a wallet');
+      setState(() => _error = AppLocalizations.of(context)!.pleaseSelectWallet);
       return;
     }
     if (_selectedCategoryId == null) {
-      setState(() => _error = 'Please select a category');
+      setState(() => _error = AppLocalizations.of(context)!.pleaseSelectCategory);
       return;
     }
 
     final amount = double.tryParse(_amountController.text.replaceAll(',', '.'));
     if (amount == null || amount <= 0) {
-      setState(() => _error = 'Please enter a valid amount');
+      setState(() => _error = AppLocalizations.of(context)!.pleaseEnterValidAmount);
       return;
     }
 
@@ -97,12 +99,12 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey.shade50,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: Theme.of(context).appBarTheme.backgroundColor,
         elevation: 0,
         title: Text(
-          'Add Transaction',
+          AppLocalizations.of(context)!.addTransactionTitle,
           style: Theme.of(context).textTheme.headlineMedium?.copyWith(
                 color: AppTheme.primaryColor,
                 fontWeight: FontWeight.bold,
@@ -131,13 +133,13 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
                         size: 64, color: Colors.grey.shade400),
                     const SizedBox(height: 16),
                     Text(
-                      'Add a wallet first',
+                      AppLocalizations.of(context)!.addWalletFirst,
                       style: Theme.of(context).textTheme.titleLarge,
                       textAlign: TextAlign.center,
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      'You need at least one wallet to add transactions.',
+                      AppLocalizations.of(context)!.needWalletFirst,
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                             color: Colors.grey.shade600,
                           ),
@@ -147,7 +149,7 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
                     ElevatedButton(
                       onPressed: () => Navigator.pushReplacementNamed(
                           context, '/wallets'),
-                      child: const Text('Add Wallet'),
+                      child: Text(AppLocalizations.of(context)!.addWallet),
                     ),
                   ],
                 ),
@@ -165,7 +167,7 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
                   Container(
                     padding: const EdgeInsets.all(20),
                     decoration: BoxDecoration(
-                      color: Colors.white,
+                      color: Theme.of(context).cardTheme.color,
                       borderRadius: BorderRadius.circular(20),
                       boxShadow: [
                         BoxShadow(
@@ -272,7 +274,7 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
                               .map((w) => DropdownMenuItem(
                                     value: w.id,
                                     child: Text(
-                                        '${w.name} (${NumberFormat.currency(locale: 'hr_HR', symbol: '€').format(w.balance)})'),
+                                        '${w.name} (${formatCurrency(w.balance, context.read<LocaleProvider>())})'),
                                   ))
                               .toList(),
                           onChanged: (v) => setState(() => _selectedWalletId = v),
@@ -311,13 +313,13 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
                     Container(
                       padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
-                        color: AppTheme.expenseColor.withOpacity(0.1),
+                        color: AppTheme.expense(context).withOpacity(0.15),
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: Row(
                         children: [
-                          const Icon(Icons.error_outline,
-                              color: AppTheme.expenseColor),
+                          Icon(Icons.error_outline,
+                              color: AppTheme.expense(context)),
                           const SizedBox(width: 12),
                           Expanded(child: Text(_error!)),
                         ],
@@ -331,8 +333,8 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
                       onPressed: _isLoading ? null : _submit,
                       style: ElevatedButton.styleFrom(
                         backgroundColor: _isIncome
-                            ? AppTheme.incomeColor
-                            : AppTheme.accentColor,
+                            ? AppTheme.income(context)
+                            : AppTheme.accent(context),
                         foregroundColor: Colors.white,
                       ),
                       child: _isLoading

@@ -45,6 +45,7 @@ builder.Services.AddScoped<StatisticsService>();
 builder.Services.AddScoped<AdvancedStatisticsService>();
 builder.Services.AddScoped<GoalService>();
 builder.Services.AddScoped<AchievementService>();
+builder.Services.AddScoped<UserPreferencesService>();
 builder.Services.AddScoped<IAuthService, MockAuthService>();
 
 builder.Services.AddCors(options =>

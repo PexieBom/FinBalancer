@@ -58,9 +58,9 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey.shade50,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: Theme.of(context).appBarTheme.backgroundColor,
         elevation: 0,
         title: Text(
           'Statistics',
@@ -232,7 +232,7 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
               child: _SummaryCard(
                 title: 'Income',
                 amount: income,
-                color: AppTheme.incomeColor,
+                color: AppTheme.income(context),
                 icon: Icons.trending_up,
               ),
             ),
@@ -241,7 +241,7 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
               child: _SummaryCard(
                 title: 'Expense',
                 amount: expense,
-                color: AppTheme.expenseColor,
+                color: AppTheme.expense(context),
                 icon: Icons.trending_down,
               ),
             ),
@@ -251,7 +251,7 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
         _SummaryCard(
           title: 'Balance',
           amount: balance,
-          color: balance >= 0 ? AppTheme.incomeColor : AppTheme.expenseColor,
+          color: balance >= 0 ? AppTheme.income(context) : AppTheme.expense(context),
           icon: Icons.account_balance_wallet,
         ),
       ],
@@ -271,13 +271,13 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
             margin: const EdgeInsets.only(bottom: 8),
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: AppTheme.expenseColor.withOpacity(0.08),
+              color: AppTheme.expense(context).withOpacity(0.12),
               borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: AppTheme.expenseColor.withOpacity(0.3)),
+              border: Border.all(color: AppTheme.expense(context).withOpacity(0.4)),
             ),
             child: Row(
               children: [
-                Icon(Icons.warning_amber_rounded, color: AppTheme.expenseColor),
+                Icon(Icons.warning_amber_rounded, color: AppTheme.expense(context)),
                 const SizedBox(width: 12),
                 Expanded(child: Text(msg, style: Theme.of(context).textTheme.bodyMedium)),
               ],
@@ -332,7 +332,7 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text('Total predicted', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
-                  Text(currencyFormat.format(total), style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold, color: AppTheme.accentColor)),
+                  Text(currencyFormat.format(total), style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold, color: AppTheme.accent(context))),
                 ],
               ),
             ],
@@ -379,7 +379,7 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
                   barRods: [
                     BarChartRodData(
                       toY: net,
-                      color: net >= 0 ? AppTheme.incomeColor : AppTheme.expenseColor,
+                      color: net >= 0 ? AppTheme.income(context) : AppTheme.expense(context),
                       width: 20,
                       borderRadius: const BorderRadius.vertical(top: Radius.circular(4)),
                     ),
@@ -452,7 +452,7 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
     }
 
     final totalExpense = (spending['totalExpense'] as num?)?.toDouble() ?? 1.0;
-    final colors = [AppTheme.expenseColor, AppTheme.accentColor, Colors.orange, Colors.purple, Colors.teal, Colors.amber];
+    final colors = [AppTheme.expense(context), AppTheme.accent(context), Colors.orange, Colors.purple, Colors.teal, Colors.amber];
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -499,7 +499,7 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
                 Expanded(child: Text(name, style: Theme.of(context).textTheme.titleMedium)),
                 Text(NumberFormat.currency(locale: 'hr_HR', symbol: '€').format(total),
                     style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                          color: AppTheme.expenseColor,
+                          color: AppTheme.expense(context),
                           fontWeight: FontWeight.bold,
                         )),
                 const SizedBox(width: 8),
@@ -548,14 +548,14 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text('Income: ', style: Theme.of(context).textTheme.bodyMedium),
-                    Text(currencyFormat.format(income), style: const TextStyle(color: AppTheme.incomeColor, fontWeight: FontWeight.w600)),
+                    Text(currencyFormat.format(income), style: TextStyle(color: AppTheme.income(context), fontWeight: FontWeight.w600)),
                   ],
                 ),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text('Expense: ', style: Theme.of(context).textTheme.bodyMedium),
-                    Text(currencyFormat.format(expense), style: const TextStyle(color: AppTheme.expenseColor, fontWeight: FontWeight.w600)),
+                    Text(currencyFormat.format(expense), style: TextStyle(color: AppTheme.expense(context), fontWeight: FontWeight.w600)),
                   ],
                 ),
               ],
@@ -585,10 +585,10 @@ class _NavItem extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(icon, color: isActive ? AppTheme.accentColor : Colors.grey.shade400, size: 24),
+            Icon(icon, color: isActive ? AppTheme.accent(context) : Theme.of(context).colorScheme.onSurfaceVariant, size: 24),
             const SizedBox(height: 4),
             Text(label, style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: isActive ? AppTheme.accentColor : Colors.grey.shade600,
+                  color: isActive ? AppTheme.accent(context) : Theme.of(context).colorScheme.onSurfaceVariant,
                   fontWeight: isActive ? FontWeight.w600 : FontWeight.normal,
                 )),
           ],
@@ -612,9 +612,15 @@ class _SummaryCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Theme.of(context).cardTheme.color,
         borderRadius: BorderRadius.circular(16),
-        boxShadow: [BoxShadow(color: AppTheme.cardShadow, blurRadius: 20, offset: const Offset(0, 4))],
+        boxShadow: [
+          BoxShadow(
+            color: Theme.of(context).brightness == Brightness.dark ? Colors.black54 : AppTheme.cardShadow,
+            blurRadius: 20,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -623,7 +629,7 @@ class _SummaryCard extends StatelessWidget {
             children: [
               Icon(icon, color: color, size: 20),
               const SizedBox(width: 8),
-              Text(title, style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Colors.grey.shade600)),
+              Text(title, style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant)),
             ],
           ),
           const SizedBox(height: 8),

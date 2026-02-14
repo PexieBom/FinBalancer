@@ -2,8 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:intl/intl.dart';
 
 import '../services/api_service.dart';
+import '../providers/locale_provider.dart';
+import '../utils/currency_formatter.dart';
+import '../l10n/app_localizations.dart';
 
 import '../theme/app_theme.dart';
 import '../providers/data_provider.dart';
@@ -40,21 +44,21 @@ class _DashboardScreenState extends State<DashboardScreen> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Text('Export data', style: Theme.of(context).textTheme.titleLarge),
+              Text(AppLocalizations.of(context)!.exportData, style: Theme.of(context).textTheme.titleLarge),
               const SizedBox(height: 16),
               ListTile(
                 leading: const Icon(Icons.table_chart),
-                title: const Text('CSV'),
+                title: Text(AppLocalizations.of(context)!.csv),
                 onTap: () => _launchExport(ctx, api.getExportUrl('csv')),
               ),
               ListTile(
                 leading: const Icon(Icons.code),
-                title: const Text('JSON'),
+                title: Text(AppLocalizations.of(context)!.json),
                 onTap: () => _launchExport(ctx, api.getExportUrl('json')),
               ),
               ListTile(
                 leading: const Icon(Icons.picture_as_pdf),
-                title: const Text('PDF (HTML)'),
+                title: Text(AppLocalizations.of(context)!.pdfHtml),
                 onTap: () => _launchExport(ctx, api.getExportUrl('pdf')),
               ),
             ],
@@ -83,14 +87,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey.shade50,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: Theme.of(context).appBarTheme.backgroundColor,
         elevation: 0,
         title: Text(
-          'Dashboard',
+          AppLocalizations.of(context)!.dashboard,
           style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                color: AppTheme.primaryColor,
+                color: Theme.of(context).colorScheme.onSurface,
                 fontWeight: FontWeight.bold,
               ),
         ),
@@ -104,10 +108,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
             onSelected: (v) {
               if (v == 'categories') Navigator.pushNamed(context, '/categories');
               if (v == 'export') _showExportMenu(context);
+              if (v == 'settings') Navigator.pushNamed(context, '/settings');
             },
             itemBuilder: (_) => [
-              const PopupMenuItem(value: 'categories', child: Text('Categories')),
-              const PopupMenuItem(value: 'export', child: Text('Export data')),
+              PopupMenuItem(value: 'categories', child: Text(AppLocalizations.of(context)!.categories)),
+              PopupMenuItem(value: 'export', child: Text(AppLocalizations.of(context)!.exportData)),
+              PopupMenuItem(value: 'settings', child: Text(AppLocalizations.of(context)!.settings)),
             ],
           ),
           IconButton(
@@ -121,8 +127,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
           ),
         ],
       ),
-      body: Consumer<DataProvider>(
-        builder: (context, provider, _) {
+      body: Consumer2<DataProvider, LocaleProvider>(
+        builder: (context, provider, localeProvider, _) {
+          final l10n = AppLocalizations.of(context)!;
+          final fmt = currencyNumberFormat(localeProvider);
           if (provider.isLoading && provider.transactions.isEmpty) {
             return const Center(child: CircularProgressIndicator());
           }
@@ -134,25 +142,25 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Icon(Icons.cloud_off, size: 64, color: Colors.grey.shade400),
+                    Icon(Icons.cloud_off, size: 64, color: Theme.of(context).colorScheme.onSurfaceVariant),
                     const SizedBox(height: 16),
                     Text(
-                      'Cannot connect to API',
+                      l10n.cannotConnectApi,
                       style: Theme.of(context).textTheme.titleLarge,
                       textAlign: TextAlign.center,
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      'Ensure the backend is running on localhost:5292',
+                      l10n.ensureBackendRunning,
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                            color: Colors.grey.shade600,
+                            color: Theme.of(context).colorScheme.onSurfaceVariant,
                           ),
                       textAlign: TextAlign.center,
                     ),
                     const SizedBox(height: 24),
                     ElevatedButton(
                       onPressed: () => provider.loadAll(),
-                      child: const Text('Retry'),
+                      child: Text(l10n.retry),
                     ),
                   ],
                 ),
@@ -171,9 +179,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 20),
                     child: Text(
-                      'Total Balance',
+                      l10n.totalBalance,
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                            color: Colors.grey.shade600,
+                            color: Theme.of(context).colorScheme.onSurfaceVariant,
                           ),
                     ),
                   ),
@@ -181,8 +189,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 20),
                     child: BalanceCard(
-                      title: 'All Wallets',
+                      title: l10n.allWallets,
                       amount: provider.totalBalance,
+                      currencyFormat: fmt,
                       icon: Icons.account_balance_wallet,
                     ),
                   ),
@@ -193,18 +202,20 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       children: [
                         Expanded(
                           child: BalanceCard(
-                            title: 'Income',
+                            title: l10n.income,
                             amount: provider.totalIncome,
-                            color: AppTheme.incomeColor,
+                            currencyFormat: fmt,
+                            color: AppTheme.income(context),
                             icon: Icons.trending_up,
                           ),
                         ),
                         const SizedBox(width: 12),
                         Expanded(
                           child: BalanceCard(
-                            title: 'Expense',
+                            title: l10n.expense,
                             amount: provider.totalExpense,
-                            color: AppTheme.expenseColor,
+                            currencyFormat: fmt,
+                            color: AppTheme.expense(context),
                             icon: Icons.trending_down,
                           ),
                         ),
@@ -221,11 +232,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       child: Container(
                         padding: const EdgeInsets.all(20),
                         decoration: BoxDecoration(
-                          color: Colors.white,
+                          color: Theme.of(context).cardTheme.color,
                           borderRadius: BorderRadius.circular(20),
                           boxShadow: [
                             BoxShadow(
-                              color: AppTheme.cardShadow,
+                              color: Theme.of(context).brightness == Brightness.dark
+                                  ? Colors.black54
+                                  : AppTheme.cardShadow,
                               blurRadius: 20,
                               offset: const Offset(0, 4),
                             ),
@@ -236,10 +249,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             Container(
                               padding: const EdgeInsets.all(14),
                               decoration: BoxDecoration(
-                                color: AppTheme.incomeColor.withOpacity(0.1),
+                                color: AppTheme.income(context).withOpacity(0.15),
                                 borderRadius: BorderRadius.circular(14),
                               ),
-                              child: Icon(Icons.flag, color: AppTheme.incomeColor, size: 28),
+                              child: Icon(Icons.flag, color: AppTheme.income(context), size: 28),
                             ),
                             const SizedBox(width: 16),
                             Expanded(
@@ -247,21 +260,21 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(
-                                    'Goals',
+                                    l10n.goals,
                                     style: Theme.of(context).textTheme.titleLarge?.copyWith(
                                           fontWeight: FontWeight.bold,
                                         ),
                                   ),
                                   Text(
-                                    '${provider.goals.length} goals · Track savings & progress',
+                                    l10n.goalsSubtitle(provider.goals.length),
                                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                          color: Colors.grey.shade600,
+                                          color: Theme.of(context).colorScheme.onSurfaceVariant,
                                         ),
                                   ),
                                 ],
                               ),
                             ),
-                            Icon(Icons.arrow_forward_ios, size: 16, color: Colors.grey.shade400),
+                            Icon(Icons.arrow_forward_ios, size: 16, color: Theme.of(context).colorScheme.onSurfaceVariant),
                           ],
                         ),
                       ),
@@ -271,7 +284,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   if (provider.achievements.isNotEmpty)
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 20),
-                      child: _AchievementsRow(achievements: provider.achievements),
+                      child: _AchievementsRow(achievements: provider.achievements, l10n: l10n),
                     ),
                   const SizedBox(height: 24),
                   Padding(
@@ -282,11 +295,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       child: Container(
                         padding: const EdgeInsets.all(20),
                         decoration: BoxDecoration(
-                          color: Colors.white,
+                          color: Theme.of(context).cardTheme.color,
                           borderRadius: BorderRadius.circular(20),
                           boxShadow: [
                             BoxShadow(
-                              color: AppTheme.cardShadow,
+                              color: Theme.of(context).brightness == Brightness.dark
+                                  ? Colors.black54
+                                  : AppTheme.cardShadow,
                               blurRadius: 20,
                               offset: const Offset(0, 4),
                             ),
@@ -297,10 +312,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             Container(
                               padding: const EdgeInsets.all(14),
                               decoration: BoxDecoration(
-                                color: AppTheme.accentColor.withOpacity(0.1),
+                                color: AppTheme.accent(context).withOpacity(0.15),
                                 borderRadius: BorderRadius.circular(14),
                               ),
-                              child: Icon(Icons.bar_chart_rounded, color: AppTheme.accentColor, size: 28),
+                              child: Icon(Icons.bar_chart_rounded, color: AppTheme.accent(context), size: 28),
                             ),
                             const SizedBox(width: 16),
                             Expanded(
@@ -308,21 +323,21 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(
-                                    'Statistics',
+                                    l10n.statistics,
                                     style: Theme.of(context).textTheme.titleLarge?.copyWith(
                                           fontWeight: FontWeight.bold,
                                         ),
                                   ),
                                   Text(
-                                    'Charts, spending by category, trends',
+                                    l10n.statisticsSubtitle,
                                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                          color: Colors.grey.shade600,
+                                          color: Theme.of(context).colorScheme.onSurfaceVariant,
                                         ),
                                   ),
                                 ],
                               ),
                             ),
-                            Icon(Icons.arrow_forward_ios, size: 16, color: Colors.grey.shade400),
+                            Icon(Icons.arrow_forward_ios, size: 16, color: Theme.of(context).colorScheme.onSurfaceVariant),
                           ],
                         ),
                       ),
@@ -333,7 +348,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 20),
                       child: Text(
-                        'Expenses by Category',
+                        l10n.expensesByCategory,
                         style: Theme.of(context).textTheme.titleLarge?.copyWith(
                               fontWeight: FontWeight.bold,
                             ),
@@ -342,7 +357,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     const SizedBox(height: 16),
                     SizedBox(
                       height: 200,
-                      child: _buildPieChart(provider),
+                      child: _buildPieChart(context, provider),
                     ),
                   ],
                   Padding(
@@ -351,7 +366,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Text(
-                          'Recent Transactions',
+                          l10n.recentTransactions,
                           style: Theme.of(context).textTheme.titleLarge?.copyWith(
                                 fontWeight: FontWeight.bold,
                               ),
@@ -361,7 +376,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             context,
                             '/add-transaction',
                           ).then((_) => provider.loadAll()),
-                          child: const Text('Add Transaction'),
+                          child: Text(l10n.addTransaction),
                         ),
                       ],
                     ),
@@ -375,13 +390,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             Icon(
                               Icons.receipt_long,
                               size: 64,
-                              color: Colors.grey.shade300,
+                              color: Theme.of(context).colorScheme.onSurfaceVariant,
                             ),
                             const SizedBox(height: 16),
                             Text(
-                              'No transactions yet',
+                              l10n.noTransactionsYet,
                               style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                                    color: Colors.grey.shade600,
+                                    color: Theme.of(context).colorScheme.onSurfaceVariant,
                                   ),
                             ),
                             const SizedBox(height: 8),
@@ -390,7 +405,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                 context,
                                 '/add-transaction',
                               ).then((_) => provider.loadAll()),
-                              child: const Text('Add Transaction'),
+                              child: Text(l10n.addTransaction),
                             ),
                           ],
                         ),
@@ -402,6 +417,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         transaction: t,
                         category: _getCategory(provider, t.categoryId),
                         onDelete: () => provider.deleteTransaction(t.id),
+                        currencyFormat: fmt,
                       ),
                     ),
                   const SizedBox(height: 100),
@@ -415,13 +431,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  Widget _buildPieChart(DataProvider provider) {
+  Widget _buildPieChart(BuildContext context, DataProvider provider) {
     final data = provider.getExpensesByCategory();
     if (data.isEmpty) return const SizedBox.shrink();
 
     final colors = [
-      AppTheme.expenseColor,
-      AppTheme.accentColor,
+      AppTheme.expense(context),
+      AppTheme.accent(context),
       Colors.orange,
       Colors.purple,
       Colors.teal,
@@ -453,12 +469,15 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   Widget _buildBottomNav(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Theme.of(context).cardTheme.color,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Theme.of(context).brightness == Brightness.dark
+                ? Colors.black54
+                : Colors.black.withOpacity(0.05),
             blurRadius: 20,
             offset: const Offset(0, -4),
           ),
@@ -470,27 +489,27 @@ class _DashboardScreenState extends State<DashboardScreen> {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
-              _NavItem(icon: Icons.dashboard, label: 'Home', isActive: true),
+              _NavItem(icon: Icons.dashboard, label: l10n.home, isActive: true),
               _NavItem(
                 icon: Icons.add_circle_outline,
-                label: 'Add',
+                label: l10n.add,
                 onTap: () => Navigator.pushNamed(context, '/add-transaction')
                     .then((_) => context.read<DataProvider>().loadAll()),
               ),
               _NavItem(
                 icon: Icons.bar_chart,
-                label: 'Stats',
+                label: l10n.stats,
                 onTap: () => Navigator.pushNamed(context, '/statistics'),
               ),
               _NavItem(
                 icon: Icons.flag,
-                label: 'Goals',
+                label: l10n.goals,
                 onTap: () => Navigator.pushNamed(context, '/goals')
                     .then((_) => context.read<DataProvider>().loadAll()),
               ),
               _NavItem(
                 icon: Icons.account_balance_wallet,
-                label: 'Wallets',
+                label: l10n.wallets,
                 onTap: () => Navigator.pushNamed(context, '/wallets')
                     .then((_) => context.read<DataProvider>().loadAll()),
               ),
@@ -504,8 +523,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
 class _AchievementsRow extends StatelessWidget {
   final List<Achievement> achievements;
+  final AppLocalizations l10n;
 
-  const _AchievementsRow({required this.achievements});
+  const _AchievementsRow({required this.achievements, required this.l10n});
 
   @override
   Widget build(BuildContext context) {
@@ -514,7 +534,7 @@ class _AchievementsRow extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Theme.of(context).cardTheme.color,
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(color: AppTheme.cardShadow, blurRadius: 12, offset: const Offset(0, 2)),
@@ -528,7 +548,7 @@ class _AchievementsRow extends StatelessWidget {
               Icon(Icons.emoji_events, color: Colors.amber.shade700, size: 20),
               const SizedBox(width: 8),
               Text(
-                'Achievements',
+                l10n.achievements,
                 style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
               ),
             ],
@@ -589,14 +609,14 @@ class _NavItem extends StatelessWidget {
           children: [
             Icon(
               icon,
-              color: isActive ? AppTheme.accentColor : Colors.grey.shade400,
+              color: isActive ? AppTheme.accent(context) : Theme.of(context).colorScheme.onSurfaceVariant,
               size: 24,
             ),
             const SizedBox(height: 4),
             Text(
               label,
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: isActive ? AppTheme.accentColor : Colors.grey.shade600,
+                    color: isActive ? AppTheme.accent(context) : Theme.of(context).colorScheme.onSurfaceVariant,
                     fontWeight: isActive ? FontWeight.w600 : FontWeight.normal,
                   ),
             ),

@@ -40,3 +40,4 @@ C:\Users\tpe\Desktop\side\FinBalancer\FinBalancer.Api\bin\Debug\net8.0\Data\user
 C:\Users\tpe\Desktop\side\FinBalancer\FinBalancer.Api\bin\Debug\net8.0\Data\achievements_unlocked.json
 C:\Users\tpe\Desktop\side\FinBalancer\FinBalancer.Api\bin\Debug\net8.0\Data\goals.json
 C:\Users\tpe\Desktop\side\FinBalancer\FinBalancer.Api\bin\Debug\net8.0\Data\subcategories.json
+C:\Users\tpe\Desktop\side\FinBalancer\FinBalancer.Api\bin\Debug\net8.0\Data\user_preferences.json

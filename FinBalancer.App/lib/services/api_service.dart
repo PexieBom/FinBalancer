@@ -190,6 +190,28 @@ class ApiService {
     throw Exception('Failed to load cashflow trend: ${response.statusCode}');
   }
 
+  Future<Map<String, dynamic>> getUserPreferences() async {
+    final response = await _client.get(Uri.parse('$_baseUrl/userpreferences'));
+    if (response.statusCode == 200) {
+      return json.decode(response.body) as Map<String, dynamic>;
+    }
+    throw Exception('Failed to load preferences: ${response.statusCode}');
+  }
+
+  Future<Map<String, dynamic>> updateUserPreferences(String locale, String currency, {String? theme}) async {
+    final body = <String, dynamic>{'locale': locale, 'currency': currency};
+    if (theme != null) body['theme'] = theme;
+    final response = await _client.put(
+      Uri.parse('$_baseUrl/userpreferences'),
+      headers: {'Content-Type': 'application/json'},
+      body: json.encode(body),
+    );
+    if (response.statusCode == 200) {
+      return json.decode(response.body) as Map<String, dynamic>;
+    }
+    throw Exception('Failed to update preferences: ${response.statusCode}');
+  }
+
   String getExportUrl(String format, {String? walletId}) {
     var url = '$_baseUrl/export/$format';
     if (walletId != null) url += '?walletId=$walletId';
