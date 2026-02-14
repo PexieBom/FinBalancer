@@ -5,7 +5,7 @@ import 'package:intl/intl.dart';
 import '../theme/app_theme.dart';
 import '../providers/data_provider.dart';
 import '../models/transaction.dart';
-import '../models/category.dart';
+import '../models/category.dart' as app_models;
 import '../models/wallet.dart';
 
 class AddTransactionScreen extends StatefulWidget {
@@ -212,7 +212,7 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
                           value: _selectedCategoryId,
                           decoration: const InputDecoration(labelText: 'Category'),
                           items: categories
-                              .map((c) => DropdownMenuItem(
+                              .map<DropdownMenuItem<String>>((c) => DropdownMenuItem<String>(
                                     value: c.id,
                                     child: Row(
                                       children: [

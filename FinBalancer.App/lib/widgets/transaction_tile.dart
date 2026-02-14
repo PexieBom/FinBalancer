@@ -2,12 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 import '../models/transaction.dart';
-import '../models/category.dart';
+import '../models/category.dart' as app_models;
 import '../theme/app_theme.dart';
 
 class TransactionTile extends StatelessWidget {
   final Transaction transaction;
-  final Category? category;
+  final app_models.TransactionCategory? category;
   final VoidCallback? onDelete;
 
   const TransactionTile({

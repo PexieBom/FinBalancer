@@ -2,7 +2,7 @@ import 'package:flutter/foundation.dart';
 
 import '../models/transaction.dart';
 import '../models/wallet.dart';
-import '../models/category.dart';
+import '../models/category.dart' as app_models;
 import '../services/api_service.dart';
 
 class DataProvider extends ChangeNotifier {
@@ -10,13 +10,13 @@ class DataProvider extends ChangeNotifier {
 
   List<Transaction> _transactions = [];
   List<Wallet> _wallets = [];
-  List<Category> _categories = [];
+  List<app_models.TransactionCategory> _categories = [];
   bool _isLoading = false;
   String? _error;
 
   List<Transaction> get transactions => _transactions;
   List<Wallet> get wallets => _wallets;
-  List<Category> get categories => _categories;
+  List<app_models.TransactionCategory> get categories => _categories;
   bool get isLoading => _isLoading;
   String? get error => _error;
 
@@ -131,7 +131,7 @@ class DataProvider extends ChangeNotifier {
     for (final t in _transactions.where((t) => t.type == 'expense')) {
       final cat = _categories.firstWhere(
         (c) => c.id == t.categoryId,
-        orElse: () => Category(id: t.categoryId, name: 'Unknown', icon: '', type: 'expense'),
+        orElse: () => app_models.TransactionCategory(id: t.categoryId, name: 'Unknown', icon: '', type: 'expense'),
       );
       map[cat.name] = (map[cat.name] ?? 0) + t.amount;
     }

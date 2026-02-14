@@ -34,3 +34,6 @@ C:\Users\tpe\Desktop\side\FinBalancer\FinBalancer.Api\obj\Debug\net8.0\refint\Fi
 C:\Users\tpe\Desktop\side\FinBalancer\FinBalancer.Api\obj\Debug\net8.0\FinBalancer.Api.pdb
 C:\Users\tpe\Desktop\side\FinBalancer\FinBalancer.Api\obj\Debug\net8.0\FinBalancer.Api.genruntimeconfig.cache
 C:\Users\tpe\Desktop\side\FinBalancer\FinBalancer.Api\obj\Debug\net8.0\ref\FinBalancer.Api.dll
+C:\Users\tpe\Desktop\side\FinBalancer\FinBalancer.Api\obj\Debug\net8.0\FinBalancer.Api.sourcelink.json
+C:\Users\tpe\Desktop\side\FinBalancer\FinBalancer.Api\bin\Debug\net8.0\Data\notification_requests.json
+C:\Users\tpe\Desktop\side\FinBalancer\FinBalancer.Api\bin\Debug\net8.0\Data\users.json

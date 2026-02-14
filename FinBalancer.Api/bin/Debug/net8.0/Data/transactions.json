@@ -1,1 +1,20 @@
-[]
+[
+  {
+    "id": "f185291c-27ae-4ac8-9515-6052d46fbf03",
+    "amount": 500,
+    "type": "income",
+    "categoryId": "f071be05-fd89-4fae-b7e9-7b7d03609d9b",
+    "walletId": "468e4ab0-4236-4ca2-84f0-857b2d834677",
+    "note": null,
+    "dateCreated": "2026-02-14T11:07:49.0537555Z"
+  },
+  {
+    "id": "09aa19c7-3658-495c-8e72-8ba76bbdb0ee",
+    "amount": 300,
+    "type": "income",
+    "categoryId": "f071be05-fd89-4fae-b7e9-7b7d03609d9b",
+    "walletId": "468e4ab0-4236-4ca2-84f0-857b2d834677",
+    "note": "Zarada",
+    "dateCreated": "2026-02-14T11:08:10.7598118Z"
+  }
+]

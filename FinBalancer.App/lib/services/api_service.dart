@@ -4,7 +4,7 @@ import 'package:http/http.dart' as http;
 
 import '../models/transaction.dart';
 import '../models/wallet.dart';
-import '../models/category.dart';
+import '../models/category.dart' as app_models;
 
 class ApiService {
   static const String _baseUrl = 'http://localhost:5292/api';
@@ -60,11 +60,31 @@ class ApiService {
     throw Exception('Failed to add wallet: ${response.statusCode} - ${response.body}');
   }
 
-  Future<List<Category>> getCategories() async {
+  Future<Map<String, dynamic>> getSpendingByCategory({String? walletId}) async {
+    var url = '$_baseUrl/statistics/spending-by-category';
+    if (walletId != null) url += '?walletId=$walletId';
+    final response = await _client.get(Uri.parse(url));
+    if (response.statusCode == 200) {
+      return json.decode(response.body) as Map<String, dynamic>;
+    }
+    throw Exception('Failed to load statistics: ${response.statusCode}');
+  }
+
+  Future<Map<String, dynamic>> getIncomeExpenseSummary({String? walletId}) async {
+    var url = '$_baseUrl/statistics/income-expense-summary';
+    if (walletId != null) url += '?walletId=$walletId';
+    final response = await _client.get(Uri.parse(url));
+    if (response.statusCode == 200) {
+      return json.decode(response.body) as Map<String, dynamic>;
+    }
+    throw Exception('Failed to load statistics: ${response.statusCode}');
+  }
+
+  Future<List<app_models.TransactionCategory>> getCategories() async {
     final response = await _client.get(Uri.parse('$_baseUrl/categories'));
     if (response.statusCode == 200) {
       final List<dynamic> data = json.decode(response.body);
-      return data.map((e) => Category.fromJson(e as Map<String, dynamic>)).toList();
+      return data.map((e) => app_models.TransactionCategory.fromJson(e as Map<String, dynamic>)).toList();
     }
     throw Exception('Failed to load categories: ${response.statusCode}');
   }

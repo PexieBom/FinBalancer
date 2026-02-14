@@ -22,6 +22,8 @@ if (useMockData)
     builder.Services.AddScoped<ITransactionRepository, JsonTransactionRepository>();
     builder.Services.AddScoped<IWalletRepository, JsonWalletRepository>();
     builder.Services.AddScoped<ICategoryRepository, JsonCategoryRepository>();
+    builder.Services.AddScoped<IUserRepository, JsonUserRepository>();
+    builder.Services.AddScoped<INotificationRequestRepository, JsonNotificationRequestRepository>();
 }
 else
 {
@@ -36,6 +38,8 @@ else
 builder.Services.AddScoped<TransactionService>();
 builder.Services.AddScoped<WalletService>();
 builder.Services.AddScoped<CategoryService>();
+builder.Services.AddScoped<StatisticsService>();
+builder.Services.AddScoped<IAuthService, MockAuthService>();
 
 builder.Services.AddCors(options =>
 {

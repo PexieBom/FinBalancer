@@ -2,7 +2,13 @@
   {
     "id": "813cf0bc-19cf-4a39-a24a-ba4b80b2fc23",
     "name": "Test Wallet",
-    "balance": 100,
+    "balance": 1231.75,
+    "currency": "EUR"
+  },
+  {
+    "id": "468e4ab0-4236-4ca2-84f0-857b2d834677",
+    "name": "Testni",
+    "balance": 883,
     "currency": "EUR"
   }
 ]

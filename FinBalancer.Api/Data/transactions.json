@@ -1,1 +1,56 @@
-[]
+[
+  {
+    "id": "f185291c-27ae-4ac8-9515-6052d46fbf03",
+    "amount": 500,
+    "type": "income",
+    "categoryId": "f071be05-fd89-4fae-b7e9-7b7d03609d9b",
+    "walletId": "468e4ab0-4236-4ca2-84f0-857b2d834677",
+    "note": null,
+    "dateCreated": "2026-02-14T11:07:49.0537555Z"
+  },
+  {
+    "id": "09aa19c7-3658-495c-8e72-8ba76bbdb0ee",
+    "amount": 300,
+    "type": "income",
+    "categoryId": "f071be05-fd89-4fae-b7e9-7b7d03609d9b",
+    "walletId": "468e4ab0-4236-4ca2-84f0-857b2d834677",
+    "note": "Zarada",
+    "dateCreated": "2026-02-14T11:08:10.7598118Z"
+  },
+  {
+    "id": "2b3d4398-faca-4a8f-bd31-d8f9d7ff15c8",
+    "amount": 12,
+    "type": "expense",
+    "categoryId": "bddaf735-c68c-4d37-a519-8a5d414c6ffa",
+    "walletId": "468e4ab0-4236-4ca2-84f0-857b2d834677",
+    "note": null,
+    "dateCreated": "2026-02-14T11:18:22.467157Z"
+  },
+  {
+    "id": "d15b45aa-0036-46f1-9d05-f7ff98b4e4f5",
+    "amount": 55,
+    "type": "expense",
+    "categoryId": "eae56227-03f7-4acc-b8b1-55bc9b4df4c4",
+    "walletId": "468e4ab0-4236-4ca2-84f0-857b2d834677",
+    "note": null,
+    "dateCreated": "2026-02-14T11:18:44.1434226Z"
+  },
+  {
+    "id": "ec52d330-b046-40c1-82e5-c52605d8c6eb",
+    "amount": 1200,
+    "type": "income",
+    "categoryId": "de94859f-944f-4b86-8a7e-97ceaad1d8d2",
+    "walletId": "813cf0bc-19cf-4a39-a24a-ba4b80b2fc23",
+    "note": "placa",
+    "dateCreated": "2026-02-14T11:22:18.3446558Z"
+  },
+  {
+    "id": "36216b7c-946d-4b5b-968e-189d1ffda5a5",
+    "amount": 68.25,
+    "type": "expense",
+    "categoryId": "bddaf735-c68c-4d37-a519-8a5d414c6ffa",
+    "walletId": "813cf0bc-19cf-4a39-a24a-ba4b80b2fc23",
+    "note": "restoran lovac",
+    "dateCreated": "2026-02-14T11:22:38.4960168Z"
+  }
+]

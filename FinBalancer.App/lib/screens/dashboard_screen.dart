@@ -4,7 +4,8 @@ import 'package:fl_chart/fl_chart.dart';
 
 import '../theme/app_theme.dart';
 import '../providers/data_provider.dart';
-import '../models/category.dart';
+import '../providers/app_provider.dart';
+import '../models/category.dart' as app_models;
 import '../widgets/balance_card.dart';
 import '../widgets/transaction_tile.dart';
 
@@ -24,7 +25,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     });
   }
 
-  Category? _getCategory(DataProvider provider, String id) {
+  app_models.TransactionCategory? _getCategory(DataProvider provider, String id) {
     try {
       return provider.categories.firstWhere((c) => c.id == id);
     } catch (_) {
@@ -50,6 +51,15 @@ class _DashboardScreenState extends State<DashboardScreen> {
           IconButton(
             icon: const Icon(Icons.refresh),
             onPressed: () => context.read<DataProvider>().loadAll(),
+          ),
+          IconButton(
+            icon: const Icon(Icons.logout),
+            onPressed: () async {
+              await context.read<AppProvider>().logout();
+              if (context.mounted) {
+                Navigator.pushReplacementNamed(context, '/');
+              }
+            },
           ),
         ],
       ),
@@ -144,7 +154,62 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     ),
                   ),
                   const SizedBox(height: 24),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    child: InkWell(
+                      onTap: () => Navigator.pushNamed(context, '/statistics'),
+                      borderRadius: BorderRadius.circular(20),
+                      child: Container(
+                        padding: const EdgeInsets.all(20),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(20),
+                          boxShadow: [
+                            BoxShadow(
+                              color: AppTheme.cardShadow,
+                              blurRadius: 20,
+                              offset: const Offset(0, 4),
+                            ),
+                          ],
+                        ),
+                        child: Row(
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(14),
+                              decoration: BoxDecoration(
+                                color: AppTheme.accentColor.withOpacity(0.1),
+                                borderRadius: BorderRadius.circular(14),
+                              ),
+                              child: Icon(Icons.bar_chart_rounded, color: AppTheme.accentColor, size: 28),
+                            ),
+                            const SizedBox(width: 16),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'Statistics',
+                                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                  ),
+                                  Text(
+                                    'Charts, spending by category, trends',
+                                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                          color: Colors.grey.shade600,
+                                        ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            Icon(Icons.arrow_forward_ios, size: 16, color: Colors.grey.shade400),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
                   if (provider.getExpensesByCategory().isNotEmpty) ...[
+                    const SizedBox(height: 24),
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 20),
                       child: Text(
@@ -159,7 +224,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       height: 200,
                       child: _buildPieChart(provider),
                     ),
-                    const SizedBox(height: 24),
                   ],
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -177,7 +241,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             context,
                             '/add-transaction',
                           ).then((_) => provider.loadAll()),
-                          child: const Text('Add'),
+                          child: const Text('Add Transaction'),
                         ),
                       ],
                     ),
@@ -265,7 +329,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
         sectionsSpace: 2,
         centerSpaceRadius: 40,
       ),
-      duration: const Duration(milliseconds: 500),
     );
   }
 
@@ -283,16 +346,21 @@ class _DashboardScreenState extends State<DashboardScreen> {
       ),
       child: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
-              _NavItem(icon: Icons.dashboard, label: 'Dashboard', isActive: true),
+              _NavItem(icon: Icons.dashboard, label: 'Home', isActive: true),
               _NavItem(
                 icon: Icons.add_circle_outline,
                 label: 'Add',
                 onTap: () => Navigator.pushNamed(context, '/add-transaction')
                     .then((_) => context.read<DataProvider>().loadAll()),
+              ),
+              _NavItem(
+                icon: Icons.bar_chart,
+                label: 'Stats',
+                onTap: () => Navigator.pushNamed(context, '/statistics'),
               ),
               _NavItem(
                 icon: Icons.account_balance_wallet,

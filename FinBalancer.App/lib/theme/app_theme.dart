@@ -17,7 +17,7 @@ class AppTheme {
         primary: accentColor,
       ),
       scaffoldBackgroundColor: Colors.white,
-      cardTheme: CardTheme(
+      cardTheme: CardThemeData(
         color: Colors.white,
         elevation: 4,
         shadowColor: cardShadow,
@@ -25,7 +25,6 @@ class AppTheme {
           borderRadius: BorderRadius.circular(20),
         ),
         margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-        child: null,
       ),
       textTheme: GoogleFonts.dmSansTextTheme(
         const TextTheme(

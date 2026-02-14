@@ -3,7 +3,7 @@ import 'package:provider/provider.dart';
 
 import '../theme/app_theme.dart';
 import '../providers/data_provider.dart';
-import '../models/category.dart';
+import '../models/category.dart' as app_models;
 
 class CategoriesScreen extends StatefulWidget {
   const CategoriesScreen({super.key});
@@ -88,8 +88,8 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
     );
   }
 
-  Widget _buildSection(
-      BuildContext context, String title, List<Category> categories, Color color) {
+  Widget _buildSection(BuildContext context, String title,
+      List<app_models.TransactionCategory> categories, Color color) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -108,10 +108,11 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
 }
 
 class _CategoryTile extends StatelessWidget {
-  final Category category;
+  final app_models.TransactionCategory category;
   final Color color;
 
-  const _CategoryTile({required this.category, required this.color});
+  const _CategoryTile(
+      {required this.category, required this.color});
 
   IconData _getIcon(String name) {
     const icons = {

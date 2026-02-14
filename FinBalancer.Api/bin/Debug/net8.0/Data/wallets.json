@@ -4,5 +4,11 @@
     "name": "Test Wallet",
     "balance": 100,
     "currency": "EUR"
+  },
+  {
+    "id": "468e4ab0-4236-4ca2-84f0-857b2d834677",
+    "name": "Testni",
+    "balance": 950,
+    "currency": "EUR"
   }
 ]
