@@ -1,11 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:fl_chart/fl_chart.dart';
+import 'package:url_launcher/url_launcher.dart';
+
+import '../services/api_service.dart';
 
 import '../theme/app_theme.dart';
 import '../providers/data_provider.dart';
 import '../providers/app_provider.dart';
 import '../models/category.dart' as app_models;
+import '../models/achievement.dart';
 import '../widgets/balance_card.dart';
 import '../widgets/transaction_tile.dart';
 
@@ -23,6 +27,49 @@ class _DashboardScreenState extends State<DashboardScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<DataProvider>().loadAll();
     });
+  }
+
+  void _showExportMenu(BuildContext context) {
+    final api = ApiService();
+    showModalBottomSheet(
+      context: context,
+      builder: (ctx) => SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Text('Export data', style: Theme.of(context).textTheme.titleLarge),
+              const SizedBox(height: 16),
+              ListTile(
+                leading: const Icon(Icons.table_chart),
+                title: const Text('CSV'),
+                onTap: () => _launchExport(ctx, api.getExportUrl('csv')),
+              ),
+              ListTile(
+                leading: const Icon(Icons.code),
+                title: const Text('JSON'),
+                onTap: () => _launchExport(ctx, api.getExportUrl('json')),
+              ),
+              ListTile(
+                leading: const Icon(Icons.picture_as_pdf),
+                title: const Text('PDF (HTML)'),
+                onTap: () => _launchExport(ctx, api.getExportUrl('pdf')),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Future<void> _launchExport(BuildContext sheetContext, String url) async {
+    Navigator.pop(sheetContext);
+    final uri = Uri.parse(url);
+    if (await canLaunchUrl(uri)) {
+      await launchUrl(uri, mode: LaunchMode.externalApplication);
+    }
   }
 
   app_models.TransactionCategory? _getCategory(DataProvider provider, String id) {
@@ -51,6 +98,17 @@ class _DashboardScreenState extends State<DashboardScreen> {
           IconButton(
             icon: const Icon(Icons.refresh),
             onPressed: () => context.read<DataProvider>().loadAll(),
+          ),
+          PopupMenuButton<String>(
+            icon: const Icon(Icons.more_vert),
+            onSelected: (v) {
+              if (v == 'categories') Navigator.pushNamed(context, '/categories');
+              if (v == 'export') _showExportMenu(context);
+            },
+            itemBuilder: (_) => [
+              const PopupMenuItem(value: 'categories', child: Text('Categories')),
+              const PopupMenuItem(value: 'export', child: Text('Export data')),
+            ],
           ),
           IconButton(
             icon: const Icon(Icons.logout),
@@ -153,6 +211,68 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       ],
                     ),
                   ),
+                  const SizedBox(height: 24),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    child: InkWell(
+                      onTap: () => Navigator.pushNamed(context, '/goals')
+                          .then((_) => provider.loadAll()),
+                      borderRadius: BorderRadius.circular(20),
+                      child: Container(
+                        padding: const EdgeInsets.all(20),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(20),
+                          boxShadow: [
+                            BoxShadow(
+                              color: AppTheme.cardShadow,
+                              blurRadius: 20,
+                              offset: const Offset(0, 4),
+                            ),
+                          ],
+                        ),
+                        child: Row(
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(14),
+                              decoration: BoxDecoration(
+                                color: AppTheme.incomeColor.withOpacity(0.1),
+                                borderRadius: BorderRadius.circular(14),
+                              ),
+                              child: Icon(Icons.flag, color: AppTheme.incomeColor, size: 28),
+                            ),
+                            const SizedBox(width: 16),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'Goals',
+                                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                  ),
+                                  Text(
+                                    '${provider.goals.length} goals · Track savings & progress',
+                                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                          color: Colors.grey.shade600,
+                                        ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            Icon(Icons.arrow_forward_ios, size: 16, color: Colors.grey.shade400),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  if (provider.achievements.isNotEmpty)
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                      child: _AchievementsRow(achievements: provider.achievements),
+                    ),
                   const SizedBox(height: 24),
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -363,19 +483,82 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 onTap: () => Navigator.pushNamed(context, '/statistics'),
               ),
               _NavItem(
+                icon: Icons.flag,
+                label: 'Goals',
+                onTap: () => Navigator.pushNamed(context, '/goals')
+                    .then((_) => context.read<DataProvider>().loadAll()),
+              ),
+              _NavItem(
                 icon: Icons.account_balance_wallet,
                 label: 'Wallets',
                 onTap: () => Navigator.pushNamed(context, '/wallets')
                     .then((_) => context.read<DataProvider>().loadAll()),
               ),
-              _NavItem(
-                icon: Icons.category,
-                label: 'Categories',
-                onTap: () => Navigator.pushNamed(context, '/categories'),
-              ),
             ],
           ),
         ),
+      ),
+    );
+  }
+}
+
+class _AchievementsRow extends StatelessWidget {
+  final List<Achievement> achievements;
+
+  const _AchievementsRow({required this.achievements});
+
+  @override
+  Widget build(BuildContext context) {
+    final unlocked = achievements.where((a) => a.isUnlocked).toList();
+    if (unlocked.isEmpty) return const SizedBox.shrink();
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(color: AppTheme.cardShadow, blurRadius: 12, offset: const Offset(0, 2)),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(Icons.emoji_events, color: Colors.amber.shade700, size: 20),
+              const SizedBox(width: 8),
+              Text(
+                'Achievements',
+                style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(
+              children: unlocked.take(5).map((a) {
+                return Container(
+                  margin: const EdgeInsets.only(right: 12),
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                  decoration: BoxDecoration(
+                    color: Colors.amber.shade50,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: Colors.amber.shade200),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(Icons.star, color: Colors.amber.shade700, size: 18),
+                      const SizedBox(width: 6),
+                      Text(a.name, style: Theme.of(context).textTheme.bodyMedium),
+                    ],
+                  ),
+                );
+              }).toList(),
+            ),
+          ),
+        ],
       ),
     );
   }

@@ -13,6 +13,7 @@ import 'screens/categories_screen.dart';
 import 'screens/register_screen.dart';
 import 'screens/reset_password_screen.dart';
 import 'screens/statistics_screen.dart';
+import 'screens/goals_screen.dart';
 
 void main() {
   runApp(const FinBalancerApp());
@@ -42,6 +43,7 @@ class FinBalancerApp extends StatelessWidget {
           '/register': (context) => const RegisterScreen(),
           '/reset-password': (context) => const ResetPasswordScreen(),
           '/statistics': (context) => const StatisticsScreen(),
+          '/goals': (context) => const GoalsScreen(),
         },
       ),
     );

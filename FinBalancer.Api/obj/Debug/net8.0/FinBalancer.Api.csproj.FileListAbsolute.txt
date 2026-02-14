@@ -37,3 +37,6 @@ C:\Users\tpe\Desktop\side\FinBalancer\FinBalancer.Api\obj\Debug\net8.0\ref\FinBa
 C:\Users\tpe\Desktop\side\FinBalancer\FinBalancer.Api\obj\Debug\net8.0\FinBalancer.Api.sourcelink.json
 C:\Users\tpe\Desktop\side\FinBalancer\FinBalancer.Api\bin\Debug\net8.0\Data\notification_requests.json
 C:\Users\tpe\Desktop\side\FinBalancer\FinBalancer.Api\bin\Debug\net8.0\Data\users.json
+C:\Users\tpe\Desktop\side\FinBalancer\FinBalancer.Api\bin\Debug\net8.0\Data\achievements_unlocked.json
+C:\Users\tpe\Desktop\side\FinBalancer\FinBalancer.Api\bin\Debug\net8.0\Data\goals.json
+C:\Users\tpe\Desktop\side\FinBalancer\FinBalancer.Api\bin\Debug\net8.0\Data\subcategories.json

@@ -16,10 +16,29 @@ public class TransactionsController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<ActionResult<List<Transaction>>> Get()
+    public async Task<ActionResult<List<Transaction>>> Get(
+        [FromQuery] string? tag,
+        [FromQuery] string? project,
+        [FromQuery] Guid? walletId)
     {
         var transactions = await _transactionService.GetTransactionsAsync();
+
+        if (!string.IsNullOrEmpty(tag))
+            transactions = transactions.Where(t => t.Tags?.Contains(tag) == true).ToList();
+        if (!string.IsNullOrEmpty(project))
+            transactions = transactions.Where(t => t.Project == project).ToList();
+        if (walletId.HasValue)
+            transactions = transactions.Where(t => t.WalletId == walletId).ToList();
+
         return Ok(transactions.OrderByDescending(t => t.DateCreated).ToList());
+    }
+
+    [HttpPut("{id:guid}")]
+    public async Task<ActionResult<Transaction>> Put(Guid id, [FromBody] Transaction transaction)
+    {
+        if (id != transaction.Id) return BadRequest();
+        var updated = await _transactionService.UpdateTransactionAsync(transaction);
+        return updated != null ? Ok(updated) : NotFound();
     }
 
     [HttpPost]

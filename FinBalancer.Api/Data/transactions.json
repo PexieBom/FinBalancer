@@ -4,8 +4,11 @@
     "amount": 500,
     "type": "income",
     "categoryId": "f071be05-fd89-4fae-b7e9-7b7d03609d9b",
+    "subcategoryId": null,
     "walletId": "468e4ab0-4236-4ca2-84f0-857b2d834677",
     "note": null,
+    "tags": [],
+    "project": null,
     "dateCreated": "2026-02-14T11:07:49.0537555Z"
   },
   {
@@ -13,8 +16,11 @@
     "amount": 300,
     "type": "income",
     "categoryId": "f071be05-fd89-4fae-b7e9-7b7d03609d9b",
+    "subcategoryId": null,
     "walletId": "468e4ab0-4236-4ca2-84f0-857b2d834677",
     "note": "Zarada",
+    "tags": [],
+    "project": null,
     "dateCreated": "2026-02-14T11:08:10.7598118Z"
   },
   {
@@ -22,8 +28,11 @@
     "amount": 12,
     "type": "expense",
     "categoryId": "bddaf735-c68c-4d37-a519-8a5d414c6ffa",
+    "subcategoryId": null,
     "walletId": "468e4ab0-4236-4ca2-84f0-857b2d834677",
     "note": null,
+    "tags": [],
+    "project": null,
     "dateCreated": "2026-02-14T11:18:22.467157Z"
   },
   {
@@ -31,8 +40,11 @@
     "amount": 55,
     "type": "expense",
     "categoryId": "eae56227-03f7-4acc-b8b1-55bc9b4df4c4",
+    "subcategoryId": null,
     "walletId": "468e4ab0-4236-4ca2-84f0-857b2d834677",
     "note": null,
+    "tags": [],
+    "project": null,
     "dateCreated": "2026-02-14T11:18:44.1434226Z"
   },
   {
@@ -40,8 +52,11 @@
     "amount": 1200,
     "type": "income",
     "categoryId": "de94859f-944f-4b86-8a7e-97ceaad1d8d2",
+    "subcategoryId": null,
     "walletId": "813cf0bc-19cf-4a39-a24a-ba4b80b2fc23",
     "note": "placa",
+    "tags": [],
+    "project": null,
     "dateCreated": "2026-02-14T11:22:18.3446558Z"
   },
   {
@@ -49,8 +64,25 @@
     "amount": 68.25,
     "type": "expense",
     "categoryId": "bddaf735-c68c-4d37-a519-8a5d414c6ffa",
+    "subcategoryId": null,
     "walletId": "813cf0bc-19cf-4a39-a24a-ba4b80b2fc23",
     "note": "restoran lovac",
+    "tags": [],
+    "project": null,
     "dateCreated": "2026-02-14T11:22:38.4960168Z"
+  },
+  {
+    "id": "8e5e6a59-0a1e-4fd5-b115-2655b4ea1a66",
+    "amount": 75,
+    "type": "expense",
+    "categoryId": "bddaf735-c68c-4d37-a519-8a5d414c6ffa",
+    "subcategoryId": null,
+    "walletId": "813cf0bc-19cf-4a39-a24a-ba4b80b2fc23",
+    "note": "Restoran Lovac",
+    "tags": [
+      "Restoran"
+    ],
+    "project": null,
+    "dateCreated": "2026-02-14T14:13:05.152468Z"
   }
 ]

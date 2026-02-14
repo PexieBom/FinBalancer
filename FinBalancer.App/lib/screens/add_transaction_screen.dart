@@ -19,8 +19,16 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
   final _formKey = GlobalKey<FormState>();
   final _amountController = TextEditingController();
   final _noteController = TextEditingController();
+  final _tagController = TextEditingController();
+  final _projectController = TextEditingController();
 
   bool _isIncome = false;
+  final List<String> _tags = [];
+  String? _selectedSubcategoryId;
+  String? _selectedCategoryId;
+  String? _selectedWalletId;
+  bool _isLoading = false;
+  String? _error;
 
   @override
   void initState() {
@@ -29,15 +37,13 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
       context.read<DataProvider>().loadAll();
     });
   }
-  String? _selectedCategoryId;
-  String? _selectedWalletId;
-  bool _isLoading = false;
-  String? _error;
 
   @override
   void dispose() {
     _amountController.dispose();
     _noteController.dispose();
+    _tagController.dispose();
+    _projectController.dispose();
     super.dispose();
   }
 
@@ -74,6 +80,9 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
         walletId: _selectedWalletId!,
         note: _noteController.text.isEmpty ? null : _noteController.text,
         dateCreated: DateTime.now(),
+        tags: List.from(_tags),
+        subcategoryId: _selectedSubcategoryId,
+        project: _projectController.text.trim().isEmpty ? null : _projectController.text.trim(),
       );
       await provider.addTransaction(transaction);
       if (mounted) Navigator.pop(context);
@@ -188,6 +197,7 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
                               setState(() {
                                 _isIncome = value.first;
                                 _selectedCategoryId = null;
+                                _selectedSubcategoryId = null;
                               });
                             },
                           ),
@@ -223,8 +233,37 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
                                     ),
                                   ))
                               .toList(),
-                          onChanged: (v) => setState(() => _selectedCategoryId = v),
+                          onChanged: (v) {
+                            setState(() {
+                              _selectedCategoryId = v;
+                              _selectedSubcategoryId = null;
+                              if (v != null) {
+                                provider.loadSubcategories(categoryId: v);
+                              }
+                            });
+                          },
                         ),
+                        if (_selectedCategoryId != null) ...[
+                          const SizedBox(height: 16),
+                          Consumer<DataProvider>(
+                            builder: (context, prov, _) {
+                              final subcats = prov.subcategories.toList();
+                              if (subcats.isEmpty) return const SizedBox.shrink();
+                              return DropdownButtonFormField<String>(
+                                value: _selectedSubcategoryId,
+                                decoration: const InputDecoration(labelText: 'Subcategory (optional)'),
+                                items: [
+                                  const DropdownMenuItem(value: null, child: Text('— None —')),
+                                  ...subcats.map((s) => DropdownMenuItem(
+                                        value: s.id,
+                                        child: Text(s.name),
+                                      )),
+                                ],
+                                onChanged: (v) => setState(() => _selectedSubcategoryId = v),
+                              );
+                            },
+                          ),
+                        ],
                         const SizedBox(height: 16),
                         DropdownButtonFormField<String>(
                           value: _selectedWalletId,
@@ -243,6 +282,26 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
                           controller: _noteController,
                           decoration: const InputDecoration(labelText: 'Note (optional)'),
                           maxLines: 2,
+                        ),
+                        const SizedBox(height: 16),
+                        TextFormField(
+                          controller: _projectController,
+                          decoration: const InputDecoration(
+                            labelText: 'Project (optional)',
+                            hintText: 'e.g. Vacation 2025',
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                        _TagsInput(
+                          tags: _tags,
+                          tagController: _tagController,
+                          onAdd: (tag) {
+                            if (tag.isNotEmpty && !_tags.contains(tag)) {
+                              setState(() => _tags.add(tag));
+                              _tagController.clear();
+                            }
+                          },
+                          onRemove: (tag) => setState(() => _tags.remove(tag)),
                         ),
                       ],
                     ),
@@ -310,5 +369,52 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
       'attach_money': Icons.attach_money,
     };
     return icons[name] ?? Icons.receipt;
+  }
+}
+
+class _TagsInput extends StatelessWidget {
+  final List<String> tags;
+  final TextEditingController tagController;
+  final void Function(String) onAdd;
+  final void Function(String) onRemove;
+
+  const _TagsInput({
+    required this.tags,
+    required this.tagController,
+    required this.onAdd,
+    required this.onRemove,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text('Tags (optional)', style: TextStyle(fontSize: 12, color: Colors.grey)),
+        const SizedBox(height: 8),
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: [
+            ...tags.map((tag) => Chip(
+                  label: Text(tag),
+                  onDeleted: () => onRemove(tag),
+                )),
+            SizedBox(
+              width: 120,
+              child: TextField(
+                controller: tagController,
+                decoration: const InputDecoration(
+                  hintText: '+ tag',
+                  isDense: true,
+                  contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                ),
+                onSubmitted: onAdd,
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
   }
 }

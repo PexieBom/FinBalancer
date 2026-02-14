@@ -1,0 +1,14 @@
+[
+  {
+    "key": "first_transaction",
+    "unlockedAt": "2026-02-14T11:48:14.194938Z"
+  },
+  {
+    "key": "first_goal",
+    "unlockedAt": "2026-02-14T14:14:15.84836Z"
+  },
+  {
+    "key": "goal_reached",
+    "unlockedAt": "2026-02-14T14:14:35.6888787Z"
+  }
+]

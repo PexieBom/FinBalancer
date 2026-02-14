@@ -40,6 +40,15 @@ public class TransactionService
         return transaction;
     }
 
+    public async Task<Transaction?> UpdateTransactionAsync(Transaction transaction)
+    {
+        var existing = await _transactionRepository.GetByIdAsync(transaction.Id);
+        if (existing == null) return null;
+
+        var updated = await _transactionRepository.UpdateAsync(transaction);
+        return updated ? transaction : null;
+    }
+
     public async Task<bool> DeleteTransactionAsync(Guid id)
     {
         var transaction = await _transactionRepository.GetByIdAsync(id);

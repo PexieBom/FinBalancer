@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:intl/intl.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../theme/app_theme.dart';
 import '../services/api_service.dart';
@@ -16,6 +17,9 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
   final ApiService _api = ApiService();
   Map<String, dynamic>? _spendingData;
   Map<String, dynamic>? _summaryData;
+  Map<String, dynamic>? _budgetPrediction;
+  List<dynamic> _budgetAlerts = [];
+  Map<String, dynamic>? _cashflowTrend;
   bool _isLoading = true;
   String? _error;
 
@@ -31,10 +35,16 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
       final results = await Future.wait([
         _api.getSpendingByCategory(),
         _api.getIncomeExpenseSummary(),
+        _api.getBudgetPrediction(),
+        _api.getBudgetAlerts(),
+        _api.getCashflowTrend(),
       ]);
       setState(() {
         _spendingData = results[0] as Map<String, dynamic>;
         _summaryData = results[1] as Map<String, dynamic>;
+        _budgetPrediction = results[2] as Map<String, dynamic>;
+        _budgetAlerts = results[3] as List<dynamic>;
+        _cashflowTrend = results[4] as Map<String, dynamic>;
         _isLoading = false;
       });
     } catch (e) {
@@ -65,6 +75,10 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
         ),
         actions: [
           IconButton(
+            icon: const Icon(Icons.download),
+            onPressed: () => _showExportSheet(context),
+          ),
+          IconButton(
             icon: const Icon(Icons.refresh),
             onPressed: _loadData,
           ),
@@ -83,12 +97,28 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         if (_summaryData != null) _buildSummaryCards(),
-                        const SizedBox(height: 24),
-                        if (_spendingData != null) _buildSpendingByCategory(),
-                        const SizedBox(height: 24),
-                        if (_summaryData != null) _buildMonthlyChart(),
+                        if (_budgetAlerts.isNotEmpty) ...[
+                          const SizedBox(height: 24),
+                          _buildBudgetAlerts(),
+                        ],
+                        if (_budgetPrediction != null) ...[
+                          const SizedBox(height: 24),
+                          _buildBudgetPrediction(),
+                        ],
+                        if (_cashflowTrend != null) ...[
+                          const SizedBox(height: 24),
+                          _buildCashflowTrendChart(),
+                        ],
+                        if (_spendingData != null) ...[
+                          const SizedBox(height: 24),
+                          _buildSpendingByCategory(),
+                        ],
+                        if (_summaryData != null) ...[
+                          const SizedBox(height: 24),
+                          _buildMonthlyChart(),
+                        ],
                         const SizedBox(height: 40),
-                        if (_summaryData == null && _spendingData == null)
+                        if (_summaryData == null && _spendingData == null && _budgetPrediction == null)
                           const Center(child: Text('No data available')),
                       ],
                     ),
@@ -120,6 +150,48 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
         ),
       ),
     );
+  }
+
+  void _showExportSheet(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      builder: (ctx) => SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Text('Export data', style: Theme.of(context).textTheme.titleLarge),
+              const SizedBox(height: 16),
+              ListTile(
+                leading: const Icon(Icons.table_chart),
+                title: const Text('CSV'),
+                onTap: () => _launchExport(ctx, _api.getExportUrl('csv')),
+              ),
+              ListTile(
+                leading: const Icon(Icons.code),
+                title: const Text('JSON'),
+                onTap: () => _launchExport(ctx, _api.getExportUrl('json')),
+              ),
+              ListTile(
+                leading: const Icon(Icons.picture_as_pdf),
+                title: const Text('PDF (HTML)'),
+                onTap: () => _launchExport(ctx, _api.getExportUrl('pdf')),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Future<void> _launchExport(BuildContext sheetContext, String url) async {
+    Navigator.pop(sheetContext);
+    final uri = Uri.parse(url);
+    if (await canLaunchUrl(uri)) {
+      await launchUrl(uri, mode: LaunchMode.externalApplication);
+    }
   }
 
   Widget _buildError() {
@@ -181,6 +253,176 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
           amount: balance,
           color: balance >= 0 ? AppTheme.incomeColor : AppTheme.expenseColor,
           icon: Icons.account_balance_wallet,
+        ),
+      ],
+    );
+  }
+
+  Widget _buildBudgetAlerts() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text('Budget Alerts', style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
+        const SizedBox(height: 12),
+        ...(_budgetAlerts).map((a) {
+          final alert = a as Map<String, dynamic>;
+          final msg = alert['message'] as String? ?? '';
+          return Container(
+            margin: const EdgeInsets.only(bottom: 8),
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: AppTheme.expenseColor.withOpacity(0.08),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: AppTheme.expenseColor.withOpacity(0.3)),
+            ),
+            child: Row(
+              children: [
+                Icon(Icons.warning_amber_rounded, color: AppTheme.expenseColor),
+                const SizedBox(width: 12),
+                Expanded(child: Text(msg, style: Theme.of(context).textTheme.bodyMedium)),
+              ],
+            ),
+          );
+        }),
+      ],
+    );
+  }
+
+  Widget _buildBudgetPrediction() {
+    final pred = _budgetPrediction!;
+    final byCategory = pred['byCategory'] as List<dynamic>? ?? [];
+    final total = (pred['totalPredictedNextMonth'] as num?)?.toDouble() ?? 0.0;
+    final currencyFormat = NumberFormat.currency(locale: 'hr_HR', symbol: '€');
+
+    if (byCategory.isEmpty) return const SizedBox.shrink();
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text('Predicted Spending (Next Month)', style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
+        const SizedBox(height: 8),
+        Text('Based on your last 3 months average +5%', style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Colors.grey.shade600)),
+        const SizedBox(height: 16),
+        Container(
+          padding: const EdgeInsets.all(20),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(16),
+            boxShadow: [BoxShadow(color: AppTheme.cardShadow, blurRadius: 20, offset: const Offset(0, 4))],
+          ),
+          child: Column(
+            children: [
+              ...byCategory.map((c) {
+                final cat = c as Map<String, dynamic>;
+                final name = cat['categoryName'] as String? ?? '';
+                final predicted = (cat['predictedNextMonth'] as num?)?.toDouble() ?? 0.0;
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: 12),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(name),
+                      Text(currencyFormat.format(predicted), style: const TextStyle(fontWeight: FontWeight.w600)),
+                    ],
+                  ),
+                );
+              }),
+              const Divider(),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text('Total predicted', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
+                  Text(currencyFormat.format(total), style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold, color: AppTheme.accentColor)),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildCashflowTrendChart() {
+    final points = _cashflowTrend!['points'] as List<dynamic>? ?? [];
+    if (points.isEmpty) return const SizedBox.shrink();
+
+    const monthNames = ['', 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    final currencyFormat = NumberFormat.currency(locale: 'hr_HR', symbol: '€');
+
+    final netValues = points.map((p) {
+      final pt = p as Map<String, dynamic>;
+      return (pt['net'] as num?)?.toDouble() ?? 0.0;
+    }).toList();
+    final maxNet = netValues.map((v) => v.abs()).fold(0.0, (a, b) => a > b ? a : b);
+    final minY = maxNet > 0 ? -maxNet * 1.1 : -100.0;
+    final maxY = maxNet > 0 ? maxNet * 1.1 : 100.0;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text('Cashflow Trend', style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
+        const SizedBox(height: 8),
+        Text('Income vs expense by month', style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Colors.grey.shade600)),
+        const SizedBox(height: 16),
+        SizedBox(
+          height: 220,
+          child: BarChart(
+            BarChartData(
+              alignment: BarChartAlignment.spaceAround,
+              maxY: maxY,
+              minY: minY,
+              barGroups: points.asMap().entries.map((e) {
+                final pt = e.value as Map<String, dynamic>;
+                final net = (pt['net'] as num?)?.toDouble() ?? 0.0;
+                return BarChartGroupData(
+                  x: e.key,
+                  barRods: [
+                    BarChartRodData(
+                      toY: net,
+                      color: net >= 0 ? AppTheme.incomeColor : AppTheme.expenseColor,
+                      width: 20,
+                      borderRadius: const BorderRadius.vertical(top: Radius.circular(4)),
+                    ),
+                  ],
+                  showingTooltipIndicators: [0],
+                );
+              }).toList(),
+              titlesData: FlTitlesData(
+                leftTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                rightTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                topTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                bottomTitles: AxisTitles(
+                  sideTitles: SideTitles(
+                    showTitles: true,
+                    getTitlesWidget: (v, meta) {
+                      final i = v.toInt();
+                      if (i < 0 || i >= points.length) return const SizedBox();
+                      final pt = points[i] as Map<String, dynamic>;
+                      final month = pt['month'] as int? ?? 0;
+                      final year = pt['year'] as int? ?? 0;
+                      return Padding(
+                        padding: const EdgeInsets.only(top: 8),
+                        child: Text('${monthNames[month]}', style: const TextStyle(fontSize: 10)),
+                      );
+                    },
+                    reservedSize: 28,
+                  ),
+                ),
+              ),
+              gridData: FlGridData(show: false),
+              borderData: FlBorderData(show: true, border: Border(bottom: BorderSide(color: Colors.grey.shade300))),
+              barTouchData: BarTouchData(
+                touchTooltipData: BarTouchTooltipData(
+                  getTooltipColor: (_) => Colors.grey.shade800,
+                  getTooltipItem: (group, groupIndex, rod, rodIndex) {
+                    final pt = points[group.x] as Map<String, dynamic>;
+                    final net = (pt['net'] as num?)?.toDouble() ?? 0.0;
+                    return BarTooltipItem('Net: ${currencyFormat.format(net)}', const TextStyle(color: Colors.white, fontSize: 12));
+                  },
+                ),
+              ),
+            ),
+          ),
         ),
       ],
     );

@@ -36,6 +36,23 @@ public class JsonTransactionRepository : ITransactionRepository
         return transaction;
     }
 
+    public async Task<bool> UpdateAsync(Transaction transaction)
+    {
+        var updated = false;
+        await _storage.ExecuteInLockAsync(FileName, async () =>
+        {
+            var list = await _storage.ReadJsonUnsafeAsync<Transaction>(FileName);
+            var index = list.FindIndex(t => t.Id == transaction.Id);
+            if (index >= 0)
+            {
+                list[index] = transaction;
+                await _storage.WriteJsonUnsafeAsync(FileName, list);
+                updated = true;
+            }
+        });
+        return updated;
+    }
+
     public async Task<bool> DeleteAsync(Guid id)
     {
         var deleted = false;
