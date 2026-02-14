@@ -287,6 +287,9 @@ class AppLocalizationsEs extends AppLocalizations {
   String get settings => 'Configuración';
 
   @override
+  String get premiumFeatures => 'Premium features';
+
+  @override
   String get language => 'Idioma';
 
   @override

@@ -16,9 +16,30 @@ public class CategoriesController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<ActionResult<List<Category>>> Get()
+    public async Task<ActionResult<List<Category>>> Get([FromQuery] string? locale, [FromHeader(Name = "X-User-Id")] Guid? userId)
     {
-        var categories = await _categoryService.GetCategoriesAsync();
+        var categories = await _categoryService.GetCategoriesAsync(locale, userId);
         return Ok(categories);
     }
+
+    [HttpPost("custom")]
+    public async Task<ActionResult<Category>> AddCustom([FromBody] CustomCategoryRequest request, [FromHeader(Name = "X-User-Id")] Guid? userId)
+    {
+        if (string.IsNullOrWhiteSpace(request.Name))
+            return BadRequest("Name is required");
+        if (request.Type is not "income" and not "expense")
+            return BadRequest("Type must be 'income' or 'expense'");
+        var cat = await _categoryService.AddCustomCategoryAsync(request.Name, request.Type, userId);
+        return CreatedAtAction(nameof(Get), cat);
+    }
+
+    [HttpDelete("custom/{id:guid}")]
+    public async Task<IActionResult> DeleteCustom(Guid id, [FromHeader(Name = "X-User-Id")] Guid? userId)
+    {
+        var deleted = await _categoryService.DeleteCustomCategoryAsync(id, userId);
+        if (!deleted) return NotFound();
+        return NoContent();
+    }
 }
+
+public record CustomCategoryRequest(string Name, string Type);

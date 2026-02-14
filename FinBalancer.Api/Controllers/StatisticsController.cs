@@ -19,16 +19,18 @@ public class StatisticsController : ControllerBase
     }
 
     [HttpGet("spending-by-category")]
-    public async Task<ActionResult<SpendingByCategoryDto>> GetSpendingByCategory([FromQuery] Guid? walletId)
+    public async Task<ActionResult<SpendingByCategoryDto>> GetSpendingByCategory(
+        [FromQuery] Guid? walletId, [FromQuery] DateTime? dateFrom, [FromQuery] DateTime? dateTo)
     {
-        var result = await _statisticsService.GetSpendingByCategoryAsync(walletId);
+        var result = await _statisticsService.GetSpendingByCategoryAsync(walletId, dateFrom, dateTo);
         return Ok(result);
     }
 
     [HttpGet("income-expense-summary")]
-    public async Task<ActionResult<IncomeExpenseSummaryDto>> GetIncomeExpenseSummary([FromQuery] Guid? walletId)
+    public async Task<ActionResult<IncomeExpenseSummaryDto>> GetIncomeExpenseSummary(
+        [FromQuery] Guid? walletId, [FromQuery] DateTime? dateFrom, [FromQuery] DateTime? dateTo)
     {
-        var result = await _statisticsService.GetIncomeExpenseSummaryAsync(walletId);
+        var result = await _statisticsService.GetIncomeExpenseSummaryAsync(walletId, dateFrom, dateTo);
         return Ok(result);
     }
 
@@ -47,9 +49,10 @@ public class StatisticsController : ControllerBase
     }
 
     [HttpGet("cashflow-trend")]
-    public async Task<ActionResult<TrendDataDto>> GetCashflowTrend([FromQuery] Guid? walletId, [FromQuery] int months = 6)
+    public async Task<ActionResult<TrendDataDto>> GetCashflowTrend(
+        [FromQuery] Guid? walletId, [FromQuery] DateTime? dateFrom, [FromQuery] DateTime? dateTo, [FromQuery] int months = 6)
     {
-        var result = await _advancedStatisticsService.GetCashflowTrendAsync(walletId, months);
+        var result = await _advancedStatisticsService.GetCashflowTrendAsync(walletId, months, dateFrom, dateTo);
         return Ok(result);
     }
 }

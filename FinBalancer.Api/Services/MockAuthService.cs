@@ -9,14 +9,19 @@ public class MockAuthService : IAuthService
 {
     private readonly IUserRepository _userRepository;
     private readonly INotificationRequestRepository _notificationRepository;
+    private readonly IRefreshTokenRepository _refreshTokenRepository;
     private static readonly Dictionary<string, Guid> MockTokens = new();
+    private static readonly TimeSpan AccessTokenLifetime = TimeSpan.FromHours(24);
+    private static readonly TimeSpan RefreshTokenLifetime = TimeSpan.FromDays(365);
 
     public MockAuthService(
         IUserRepository userRepository,
-        INotificationRequestRepository notificationRepository)
+        INotificationRequestRepository notificationRepository,
+        IRefreshTokenRepository refreshTokenRepository)
     {
         _userRepository = userRepository;
         _notificationRepository = notificationRepository;
+        _refreshTokenRepository = refreshTokenRepository;
     }
 
     public async Task<AuthResult> RegisterAsync(string email, string password, string displayName)
@@ -35,8 +40,8 @@ public class MockAuthService : IAuthService
             CreatedAt = DateTime.UtcNow
         };
         await _userRepository.AddAsync(user);
-        var token = GenerateMockToken(user.Id);
-        return new AuthResult { Success = true, Token = token, User = user };
+        var (token, refreshToken) = await GenerateTokensAsync(user.Id);
+        return new AuthResult { Success = true, Token = token, RefreshToken = refreshToken, TokenExpiresAt = DateTime.UtcNow.Add(AccessTokenLifetime), User = user };
     }
 
     public async Task<AuthResult> LoginAsync(string email, string password)
@@ -53,8 +58,8 @@ public class MockAuthService : IAuthService
 
         user.LastLoginAt = DateTime.UtcNow;
         await _userRepository.UpdateAsync(user);
-        var token = GenerateMockToken(user.Id);
-        return new AuthResult { Success = true, Token = token, User = user };
+        var (token, refreshToken) = await GenerateTokensAsync(user.Id);
+        return new AuthResult { Success = true, Token = token, RefreshToken = refreshToken, TokenExpiresAt = DateTime.UtcNow.Add(AccessTokenLifetime), User = user };
     }
 
     public async Task<AuthResult> LoginWithGoogleAsync(string googleId, string email, string? displayName)
@@ -87,8 +92,8 @@ public class MockAuthService : IAuthService
             await _userRepository.UpdateAsync(user);
         }
 
-        var token = GenerateMockToken(user.Id);
-        return new AuthResult { Success = true, Token = token, User = user };
+        var (token, refreshToken) = await GenerateTokensAsync(user.Id);
+        return new AuthResult { Success = true, Token = token, RefreshToken = refreshToken, TokenExpiresAt = DateTime.UtcNow.Add(AccessTokenLifetime), User = user };
     }
 
     public async Task<AuthResult> LoginWithAppleAsync(string appleId, string? email, string? displayName)
@@ -122,8 +127,8 @@ public class MockAuthService : IAuthService
             await _userRepository.UpdateAsync(user);
         }
 
-        var token = GenerateMockToken(user.Id);
-        return new AuthResult { Success = true, Token = token, User = user };
+        var (token, refreshToken) = await GenerateTokensAsync(user.Id);
+        return new AuthResult { Success = true, Token = token, RefreshToken = refreshToken, TokenExpiresAt = DateTime.UtcNow.Add(AccessTokenLifetime), User = user };
     }
 
     public async Task<AuthResult?> RequestPasswordResetAsync(string email, bool returnTokenForDev = false)
@@ -161,8 +166,23 @@ public class MockAuthService : IAuthService
         await _userRepository.UpdateAsync(user);
         await _notificationRepository.MarkAsUsedAsync(request.Id);
 
-        var authToken = GenerateMockToken(user.Id);
-        return new AuthResult { Success = true, Token = authToken, User = user };
+        var (authToken, refreshToken) = await GenerateTokensAsync(user.Id);
+        return new AuthResult { Success = true, Token = authToken, RefreshToken = refreshToken, TokenExpiresAt = DateTime.UtcNow.Add(AccessTokenLifetime), User = user };
+    }
+
+    public async Task<AuthResult?> RefreshTokenAsync(string refreshToken)
+    {
+        var stored = await _refreshTokenRepository.GetByTokenAsync(refreshToken);
+        if (stored == null)
+            return new AuthResult { Success = false, Error = "Invalid or expired refresh token" };
+
+        var user = await _userRepository.GetByIdAsync(stored.UserId);
+        if (user == null)
+            return new AuthResult { Success = false, Error = "User not found" };
+
+        await _refreshTokenRepository.RemoveAsync(refreshToken);
+        var (newToken, newRefreshToken) = await GenerateTokensAsync(user.Id);
+        return new AuthResult { Success = true, Token = newToken, RefreshToken = newRefreshToken, TokenExpiresAt = DateTime.UtcNow.Add(AccessTokenLifetime), User = user };
     }
 
     public Task<User?> GetUserByTokenAsync(string token)
@@ -172,11 +192,21 @@ public class MockAuthService : IAuthService
         return Task.FromResult<User?>(null);
     }
 
-    private static string GenerateMockToken(Guid userId)
+    private async Task<(string AccessToken, string RefreshToken)> GenerateTokensAsync(Guid userId)
     {
-        var token = "mock_" + Convert.ToBase64String(Guid.NewGuid().ToByteArray()).Replace("+", "-").Replace("/", "_").TrimEnd('=');
-        MockTokens[token] = userId;
-        return token;
+        var accessToken = "mock_" + Convert.ToBase64String(Guid.NewGuid().ToByteArray()).Replace("+", "-").Replace("/", "_").TrimEnd('=');
+        MockTokens[accessToken] = userId;
+
+        var refreshToken = Convert.ToBase64String(RandomNumberGenerator.GetBytes(48)).Replace("+", "-").Replace("/", "_").TrimEnd('=');
+        await _refreshTokenRepository.AddAsync(new RefreshTokenStore
+        {
+            Token = refreshToken,
+            UserId = userId,
+            ExpiresAt = DateTime.UtcNow.Add(RefreshTokenLifetime),
+            CreatedAt = DateTime.UtcNow
+        });
+
+        return (accessToken, refreshToken);
     }
 
     private static string HashPassword(string password)

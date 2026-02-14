@@ -15,15 +15,17 @@ public class StatisticsService
         _categoryRepository = categoryRepository;
     }
 
-    public async Task<SpendingByCategoryDto> GetSpendingByCategoryAsync(Guid? walletId = null)
+    public async Task<SpendingByCategoryDto> GetSpendingByCategoryAsync(Guid? walletId = null, DateTime? dateFrom = null, DateTime? dateTo = null)
     {
         var transactions = await _transactionRepository.GetAllAsync();
         var categories = await _categoryRepository.GetOrSeedDefaultsAsync();
 
-        var expenseTransactions = transactions
+        var filtered = transactions
             .Where(t => t.Type == "expense")
-            .Where(t => !walletId.HasValue || t.WalletId == walletId)
-            .ToList();
+            .Where(t => !walletId.HasValue || t.WalletId == walletId);
+        if (dateFrom.HasValue) filtered = filtered.Where(t => t.DateCreated >= dateFrom.Value);
+        if (dateTo.HasValue) filtered = filtered.Where(t => t.DateCreated <= dateTo.Value);
+        var expenseTransactions = filtered.ToList();
 
         var byCategory = expenseTransactions
             .GroupBy(t => t.CategoryId)
@@ -43,18 +45,21 @@ public class StatisticsService
         return new SpendingByCategoryDto(byCategory.Sum(x => x.Total), byCategory);
     }
 
-    public async Task<IncomeExpenseSummaryDto> GetIncomeExpenseSummaryAsync(Guid? walletId = null)
+    public async Task<IncomeExpenseSummaryDto> GetIncomeExpenseSummaryAsync(Guid? walletId = null, DateTime? dateFrom = null, DateTime? dateTo = null)
     {
         var transactions = await _transactionRepository.GetAllAsync();
 
         var filtered = walletId.HasValue
-            ? transactions.Where(t => t.WalletId == walletId).ToList()
-            : transactions;
+            ? transactions.Where(t => t.WalletId == walletId)
+            : transactions.AsEnumerable();
+        if (dateFrom.HasValue) filtered = filtered.Where(t => t.DateCreated >= dateFrom.Value);
+        if (dateTo.HasValue) filtered = filtered.Where(t => t.DateCreated <= dateTo.Value);
+        var list = filtered.ToList();
 
-        var income = filtered.Where(t => t.Type == "income").Sum(t => t.Amount);
-        var expense = filtered.Where(t => t.Type == "expense").Sum(t => t.Amount);
+        var income = list.Where(t => t.Type == "income").Sum(t => t.Amount);
+        var expense = list.Where(t => t.Type == "expense").Sum(t => t.Amount);
 
-        var byMonth = filtered
+        var byMonth = list
             .GroupBy(t => new { t.DateCreated.Year, t.DateCreated.Month })
             .Select(g => new MonthlySummaryDto(
                 g.Key.Year,

@@ -638,6 +638,12 @@ abstract class AppLocalizations {
   /// **'Settings'**
   String get settings;
 
+  /// No description provided for @premiumFeatures.
+  ///
+  /// In en, this message translates to:
+  /// **'Premium features'**
+  String get premiumFeatures;
+
   /// No description provided for @language.
   ///
   /// In en, this message translates to:

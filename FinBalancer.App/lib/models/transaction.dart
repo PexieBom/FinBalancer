@@ -8,6 +8,7 @@ class Transaction {
   final String? note;
   final List<String> tags;
   final String? project;
+  final String? projectId;
   final DateTime dateCreated;
 
   Transaction({
@@ -20,13 +21,14 @@ class Transaction {
     this.note,
     this.tags = const [],
     this.project,
+    this.projectId,
     required this.dateCreated,
   });
 
   factory Transaction.fromJson(Map<String, dynamic> json) {
     final tagsList = json['tags'];
     return Transaction(
-      id: json['id'] as String,
+      id: json['id']?.toString() ?? '',
       amount: (json['amount'] as num).toDouble(),
       type: json['type'] as String,
       categoryId: json['categoryId'] as String,
@@ -37,6 +39,7 @@ class Transaction {
           ? (tagsList as List).map((e) => e.toString()).toList()
           : [],
       project: json['project'] as String?,
+      projectId: json['projectId']?.toString(),
       dateCreated: DateTime.parse(json['dateCreated'] as String),
     );
   }
@@ -66,6 +69,7 @@ class Transaction {
       'note': note,
       'tags': tags.isNotEmpty ? tags : null,
       'project': project,
+      'projectId': projectId,
     };
   }
 }

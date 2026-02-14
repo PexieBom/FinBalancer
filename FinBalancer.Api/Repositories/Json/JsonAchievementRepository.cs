@@ -29,6 +29,7 @@ public class JsonAchievementRepository : IAchievementRepository
             Name = d.Name,
             Icon = d.Icon,
             Description = d.Description,
+            Period = d.Period,
             UnlockedAt = unlocked.FirstOrDefault(u => u.Key == d.Key)?.UnlockedAt
         }).ToList();
     }
@@ -53,13 +54,13 @@ public class JsonAchievementRepository : IAchievementRepository
     {
         return new List<AchievementDefinition>
         {
-            new() { Key = "first_transaction", Name = "First Step", Icon = "touch_app", Description = "Add your first transaction" },
-            new() { Key = "first_goal", Name = "Goal Setter", Icon = "flag", Description = "Create your first goal" },
-            new() { Key = "goal_reached", Name = "Achiever", Icon = "emoji_events", Description = "Reach a savings goal" },
-            new() { Key = "week_streak", Name = "Weekly Tracker", Icon = "local_fire_department", Description = "Log transactions 7 days in a row" },
-            new() { Key = "budget_keeper", Name = "Budget Master", Icon = "savings", Description = "Stay under budget for a month" },
-            new() { Key = "early_bird", Name = "Early Bird", Icon = "schedule", Description = "Add transaction before 9 AM" },
-            new() { Key = "ten_transactions", Name = "Power User", Icon = "star", Description = "Add 10 transactions" }
+            new() { Key = "first_transaction", Name = "First Step", Icon = "touch_app", Description = "Add your first transaction", Period = "lifetime" },
+            new() { Key = "first_goal", Name = "Goal Setter", Icon = "flag", Description = "Create your first goal", Period = "lifetime" },
+            new() { Key = "goal_reached", Name = "Achiever", Icon = "emoji_events", Description = "Reach a savings goal", Period = "lifetime" },
+            new() { Key = "week_streak", Name = "Weekly Tracker", Icon = "local_fire_department", Description = "Log transactions 7 days in a row", Period = "weekly" },
+            new() { Key = "budget_keeper", Name = "Budget Master", Icon = "savings", Description = "Stay under budget for a month", Period = "monthly" },
+            new() { Key = "early_bird", Name = "Early Bird", Icon = "schedule", Description = "Add transaction before 9 AM", Period = "daily" },
+            new() { Key = "ten_transactions", Name = "Power User", Icon = "star", Description = "Add 10 transactions", Period = "lifetime" }
         };
     }
 
@@ -75,6 +76,7 @@ public class JsonAchievementRepository : IAchievementRepository
         public string Name { get; set; } = "";
         public string Icon { get; set; } = "";
         public string Description { get; set; } = "";
+        public string Period { get; set; } = "lifetime"; // daily, monthly, yearly, lifetime
     }
 
     private class UnlockedAchievement

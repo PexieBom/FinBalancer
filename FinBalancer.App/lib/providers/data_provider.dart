@@ -6,6 +6,7 @@ import '../models/category.dart' as app_models;
 import '../models/goal.dart';
 import '../models/achievement.dart';
 import '../models/subcategory.dart';
+import '../models/project.dart';
 import '../services/api_service.dart';
 
 class DataProvider extends ChangeNotifier {
@@ -17,6 +18,7 @@ class DataProvider extends ChangeNotifier {
   List<Goal> _goals = [];
   List<Achievement> _achievements = [];
   List<Subcategory> _subcategories = [];
+  List<Project> _projects = [];
   String? _filterTag;
   String? _filterProject;
   String? _filterWalletId;
@@ -29,6 +31,7 @@ class DataProvider extends ChangeNotifier {
   List<Goal> get goals => _goals;
   List<Achievement> get achievements => _achievements;
   List<Subcategory> get subcategories => _subcategories;
+  List<Project> get projects => _projects;
   String? get filterTag => _filterTag;
   String? get filterProject => _filterProject;
   String? get filterWalletId => _filterWalletId;
@@ -56,7 +59,7 @@ class DataProvider extends ChangeNotifier {
   List<Transaction> get recentTransactions =>
       _transactions.take(10).toList();
 
-  Future<void> loadAll() async {
+  Future<void> loadAll({String? locale}) async {
     _isLoading = true;
     _error = null;
     notifyListeners();
@@ -65,9 +68,10 @@ class DataProvider extends ChangeNotifier {
       await Future.wait([
         loadTransactions(),
         loadWallets(),
-        loadCategories(),
+        loadCategories(locale: locale),
         loadGoals(),
         loadAchievements(),
+        loadProjects(),
       ]);
     } catch (e) {
       _error = e.toString();
@@ -128,12 +132,21 @@ class DataProvider extends ChangeNotifier {
     }
   }
 
-  Future<void> loadCategories() async {
+  Future<void> loadCategories({String? locale}) async {
     try {
-      _categories = await _api.getCategories();
+      _categories = await _api.getCategories(locale: locale);
       notifyListeners();
     } catch (e) {
       _error = e.toString();
+      rethrow;
+    }
+  }
+
+  Future<void> loadProjects() async {
+    try {
+      _projects = await _api.getProjects();
+      notifyListeners();
+    } catch (e) {
       rethrow;
     }
   }
@@ -169,6 +182,55 @@ class DataProvider extends ChangeNotifier {
     try {
       final created = await _api.addWallet(wallet);
       _wallets.add(created);
+      notifyListeners();
+    } catch (e) {
+      _error = e.toString();
+      rethrow;
+    }
+  }
+
+  Future<void> updateWallet(Wallet wallet) async {
+    _error = null;
+    try {
+      await _api.updateWallet(wallet);
+      final i = _wallets.indexWhere((w) => w.id == wallet.id);
+      if (i >= 0) _wallets[i] = wallet;
+      notifyListeners();
+    } catch (e) {
+      _error = e.toString();
+      rethrow;
+    }
+  }
+
+  Future<void> deleteWallet(String id) async {
+    _error = null;
+    try {
+      await _api.deleteWallet(id);
+      _wallets.removeWhere((w) => w.id == id);
+      notifyListeners();
+    } catch (e) {
+      _error = e.toString();
+      rethrow;
+    }
+  }
+
+  Future<void> addCustomCategory(String name, String type) async {
+    _error = null;
+    try {
+      final cat = await _api.addCustomCategory(name, type);
+      _categories.add(cat);
+      notifyListeners();
+    } catch (e) {
+      _error = e.toString();
+      rethrow;
+    }
+  }
+
+  Future<void> deleteCustomCategory(String id) async {
+    _error = null;
+    try {
+      await _api.deleteCustomCategory(id);
+      _categories.removeWhere((c) => c.id == id);
       notifyListeners();
     } catch (e) {
       _error = e.toString();

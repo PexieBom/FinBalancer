@@ -288,6 +288,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get settings => 'Paramètres';
 
   @override
+  String get premiumFeatures => 'Premium features';
+
+  @override
   String get language => 'Langue';
 
   @override

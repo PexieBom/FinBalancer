@@ -13,7 +13,7 @@ class Wallet {
 
   factory Wallet.fromJson(Map<String, dynamic> json) {
     return Wallet(
-      id: json['id'] as String,
+      id: json['id']?.toString() ?? '',
       name: json['name'] as String,
       balance: (json['balance'] as num).toDouble(),
       currency: json['currency'] as String? ?? 'EUR',

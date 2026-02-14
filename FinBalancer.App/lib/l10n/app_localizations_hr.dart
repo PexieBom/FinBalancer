@@ -287,6 +287,9 @@ class AppLocalizationsHr extends AppLocalizations {
   String get settings => 'Postavke';
 
   @override
+  String get premiumFeatures => 'Premium značajke';
+
+  @override
   String get language => 'Jezik';
 
   @override

@@ -31,4 +31,21 @@ public class WalletsController : ControllerBase
         var created = await _walletService.AddWalletAsync(wallet);
         return CreatedAtAction(nameof(Get), created);
     }
+
+    [HttpPut("{id:guid}")]
+    public async Task<ActionResult<Wallet>> Put(Guid id, [FromBody] Wallet wallet)
+    {
+        if (id != wallet.Id) return BadRequest();
+        var updated = await _walletService.UpdateWalletAsync(wallet);
+        if (updated == null) return NotFound();
+        return Ok(updated);
+    }
+
+    [HttpDelete("{id:guid}")]
+    public async Task<IActionResult> Delete(Guid id)
+    {
+        var deleted = await _walletService.DeleteWalletAsync(id);
+        if (!deleted) return NotFound();
+        return NoContent();
+    }
 }

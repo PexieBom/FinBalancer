@@ -29,6 +29,7 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
   String? _selectedSubcategoryId;
   String? _selectedCategoryId;
   String? _selectedWalletId;
+  String? _selectedProjectId;
   bool _isLoading = false;
   String? _error;
 
@@ -36,7 +37,7 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<DataProvider>().loadAll();
+      context.read<DataProvider>().loadAll(locale: context.read<LocaleProvider>().localeCode);
     });
   }
 
@@ -85,6 +86,7 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
         tags: List.from(_tags),
         subcategoryId: _selectedSubcategoryId,
         project: _projectController.text.trim().isEmpty ? null : _projectController.text.trim(),
+        projectId: _selectedProjectId,
       );
       await provider.addTransaction(transaction);
       if (mounted) Navigator.pop(context);
@@ -286,12 +288,28 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
                           maxLines: 2,
                         ),
                         const SizedBox(height: 16),
-                        TextFormField(
-                          controller: _projectController,
-                          decoration: const InputDecoration(
-                            labelText: 'Project (optional)',
-                            hintText: 'e.g. Vacation 2025',
-                          ),
+                        Consumer<DataProvider>(
+                          builder: (context, prov, _) {
+                            final projects = prov.projects;
+                            return DropdownButtonFormField<String?>(
+                              value: _selectedProjectId,
+                              decoration: const InputDecoration(
+                                labelText: 'Project (optional)',
+                                hintText: '— None —',
+                              ),
+                              items: [
+                                const DropdownMenuItem(value: null, child: Text('— None —')),
+                                ...projects.map((p) => DropdownMenuItem(value: p.id, child: Text(p.name))),
+                              ],
+                              onChanged: (v) => setState(() => _selectedProjectId = v),
+                            );
+                          },
+                        ),
+                        const SizedBox(height: 16),
+                        TextButton.icon(
+                          onPressed: () => Navigator.pushNamed(context, '/projects').then((_) => provider.loadAll(locale: context.read<LocaleProvider>().localeCode)),
+                          icon: const Icon(Icons.add),
+                          label: const Text('Manage projects'),
                         ),
                         const SizedBox(height: 16),
                         _TagsInput(
@@ -369,6 +387,7 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
       'account_balance_wallet': Icons.account_balance_wallet,
       'star': Icons.star,
       'attach_money': Icons.attach_money,
+      'custom': Icons.bookmark,
     };
     return icons[name] ?? Icons.receipt;
   }

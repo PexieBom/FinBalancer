@@ -286,6 +286,9 @@ class AppLocalizationsIt extends AppLocalizations {
   String get settings => 'Impostazioni';
 
   @override
+  String get premiumFeatures => 'Premium features';
+
+  @override
   String get language => 'Lingua';
 
   @override

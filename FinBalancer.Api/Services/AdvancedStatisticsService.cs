@@ -90,16 +90,20 @@ public class AdvancedStatisticsService
         return alerts;
     }
 
-    public async Task<TrendDataDto> GetCashflowTrendAsync(Guid? walletId = null, int months = 6)
+    public async Task<TrendDataDto> GetCashflowTrendAsync(Guid? walletId = null, int months = 6, DateTime? dateFrom = null, DateTime? dateTo = null)
     {
         var transactions = await _transactionRepository.GetAllAsync();
 
         var filtered = walletId.HasValue
-            ? transactions.Where(t => t.WalletId == walletId).ToList()
-            : transactions;
+            ? transactions.Where(t => t.WalletId == walletId)
+            : transactions.AsEnumerable();
+        if (dateFrom.HasValue) filtered = filtered.Where(t => t.DateCreated >= dateFrom.Value);
+        if (dateTo.HasValue) filtered = filtered.Where(t => t.DateCreated <= dateTo.Value);
+        if (!dateFrom.HasValue && !dateTo.HasValue)
+            filtered = filtered.Where(t => t.DateCreated >= DateTime.UtcNow.AddMonths(-months));
+        var list = filtered.ToList();
 
-        var byMonth = filtered
-            .Where(t => t.DateCreated >= DateTime.UtcNow.AddMonths(-months))
+        var byMonth = list
             .GroupBy(t => new { t.DateCreated.Year, t.DateCreated.Month })
             .OrderBy(g => g.Key.Year).ThenBy(g => g.Key.Month)
             .Select(g =>

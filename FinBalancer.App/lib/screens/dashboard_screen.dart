@@ -25,11 +25,14 @@ class DashboardScreen extends StatefulWidget {
 }
 
 class _DashboardScreenState extends State<DashboardScreen> {
+  String? _selectedWalletId;
+
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<DataProvider>().loadAll();
+      final locale = context.read<LocaleProvider>().localeCode;
+      context.read<DataProvider>().loadAll(locale: locale);
     });
   }
 
@@ -99,20 +102,38 @@ class _DashboardScreenState extends State<DashboardScreen> {
               ),
         ),
         actions: [
+          Consumer<LocaleProvider>(
+            builder: (context, locale, _) => IconButton(
+              icon: Icon(
+                locale.themeMode == ThemeMode.dark ? Icons.light_mode : Icons.dark_mode,
+              ),
+              onPressed: () => locale.setThemeMode(
+                locale.themeMode == ThemeMode.dark ? ThemeMode.light : ThemeMode.dark,
+              ),
+            ),
+          ),
           IconButton(
             icon: const Icon(Icons.refresh),
-            onPressed: () => context.read<DataProvider>().loadAll(),
+            onPressed: () => context.read<DataProvider>().loadAll(locale: context.read<LocaleProvider>().localeCode),
           ),
           PopupMenuButton<String>(
             icon: const Icon(Icons.more_vert),
             onSelected: (v) {
-              if (v == 'categories') Navigator.pushNamed(context, '/categories');
+              final dp = context.read<DataProvider>();
+              final locale = context.read<LocaleProvider>().localeCode;
+              if (v == 'categories') Navigator.pushNamed(context, '/categories').then((_) => dp.loadAll(locale: locale));
+              if (v == 'projects') Navigator.pushNamed(context, '/projects').then((_) => dp.loadAll(locale: locale));
+              if (v == 'achievements') Navigator.pushNamed(context, '/achievements-list').then((_) => dp.loadAll(locale: locale));
               if (v == 'export') _showExportMenu(context);
               if (v == 'settings') Navigator.pushNamed(context, '/settings');
+              if (v == 'premium') Navigator.pushNamed(context, '/premium-features');
             },
             itemBuilder: (_) => [
               PopupMenuItem(value: 'categories', child: Text(AppLocalizations.of(context)!.categories)),
+              PopupMenuItem(value: 'projects', child: const Text('Projects')),
+              PopupMenuItem(value: 'achievements', child: Text(AppLocalizations.of(context)!.achievements)),
               PopupMenuItem(value: 'export', child: Text(AppLocalizations.of(context)!.exportData)),
+              PopupMenuItem(value: 'premium', child: Text(AppLocalizations.of(context)!.premiumFeatures)),
               PopupMenuItem(value: 'settings', child: Text(AppLocalizations.of(context)!.settings)),
             ],
           ),
@@ -159,7 +180,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     ),
                     const SizedBox(height: 24),
                     ElevatedButton(
-                      onPressed: () => provider.loadAll(),
+                      onPressed: () => provider.loadAll(locale: localeProvider.localeCode),
                       child: Text(l10n.retry),
                     ),
                   ],
@@ -169,12 +190,23 @@ class _DashboardScreenState extends State<DashboardScreen> {
           }
 
           return RefreshIndicator(
-            onRefresh: provider.loadAll,
+            onRefresh: () => provider.loadAll(locale: localeProvider.localeCode),
             child: SingleChildScrollView(
               physics: const AlwaysScrollableScrollPhysics(),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  const SizedBox(height: 8),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    child: Text(
+                      'FinBalancer',
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                            color: Theme.of(context).colorScheme.onSurfaceVariant,
+                            fontWeight: FontWeight.w500,
+                          ),
+                    ),
+                  ),
                   const SizedBox(height: 16),
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -188,11 +220,48 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   const SizedBox(height: 4),
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 20),
-                    child: BalanceCard(
-                      title: l10n.allWallets,
-                      amount: provider.totalBalance,
-                      currencyFormat: fmt,
-                      icon: Icons.account_balance_wallet,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        if (provider.wallets.isNotEmpty)
+                          Padding(
+                            padding: const EdgeInsets.only(bottom: 8),
+                            child: DropdownButtonFormField<String?>(
+                              value: _selectedWalletId,
+                              decoration: InputDecoration(
+                                isDense: true,
+                                contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                                filled: true,
+                                fillColor: Theme.of(context).cardTheme.color,
+                              ),
+                              items: [
+                                DropdownMenuItem(
+                                  value: null,
+                                  child: Text(l10n.allWallets),
+                                ),
+                                ...provider.wallets.map((w) => DropdownMenuItem(
+                                      value: w.id,
+                                      child: Text(w.name),
+                                    )),
+                              ],
+                              onChanged: (v) => setState(() => _selectedWalletId = v),
+                            ),
+                          ),
+                        BalanceCard(
+                          title: () {
+                            if (_selectedWalletId == null) return l10n.allWallets;
+                            final w = provider.wallets.where((x) => x.id == _selectedWalletId).toList();
+                            return w.isEmpty ? l10n.allWallets : w.first.name;
+                          }(),
+                          amount: () {
+                            if (_selectedWalletId == null) return provider.totalBalance;
+                            final w = provider.wallets.where((x) => x.id == _selectedWalletId).toList();
+                            return w.isEmpty ? provider.totalBalance : w.first.balance;
+                          }(),
+                          currencyFormat: fmt,
+                          icon: Icons.account_balance_wallet,
+                        ),
+                      ],
                     ),
                   ),
                   const SizedBox(height: 16),
@@ -227,7 +296,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     padding: const EdgeInsets.symmetric(horizontal: 20),
                     child: InkWell(
                       onTap: () => Navigator.pushNamed(context, '/goals')
-                          .then((_) => provider.loadAll()),
+                          .then((_) => provider.loadAll(locale: localeProvider.localeCode)),
                       borderRadius: BorderRadius.circular(20),
                       child: Container(
                         padding: const EdgeInsets.all(20),
@@ -284,7 +353,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   if (provider.achievements.isNotEmpty)
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 20),
-                      child: _AchievementsRow(achievements: provider.achievements, l10n: l10n),
+                      child: InkWell(
+                        onTap: () => Navigator.pushNamed(context, '/achievements-list').then((_) => provider.loadAll(locale: localeProvider.localeCode)),
+                        borderRadius: BorderRadius.circular(16),
+                        child: _AchievementsRow(achievements: provider.achievements, l10n: l10n),
+                      ),
                     ),
                   const SizedBox(height: 24),
                   Padding(
@@ -494,7 +567,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 icon: Icons.add_circle_outline,
                 label: l10n.add,
                 onTap: () => Navigator.pushNamed(context, '/add-transaction')
-                    .then((_) => context.read<DataProvider>().loadAll()),
+                    .then((_) => context.read<DataProvider>().loadAll(locale: context.read<LocaleProvider>().localeCode)),
               ),
               _NavItem(
                 icon: Icons.bar_chart,
@@ -505,13 +578,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 icon: Icons.flag,
                 label: l10n.goals,
                 onTap: () => Navigator.pushNamed(context, '/goals')
-                    .then((_) => context.read<DataProvider>().loadAll()),
+                    .then((_) => context.read<DataProvider>().loadAll(locale: context.read<LocaleProvider>().localeCode)),
               ),
               _NavItem(
                 icon: Icons.account_balance_wallet,
                 label: l10n.wallets,
                 onTap: () => Navigator.pushNamed(context, '/wallets')
-                    .then((_) => context.read<DataProvider>().loadAll()),
+                    .then((_) => context.read<DataProvider>().loadAll(locale: context.read<LocaleProvider>().localeCode)),
               ),
             ],
           ),
@@ -531,13 +604,21 @@ class _AchievementsRow extends StatelessWidget {
   Widget build(BuildContext context) {
     final unlocked = achievements.where((a) => a.isUnlocked).toList();
     if (unlocked.isEmpty) return const SizedBox.shrink();
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final badgeBg = isDark ? Colors.amber.shade900.withOpacity(0.4) : Colors.amber.shade50;
+    final badgeBorder = isDark ? Colors.amber.shade600 : Colors.amber.shade200;
+    final iconColor = isDark ? Colors.amber.shade400 : Colors.amber.shade700;
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Theme.of(context).cardTheme.color,
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
-          BoxShadow(color: AppTheme.cardShadow, blurRadius: 12, offset: const Offset(0, 2)),
+          BoxShadow(
+            color: isDark ? Colors.black54 : AppTheme.cardShadow,
+            blurRadius: 12,
+            offset: const Offset(0, 2),
+          ),
         ],
       ),
       child: Column(
@@ -545,7 +626,7 @@ class _AchievementsRow extends StatelessWidget {
         children: [
           Row(
             children: [
-              Icon(Icons.emoji_events, color: Colors.amber.shade700, size: 20),
+              Icon(Icons.emoji_events, color: iconColor, size: 20),
               const SizedBox(width: 8),
               Text(
                 l10n.achievements,
@@ -562,16 +643,16 @@ class _AchievementsRow extends StatelessWidget {
                   margin: const EdgeInsets.only(right: 12),
                   padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
                   decoration: BoxDecoration(
-                    color: Colors.amber.shade50,
+                    color: badgeBg,
                     borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: Colors.amber.shade200),
+                    border: Border.all(color: badgeBorder),
                   ),
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Icon(Icons.star, color: Colors.amber.shade700, size: 18),
+                      Icon(Icons.star, color: iconColor, size: 18),
                       const SizedBox(width: 6),
-                      Text(a.name, style: Theme.of(context).textTheme.bodyMedium),
+                      Text(a.name, style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Theme.of(context).colorScheme.onSurface)),
                     ],
                   ),
                 );

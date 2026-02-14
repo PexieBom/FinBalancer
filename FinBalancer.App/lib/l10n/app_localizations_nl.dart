@@ -287,6 +287,9 @@ class AppLocalizationsNl extends AppLocalizations {
   String get settings => 'Instellingen';
 
   @override
+  String get premiumFeatures => 'Premium features';
+
+  @override
   String get language => 'Taal';
 
   @override

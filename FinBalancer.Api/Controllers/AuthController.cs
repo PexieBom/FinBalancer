@@ -83,6 +83,18 @@ public class AuthController : ControllerBase
         var result = await _authService.ResetPasswordAsync(request.Token, request.NewPassword);
         return Ok(result);
     }
+
+    [HttpPost("refresh")]
+    public async Task<ActionResult<AuthResult>> Refresh([FromBody] RefreshTokenRequest request)
+    {
+        if (string.IsNullOrWhiteSpace(request.RefreshToken))
+            return BadRequest("RefreshToken required");
+
+        var result = await _authService.RefreshTokenAsync(request.RefreshToken);
+        if (result == null || !result.Success)
+            return Unauthorized(result ?? new AuthResult { Success = false, Error = "Invalid refresh token" });
+        return Ok(result);
+    }
 }
 
 public record RegisterRequest(string Email, string Password, string? DisplayName);
@@ -90,3 +102,4 @@ public record LoginRequest(string Email, string Password);
 public record OAuthLoginRequest(string ProviderId, string? Email, string? DisplayName);
 public record ResetPasswordRequest(string Email);
 public record ResetPasswordConfirmRequest(string Token, string NewPassword);
+public record RefreshTokenRequest(string RefreshToken);

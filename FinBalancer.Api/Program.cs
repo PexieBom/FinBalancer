@@ -27,6 +27,9 @@ if (useMockData)
     builder.Services.AddScoped<ISubcategoryRepository, JsonSubcategoryRepository>();
     builder.Services.AddScoped<IGoalRepository, JsonGoalRepository>();
     builder.Services.AddScoped<IAchievementRepository, JsonAchievementRepository>();
+    builder.Services.AddScoped<IRefreshTokenRepository, JsonRefreshTokenRepository>();
+    builder.Services.AddScoped<IProjectRepository, JsonProjectRepository>();
+    builder.Services.AddScoped<ICustomCategoryRepository, JsonCustomCategoryRepository>();
 }
 else
 {

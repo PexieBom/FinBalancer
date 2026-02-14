@@ -10,6 +10,7 @@ public class Transaction
     public Guid WalletId { get; set; }
     public string? Note { get; set; }
     public List<string> Tags { get; set; } = new();
-    public string? Project { get; set; }
+    public string? Project { get; set; } // Legacy free-text, prefer ProjectId
+    public Guid? ProjectId { get; set; }
     public DateTime DateCreated { get; set; }
 }

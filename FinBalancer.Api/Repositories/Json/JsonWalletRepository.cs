@@ -52,4 +52,21 @@ public class JsonWalletRepository : IWalletRepository
         });
         return updated;
     }
+
+    public async Task<bool> DeleteAsync(Guid id)
+    {
+        var deleted = false;
+        await _storage.ExecuteInLockAsync(FileName, async () =>
+        {
+            var list = await _storage.ReadJsonUnsafeAsync<Wallet>(FileName);
+            var index = list.FindIndex(w => w.Id == id);
+            if (index >= 0)
+            {
+                list.RemoveAt(index);
+                await _storage.WriteJsonUnsafeAsync(FileName, list);
+                deleted = true;
+            }
+        });
+        return deleted;
+    }
 }

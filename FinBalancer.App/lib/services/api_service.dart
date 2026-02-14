@@ -8,6 +8,7 @@ import '../models/category.dart' as app_models;
 import '../models/goal.dart';
 import '../models/achievement.dart';
 import '../models/subcategory.dart';
+import '../models/project.dart';
 
 class ApiService {
   static const String _baseUrl = 'http://localhost:5292/api';
@@ -69,9 +70,13 @@ class ApiService {
     throw Exception('Failed to add wallet: ${response.statusCode} - ${response.body}');
   }
 
-  Future<Map<String, dynamic>> getSpendingByCategory({String? walletId}) async {
+  Future<Map<String, dynamic>> getSpendingByCategory({String? walletId, DateTime? dateFrom, DateTime? dateTo}) async {
     var url = '$_baseUrl/statistics/spending-by-category';
-    if (walletId != null) url += '?walletId=$walletId';
+    final params = <String>[];
+    if (walletId != null) params.add('walletId=$walletId');
+    if (dateFrom != null) params.add('dateFrom=${dateFrom.toIso8601String()}');
+    if (dateTo != null) params.add('dateTo=${dateTo.toIso8601String()}');
+    if (params.isNotEmpty) url += '?${params.join('&')}';
     final response = await _client.get(Uri.parse(url));
     if (response.statusCode == 200) {
       return json.decode(response.body) as Map<String, dynamic>;
@@ -79,9 +84,13 @@ class ApiService {
     throw Exception('Failed to load statistics: ${response.statusCode}');
   }
 
-  Future<Map<String, dynamic>> getIncomeExpenseSummary({String? walletId}) async {
+  Future<Map<String, dynamic>> getIncomeExpenseSummary({String? walletId, DateTime? dateFrom, DateTime? dateTo}) async {
     var url = '$_baseUrl/statistics/income-expense-summary';
-    if (walletId != null) url += '?walletId=$walletId';
+    final params = <String>[];
+    if (walletId != null) params.add('walletId=$walletId');
+    if (dateFrom != null) params.add('dateFrom=${dateFrom.toIso8601String()}');
+    if (dateTo != null) params.add('dateTo=${dateTo.toIso8601String()}');
+    if (params.isNotEmpty) url += '?${params.join('&')}';
     final response = await _client.get(Uri.parse(url));
     if (response.statusCode == 200) {
       return json.decode(response.body) as Map<String, dynamic>;
@@ -180,9 +189,11 @@ class ApiService {
     throw Exception('Failed to load budget alerts: ${response.statusCode}');
   }
 
-  Future<Map<String, dynamic>> getCashflowTrend({String? walletId, int months = 6}) async {
+  Future<Map<String, dynamic>> getCashflowTrend({String? walletId, int months = 6, DateTime? dateFrom, DateTime? dateTo}) async {
     var url = '$_baseUrl/statistics/cashflow-trend?months=$months';
     if (walletId != null) url += '&walletId=$walletId';
+    if (dateFrom != null) url += '&dateFrom=${dateFrom.toIso8601String()}';
+    if (dateTo != null) url += '&dateTo=${dateTo.toIso8601String()}';
     final response = await _client.get(Uri.parse(url));
     if (response.statusCode == 200) {
       return json.decode(response.body) as Map<String, dynamic>;
@@ -218,12 +229,90 @@ class ApiService {
     return url;
   }
 
-  Future<List<app_models.TransactionCategory>> getCategories() async {
-    final response = await _client.get(Uri.parse('$_baseUrl/categories'));
+  Future<List<app_models.TransactionCategory>> getCategories({String? locale}) async {
+    var url = '$_baseUrl/categories';
+    if (locale != null) url += '?locale=$locale';
+    final response = await _client.get(Uri.parse(url));
     if (response.statusCode == 200) {
       final List<dynamic> data = json.decode(response.body);
       return data.map((e) => app_models.TransactionCategory.fromJson(e as Map<String, dynamic>)).toList();
     }
     throw Exception('Failed to load categories: ${response.statusCode}');
+  }
+
+  Future<app_models.TransactionCategory> addCustomCategory(String name, String type) async {
+    final response = await _client.post(
+      Uri.parse('$_baseUrl/categories/custom'),
+      headers: {'Content-Type': 'application/json'},
+      body: json.encode({'name': name, 'type': type}),
+    );
+    if (response.statusCode >= 200 && response.statusCode < 300) {
+      return app_models.TransactionCategory.fromJson(json.decode(response.body) as Map<String, dynamic>);
+    }
+    throw Exception('Failed to add category: ${response.statusCode} - ${response.body}');
+  }
+
+  Future<void> deleteCustomCategory(String id) async {
+    final response = await _client.delete(Uri.parse('$_baseUrl/categories/custom/$id'));
+    if (response.statusCode != 200 && response.statusCode != 204) {
+      throw Exception('Failed to delete category: ${response.statusCode}');
+    }
+  }
+
+  Future<void> updateWallet(Wallet wallet) async {
+    final response = await _client.put(
+      Uri.parse('$_baseUrl/wallets/${wallet.id}'),
+      headers: {'Content-Type': 'application/json'},
+      body: json.encode(wallet.toJson()),
+    );
+    if (response.statusCode != 200 && response.statusCode != 204) {
+      throw Exception('Failed to update wallet: ${response.statusCode}');
+    }
+  }
+
+  Future<void> deleteWallet(String id) async {
+    final response = await _client.delete(Uri.parse('$_baseUrl/wallets/$id'));
+    if (response.statusCode != 200 && response.statusCode != 204) {
+      throw Exception('Failed to delete wallet: ${response.statusCode}');
+    }
+  }
+
+  Future<List<Project>> getProjects() async {
+    final response = await _client.get(Uri.parse('$_baseUrl/projects'));
+    if (response.statusCode == 200) {
+      final List<dynamic> data = json.decode(response.body);
+      return data.map((e) => Project.fromJson(e as Map<String, dynamic>)).toList();
+    }
+    throw Exception('Failed to load projects: ${response.statusCode}');
+  }
+
+  Future<Project> addProject(Project project) async {
+    final response = await _client.post(
+      Uri.parse('$_baseUrl/projects'),
+      headers: {'Content-Type': 'application/json'},
+      body: json.encode(project.toJsonForCreate()),
+    );
+    if (response.statusCode >= 200 && response.statusCode < 300) {
+      return Project.fromJson(json.decode(response.body) as Map<String, dynamic>);
+    }
+    throw Exception('Failed to add project: ${response.statusCode} - ${response.body}');
+  }
+
+  Future<void> updateProject(Project project) async {
+    final response = await _client.put(
+      Uri.parse('$_baseUrl/projects/${project.id}'),
+      headers: {'Content-Type': 'application/json'},
+      body: json.encode(project.toJson()),
+    );
+    if (response.statusCode != 200 && response.statusCode != 204) {
+      throw Exception('Failed to update project: ${response.statusCode}');
+    }
+  }
+
+  Future<void> deleteProject(String id) async {
+    final response = await _client.delete(Uri.parse('$_baseUrl/projects/$id'));
+    if (response.statusCode != 200 && response.statusCode != 204) {
+      throw Exception('Failed to delete project: ${response.statusCode}');
+    }
   }
 }

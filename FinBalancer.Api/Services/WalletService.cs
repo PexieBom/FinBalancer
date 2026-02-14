@@ -23,4 +23,17 @@ public class WalletService
         await _walletRepository.AddAsync(wallet);
         return wallet;
     }
+
+    public async Task<Wallet?> UpdateWalletAsync(Wallet wallet)
+    {
+        var existing = await _walletRepository.GetByIdAsync(wallet.Id);
+        if (existing == null) return null;
+        var ok = await _walletRepository.UpdateAsync(wallet);
+        return ok ? wallet : null;
+    }
+
+    public async Task<bool> DeleteWalletAsync(Guid id)
+    {
+        return await _walletRepository.DeleteAsync(id);
+    }
 }

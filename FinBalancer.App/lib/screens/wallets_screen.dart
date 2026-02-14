@@ -20,6 +20,7 @@ class _WalletsScreenState extends State<WalletsScreen> {
   bool _showAddForm = false;
   bool _isLoading = false;
   String? _error;
+  Wallet? _editingWallet;
 
   @override
   void initState() {
@@ -75,6 +76,59 @@ class _WalletsScreenState extends State<WalletsScreen> {
     }
   }
 
+  void _editWallet(BuildContext context, DataProvider provider, Wallet w) {
+    _editingWallet = w;
+    _nameController.text = w.name;
+    _balanceController.text = w.balance.toString();
+    _currencyController.text = w.currency;
+    setState(() => _showAddForm = true);
+  }
+
+  Future<void> _deleteWallet(BuildContext context, DataProvider provider, Wallet w) async {
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Delete wallet?'),
+        content: Text('Remove "${w.name}"? Transactions linked to this wallet may be affected.'),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancel')),
+          TextButton(onPressed: () => Navigator.pop(ctx, true), child: Text('Delete', style: TextStyle(color: AppTheme.expense(context)))),
+        ],
+      ),
+    );
+    if (ok == true && context.mounted) {
+      try {
+        await provider.deleteWallet(w.id);
+      } catch (e) {
+        if (context.mounted) setState(() => _error = e.toString());
+      }
+    }
+  }
+
+  Future<void> _saveWallet(DataProvider provider) async {
+    if (_nameController.text.trim().isEmpty) return;
+    setState(() { _isLoading = true; _error = null; });
+    try {
+      if (_editingWallet != null) {
+        await provider.updateWallet(_editingWallet!.copyWith(
+          name: _nameController.text.trim(),
+          balance: double.tryParse(_balanceController.text.replaceAll(',', '.')) ?? _editingWallet!.balance,
+          currency: _currencyController.text.trim().isNotEmpty ? _currencyController.text.trim() : 'EUR',
+        ));
+      } else {
+        await _addWallet();
+        return;
+      }
+      _editingWallet = null;
+      _nameController.clear();
+      _balanceController.clear();
+      _currencyController.clear();
+      setState(() { _showAddForm = false; _isLoading = false; });
+    } catch (e) {
+      setState(() { _error = e.toString().replaceAll('Exception: ', ''); _isLoading = false; });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -85,7 +139,7 @@ class _WalletsScreenState extends State<WalletsScreen> {
         title: Text(
           'Wallets',
           style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                color: AppTheme.primaryColor,
+                color: Theme.of(context).colorScheme.onSurface,
                 fontWeight: FontWeight.bold,
               ),
         ),
@@ -105,11 +159,11 @@ class _WalletsScreenState extends State<WalletsScreen> {
                   Container(
                     padding: const EdgeInsets.all(20),
                     decoration: BoxDecoration(
-                      color: Colors.white,
+                      color: Theme.of(context).cardTheme.color,
                       borderRadius: BorderRadius.circular(20),
                       boxShadow: [
                         BoxShadow(
-                          color: AppTheme.cardShadow,
+                          color: Theme.of(context).brightness == Brightness.dark ? Colors.black54 : AppTheme.cardShadow,
                           blurRadius: 20,
                           offset: const Offset(0, 4),
                         ),
@@ -119,7 +173,7 @@ class _WalletsScreenState extends State<WalletsScreen> {
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
                         Text(
-                          'New Wallet',
+                          _editingWallet != null ? 'Edit Wallet' : 'New Wallet',
                           style: Theme.of(context).textTheme.titleLarge,
                         ),
                         const SizedBox(height: 16),
@@ -151,7 +205,7 @@ class _WalletsScreenState extends State<WalletsScreen> {
                           const SizedBox(height: 16),
                           Text(
                             _error!,
-                            style: const TextStyle(color: AppTheme.expenseColor),
+                            style: TextStyle(color: AppTheme.expense(context)),
                           ),
                         ],
                         const SizedBox(height: 16),
@@ -164,6 +218,10 @@ class _WalletsScreenState extends State<WalletsScreen> {
                                     : () => setState(() {
                                           _showAddForm = false;
                                           _error = null;
+                                          _editingWallet = null;
+                                          _nameController.clear();
+                                          _balanceController.clear();
+                                          _currencyController.clear();
                                         }),
                                 child: const Text('Cancel'),
                               ),
@@ -171,7 +229,7 @@ class _WalletsScreenState extends State<WalletsScreen> {
                             const SizedBox(width: 12),
                             Expanded(
                               child: ElevatedButton(
-                                onPressed: _isLoading ? null : _addWallet,
+                                onPressed: _isLoading ? null : () async { if (_editingWallet != null) await _saveWallet(provider); else await _addWallet(); },
                                 child: _isLoading
                                     ? const SizedBox(
                                         height: 20,
@@ -180,7 +238,7 @@ class _WalletsScreenState extends State<WalletsScreen> {
                                           strokeWidth: 2,
                                         ),
                                       )
-                                    : const Text('Add'),
+                                    : Text(_editingWallet != null ? 'Save' : 'Add'),
                               ),
                             ),
                           ],
@@ -197,7 +255,7 @@ class _WalletsScreenState extends State<WalletsScreen> {
                       icon: const Icon(Icons.add),
                       label: const Text('Add Wallet'),
                       style: OutlinedButton.styleFrom(
-                        side: const BorderSide(color: AppTheme.accentColor),
+                        side: BorderSide(color: AppTheme.accent(context)),
                       ),
                     ),
                   ),
@@ -206,11 +264,11 @@ class _WalletsScreenState extends State<WalletsScreen> {
                   Container(
                     padding: const EdgeInsets.all(40),
                     decoration: BoxDecoration(
-                      color: Colors.white,
+                      color: Theme.of(context).cardTheme.color,
                       borderRadius: BorderRadius.circular(20),
                       boxShadow: [
                         BoxShadow(
-                          color: AppTheme.cardShadow,
+                          color: Theme.of(context).brightness == Brightness.dark ? Colors.black54 : AppTheme.cardShadow,
                           blurRadius: 20,
                           offset: const Offset(0, 4),
                         ),
@@ -221,7 +279,7 @@ class _WalletsScreenState extends State<WalletsScreen> {
                         Icon(
                           Icons.account_balance_wallet,
                           size: 64,
-                          color: Colors.grey.shade300,
+                          color: Theme.of(context).colorScheme.onSurfaceVariant.withOpacity(0.5),
                         ),
                         const SizedBox(height: 16),
                         Text(
@@ -232,7 +290,7 @@ class _WalletsScreenState extends State<WalletsScreen> {
                         Text(
                           'Add your first wallet to get started',
                           style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                color: Colors.grey.shade600,
+                                color: Theme.of(context).colorScheme.onSurfaceVariant,
                               ),
                           textAlign: TextAlign.center,
                         ),
@@ -240,7 +298,11 @@ class _WalletsScreenState extends State<WalletsScreen> {
                     ),
                   )
                 else
-                  ...provider.wallets.map((w) => _WalletCard(wallet: w)),
+                  ...provider.wallets.map((w) => _WalletCard(
+                        wallet: w,
+                        onEdit: () => _editWallet(context, provider, w),
+                        onDelete: () => _deleteWallet(context, provider, w),
+                      )),
               ],
             ),
           );
@@ -252,8 +314,10 @@ class _WalletsScreenState extends State<WalletsScreen> {
 
 class _WalletCard extends StatelessWidget {
   final Wallet wallet;
+  final VoidCallback onEdit;
+  final VoidCallback onDelete;
 
-  const _WalletCard({required this.wallet});
+  const _WalletCard({required this.wallet, required this.onEdit, required this.onDelete});
 
   @override
   Widget build(BuildContext context) {
@@ -263,11 +327,11 @@ class _WalletCard extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Theme.of(context).cardTheme.color,
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: AppTheme.cardShadow,
+            color: Theme.of(context).brightness == Brightness.dark ? Colors.black54 : AppTheme.cardShadow,
             blurRadius: 20,
             offset: const Offset(0, 4),
           ),
@@ -278,12 +342,12 @@ class _WalletCard extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(14),
             decoration: BoxDecoration(
-              color: AppTheme.accentColor.withOpacity(0.1),
+              color: AppTheme.accent(context).withOpacity(0.1),
               borderRadius: BorderRadius.circular(14),
             ),
             child: Icon(
               Icons.account_balance_wallet,
-              color: AppTheme.accentColor,
+              color: AppTheme.accent(context),
               size: 28,
             ),
           ),
@@ -301,7 +365,7 @@ class _WalletCard extends StatelessWidget {
                 Text(
                   wallet.currency,
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: Colors.grey.shade600,
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
                       ),
                 ),
               ],
@@ -312,10 +376,12 @@ class _WalletCard extends StatelessWidget {
             style: Theme.of(context).textTheme.titleLarge?.copyWith(
                   fontWeight: FontWeight.bold,
                   color: wallet.balance >= 0
-                      ? AppTheme.incomeColor
-                      : AppTheme.expenseColor,
+                      ? AppTheme.income(context)
+                      : AppTheme.expense(context),
                 ),
           ),
+          IconButton(icon: const Icon(Icons.edit), onPressed: onEdit),
+          IconButton(icon: Icon(Icons.delete, color: AppTheme.expense(context)), onPressed: onDelete),
         ],
       ),
     );

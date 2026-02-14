@@ -7,5 +7,7 @@ public class Achievement
     public string Name { get; set; } = string.Empty;
     public string Icon { get; set; } = string.Empty;
     public string Description { get; set; } = string.Empty;
+    /// <summary>Period: daily, monthly, yearly, or lifetime (one-time)</summary>
+    public string Period { get; set; } = "lifetime";
     public DateTime? UnlockedAt { get; set; }
 }

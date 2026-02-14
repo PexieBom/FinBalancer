@@ -18,6 +18,9 @@ import 'screens/reset_password_screen.dart';
 import 'screens/statistics_screen.dart';
 import 'screens/goals_screen.dart';
 import 'screens/settings_screen.dart';
+import 'screens/premium_features_screen.dart';
+import 'screens/projects_screen.dart';
+import 'screens/achievements_list_screen.dart';
 
 void main() {
   runApp(const FinBalancerApp());
@@ -61,6 +64,9 @@ class FinBalancerApp extends StatelessWidget {
           '/statistics': (context) => const StatisticsScreen(),
           '/goals': (context) => const GoalsScreen(),
           '/settings': (context) => const SettingsScreen(),
+          '/premium-features': (context) => const PremiumFeaturesScreen(),
+          '/projects': (context) => const ProjectsScreen(),
+          '/achievements-list': (context) => const AchievementsListScreen(),
         },
         ),
       ),

@@ -286,6 +286,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settings => 'Settings';
 
   @override
+  String get premiumFeatures => 'Premium features';
+
+  @override
   String get language => 'Language';
 
   @override

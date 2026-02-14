@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 
 import '../theme/app_theme.dart';
 import '../providers/data_provider.dart';
+import '../providers/locale_provider.dart';
 import '../models/category.dart' as app_models;
 
 class CategoriesScreen extends StatefulWidget {
@@ -13,12 +14,36 @@ class CategoriesScreen extends StatefulWidget {
 }
 
 class _CategoriesScreenState extends State<CategoriesScreen> {
+  final _nameController = TextEditingController();
+  bool _showAddForm = false;
+  String _addType = 'expense';
+  String? _error;
+
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<DataProvider>().loadCategories();
+      context.read<DataProvider>().loadCategories(locale: context.read<LocaleProvider>().localeCode);
     });
+  }
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _addCustomCategory(DataProvider provider) async {
+    final name = _nameController.text.trim();
+    if (name.isEmpty) return;
+    setState(() => _error = null);
+    try {
+      await provider.addCustomCategory(name, _addType);
+      _nameController.clear();
+      setState(() => _showAddForm = false);
+    } catch (e) {
+      setState(() => _error = e.toString().replaceAll('Exception: ', ''));
+    }
   }
 
   @override
@@ -31,7 +56,7 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
         title: Text(
           'Categories',
           style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                color: AppTheme.primaryColor,
+                color: Theme.of(context).colorScheme.onSurface,
                 fontWeight: FontWeight.bold,
               ),
         ),
@@ -73,13 +98,24 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
           return SingleChildScrollView(
             padding: const EdgeInsets.all(20),
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                _buildSection(context, 'Income', incomeCategories,
-                    AppTheme.incomeColor),
+                if (_showAddForm) _buildAddForm(context, provider),
+                if (_showAddForm) const SizedBox(height: 24),
+                if (!_showAddForm)
+                  SizedBox(
+                    height: 56,
+                    child: OutlinedButton.icon(
+                      onPressed: () => setState(() => _showAddForm = true),
+                      icon: const Icon(Icons.add),
+                      label: const Text('Add custom category'),
+                      style: OutlinedButton.styleFrom(side: BorderSide(color: AppTheme.accent(context))),
+                    ),
+                  ),
+                if (!_showAddForm) const SizedBox(height: 24),
+                _buildSection(context, provider, 'Income', incomeCategories, AppTheme.income(context)),
                 const SizedBox(height: 24),
-                _buildSection(context, 'Expense', expenseCategories,
-                    AppTheme.expenseColor),
+                _buildSection(context, provider, 'Expense', expenseCategories, AppTheme.expense(context)),
               ],
             ),
           );
@@ -88,7 +124,56 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
     );
   }
 
-  Widget _buildSection(BuildContext context, String title,
+  Widget _buildAddForm(BuildContext context, DataProvider provider) {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Theme.of(context).cardTheme.color,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: Theme.of(context).brightness == Brightness.dark ? Colors.black54 : AppTheme.cardShadow,
+            blurRadius: 20,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Text('New custom category', style: Theme.of(context).textTheme.titleLarge),
+          const SizedBox(height: 16),
+          SegmentedButton<String>(
+            segments: const [
+              ButtonSegment(value: 'expense', label: Text('Expense'), icon: Icon(Icons.remove_circle_outline)),
+              ButtonSegment(value: 'income', label: Text('Income'), icon: Icon(Icons.add_circle_outline)),
+            ],
+            selected: {_addType},
+            onSelectionChanged: (s) => setState(() => _addType = s.first),
+          ),
+          const SizedBox(height: 16),
+          TextField(
+            controller: _nameController,
+            decoration: const InputDecoration(labelText: 'Name'),
+          ),
+          if (_error != null) ...[
+            const SizedBox(height: 8),
+            Text(_error!, style: TextStyle(color: AppTheme.expense(context))),
+          ],
+          const SizedBox(height: 16),
+          Row(
+            children: [
+              Expanded(child: OutlinedButton(onPressed: () => setState(() { _showAddForm = false; _error = null; _nameController.clear(); }), child: const Text('Cancel'))),
+              const SizedBox(width: 12),
+              Expanded(child: ElevatedButton(onPressed: () => _addCustomCategory(provider), child: const Text('Add'))),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSection(BuildContext context, DataProvider provider, String title,
       List<app_models.TransactionCategory> categories, Color color) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -101,7 +186,24 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
               ),
         ),
         const SizedBox(height: 12),
-        ...categories.map((c) => _CategoryTile(category: c, color: color)),
+        ...categories.map((c) => _CategoryTile(
+              category: c,
+              color: color,
+              onDelete: c.icon == 'custom' ? () async {
+                final ok = await showDialog<bool>(
+                  context: context,
+                  builder: (ctx) => AlertDialog(
+                    title: const Text('Delete category?'),
+                    content: Text('Remove "${c.name}"?'),
+                    actions: [
+                      TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancel')),
+                      TextButton(onPressed: () => Navigator.pop(ctx, true), child: Text('Delete', style: TextStyle(color: AppTheme.expense(context)))),
+                    ],
+                  ),
+                );
+                if (ok == true) await provider.deleteCustomCategory(c.id);
+              } : null,
+            )),
       ],
     );
   }
@@ -110,9 +212,9 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
 class _CategoryTile extends StatelessWidget {
   final app_models.TransactionCategory category;
   final Color color;
+  final VoidCallback? onDelete;
 
-  const _CategoryTile(
-      {required this.category, required this.color});
+  const _CategoryTile({required this.category, required this.color, this.onDelete});
 
   IconData _getIcon(String name) {
     const icons = {
@@ -125,6 +227,7 @@ class _CategoryTile extends StatelessWidget {
       'account_balance_wallet': Icons.account_balance_wallet,
       'star': Icons.star,
       'attach_money': Icons.attach_money,
+      'custom': Icons.bookmark,
     };
     return icons[name] ?? Icons.receipt;
   }
@@ -135,11 +238,11 @@ class _CategoryTile extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 8),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Theme.of(context).cardTheme.color,
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: AppTheme.cardShadow,
+            color: Theme.of(context).brightness == Brightness.dark ? Colors.black54 : AppTheme.cardShadow,
             blurRadius: 10,
             offset: const Offset(0, 2),
           ),
@@ -156,12 +259,17 @@ class _CategoryTile extends StatelessWidget {
             child: Icon(_getIcon(category.icon), color: color, size: 24),
           ),
           const SizedBox(width: 16),
-          Text(
-            category.name,
-            style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.w600,
-                ),
+          Expanded(
+            child: Text(
+              category.name,
+              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w600,
+                    color: Theme.of(context).colorScheme.onSurface,
+                  ),
+            ),
           ),
+          if (onDelete != null)
+            IconButton(icon: Icon(Icons.delete, color: AppTheme.expense(context)), onPressed: onDelete),
         ],
       ),
     );

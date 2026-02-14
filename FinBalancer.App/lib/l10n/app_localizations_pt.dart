@@ -283,6 +283,9 @@ class AppLocalizationsPt extends AppLocalizations {
   String get settings => 'Configurações';
 
   @override
+  String get premiumFeatures => 'Premium features';
+
+  @override
   String get language => 'Idioma';
 
   @override

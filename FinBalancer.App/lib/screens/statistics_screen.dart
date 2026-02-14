@@ -22,6 +22,9 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
   Map<String, dynamic>? _cashflowTrend;
   bool _isLoading = true;
   String? _error;
+  DateTime? _dateFrom;
+  DateTime? _dateTo;
+  int _months = 6;
 
   @override
   void initState() {
@@ -33,11 +36,11 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
     setState(() { _isLoading = true; _error = null; });
     try {
       final results = await Future.wait([
-        _api.getSpendingByCategory(),
-        _api.getIncomeExpenseSummary(),
+        _api.getSpendingByCategory(dateFrom: _dateFrom, dateTo: _dateTo),
+        _api.getIncomeExpenseSummary(dateFrom: _dateFrom, dateTo: _dateTo),
         _api.getBudgetPrediction(),
         _api.getBudgetAlerts(),
-        _api.getCashflowTrend(),
+        _api.getCashflowTrend(months: _months, dateFrom: _dateFrom, dateTo: _dateTo),
       ]);
       setState(() {
         _spendingData = results[0] as Map<String, dynamic>;
@@ -65,7 +68,7 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
         title: Text(
           'Statistics',
           style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                color: AppTheme.primaryColor,
+                color: Theme.of(context).colorScheme.onSurface,
                 fontWeight: FontWeight.bold,
               ),
         ),
@@ -74,6 +77,10 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
           onPressed: () => Navigator.pop(context),
         ),
         actions: [
+          IconButton(
+            icon: const Icon(Icons.date_range),
+            onPressed: () => _showDateRangePicker(context),
+          ),
           IconButton(
             icon: const Icon(Icons.download),
             onPressed: () => _showExportSheet(context),
@@ -131,8 +138,14 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
   Widget _buildBottomNav(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
-        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 20, offset: const Offset(0, -4))],
+        color: Theme.of(context).cardTheme.color,
+        boxShadow: [
+          BoxShadow(
+            color: Theme.of(context).brightness == Brightness.dark ? Colors.black54 : Colors.black.withOpacity(0.05),
+            blurRadius: 20,
+            offset: const Offset(0, -4),
+          ),
+        ],
       ),
       child: SafeArea(
         child: Padding(
@@ -179,6 +192,86 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
                 title: const Text('PDF (HTML)'),
                 onTap: () => _launchExport(ctx, _api.getExportUrl('pdf')),
               ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _showDateRangePicker(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      builder: (ctx) => SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Text('Period', style: Theme.of(context).textTheme.titleLarge),
+              const SizedBox(height: 16),
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: [
+                  ChoiceChip(
+                    label: const Text('Last 1 month'),
+                    selected: _months == 1 && _dateFrom == null,
+                    onSelected: (_) { setState(() { _months = 1; _dateFrom = null; _dateTo = null; }); Navigator.pop(ctx); _loadData(); },
+                  ),
+                  ChoiceChip(
+                    label: const Text('Last 3 months'),
+                    selected: _months == 3 && _dateFrom == null,
+                    onSelected: (_) { setState(() { _months = 3; _dateFrom = null; _dateTo = null; }); Navigator.pop(ctx); _loadData(); },
+                  ),
+                  ChoiceChip(
+                    label: const Text('Last 6 months'),
+                    selected: _months == 6 && _dateFrom == null,
+                    onSelected: (_) { setState(() { _months = 6; _dateFrom = null; _dateTo = null; }); Navigator.pop(ctx); _loadData(); },
+                  ),
+                  ChoiceChip(
+                    label: const Text('Last 12 months'),
+                    selected: _months == 12 && _dateFrom == null,
+                    onSelected: (_) { setState(() { _months = 12; _dateFrom = null; _dateTo = null; }); Navigator.pop(ctx); _loadData(); },
+                  ),
+                  ChoiceChip(
+                    label: const Text('This year'),
+                    selected: _dateFrom != null && _dateFrom!.month == 1 && _dateFrom!.day == 1,
+                    onSelected: (_) {
+                      final now = DateTime.now();
+                      setState(() { _dateFrom = DateTime(now.year, 1, 1); _dateTo = now; _months = 12; });
+                      Navigator.pop(ctx);
+                      _loadData();
+                    },
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              ListTile(
+                leading: const Icon(Icons.calendar_today),
+                title: const Text('Custom range'),
+                onTap: () async {
+                  Navigator.pop(ctx);
+                  final range = await showDateRangePicker(
+                    context: context,
+                    firstDate: DateTime(2020),
+                    lastDate: DateTime.now(),
+                    initialDateRange: _dateFrom != null && _dateTo != null
+                        ? DateTimeRange(start: _dateFrom!, end: _dateTo!)
+                        : DateTimeRange(start: DateTime.now().subtract(const Duration(days: 180)), end: DateTime.now()),
+                  );
+                  if (range != null) {
+                    setState(() { _dateFrom = range.start; _dateTo = range.end; });
+                    _loadData();
+                  }
+                },
+              ),
+              if (_dateFrom != null || _months != 6)
+                TextButton(
+                  onPressed: () { setState(() { _dateFrom = null; _dateTo = null; _months = 6; }); Navigator.pop(ctx); _loadData(); },
+                  child: const Text('Reset to default'),
+                ),
             ],
           ),
         ),
@@ -301,14 +394,20 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
       children: [
         Text('Predicted Spending (Next Month)', style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
         const SizedBox(height: 8),
-        Text('Based on your last 3 months average +5%', style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Colors.grey.shade600)),
+        Text('Based on your last 3 months average +5%', style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant)),
         const SizedBox(height: 16),
         Container(
           padding: const EdgeInsets.all(20),
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: Theme.of(context).cardTheme.color,
             borderRadius: BorderRadius.circular(16),
-            boxShadow: [BoxShadow(color: AppTheme.cardShadow, blurRadius: 20, offset: const Offset(0, 4))],
+            boxShadow: [
+              BoxShadow(
+                color: Theme.of(context).brightness == Brightness.dark ? Colors.black54 : AppTheme.cardShadow,
+                blurRadius: 20,
+                offset: const Offset(0, 4),
+              ),
+            ],
           ),
           child: Column(
             children: [
@@ -321,8 +420,8 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text(name),
-                      Text(currencyFormat.format(predicted), style: const TextStyle(fontWeight: FontWeight.w600)),
+                      Text(name, style: TextStyle(color: Theme.of(context).colorScheme.onSurface)),
+                      Text(currencyFormat.format(predicted), style: TextStyle(fontWeight: FontWeight.w600, color: Theme.of(context).colorScheme.onSurface)),
                     ],
                   ),
                 );
@@ -410,7 +509,7 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
                 ),
               ),
               gridData: FlGridData(show: false),
-              borderData: FlBorderData(show: true, border: Border(bottom: BorderSide(color: Colors.grey.shade300))),
+              borderData: FlBorderData(show: true, border: Border(bottom: BorderSide(color: Theme.of(context).colorScheme.outline))),
               barTouchData: BarTouchData(
                 touchTooltipData: BarTouchTooltipData(
                   getTooltipColor: (_) => Colors.grey.shade800,
@@ -435,17 +534,23 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
       return Container(
         padding: const EdgeInsets.all(24),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: Theme.of(context).cardTheme.color,
           borderRadius: BorderRadius.circular(20),
-          boxShadow: [BoxShadow(color: AppTheme.cardShadow, blurRadius: 20, offset: const Offset(0, 4))],
+          boxShadow: [
+            BoxShadow(
+              color: Theme.of(context).brightness == Brightness.dark ? Colors.black54 : AppTheme.cardShadow,
+              blurRadius: 20,
+              offset: const Offset(0, 4),
+            ),
+          ],
         ),
         child: Column(
           children: [
-            Text('Spending by Category', style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
+            Text('Spending by Category', style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.onSurface)),
             const SizedBox(height: 16),
-            Icon(Icons.pie_chart_outline, size: 48, color: Colors.grey.shade300),
+            Icon(Icons.pie_chart_outline, size: 48, color: Theme.of(context).colorScheme.onSurfaceVariant.withOpacity(0.5)),
             const SizedBox(height: 8),
-            Text('No expense data yet', style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Colors.grey.shade600)),
+            Text('No expense data yet', style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant)),
           ],
         ),
       );
@@ -490,20 +595,26 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
             margin: const EdgeInsets.only(bottom: 8),
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: Theme.of(context).cardTheme.color,
               borderRadius: BorderRadius.circular(16),
-              boxShadow: [BoxShadow(color: AppTheme.cardShadow, blurRadius: 10, offset: const Offset(0, 2))],
+              boxShadow: [
+                BoxShadow(
+                  color: Theme.of(context).brightness == Brightness.dark ? Colors.black54 : AppTheme.cardShadow,
+                  blurRadius: 10,
+                  offset: const Offset(0, 2),
+                ),
+              ],
             ),
             child: Row(
               children: [
-                Expanded(child: Text(name, style: Theme.of(context).textTheme.titleMedium)),
+                Expanded(child: Text(name, style: Theme.of(context).textTheme.titleMedium?.copyWith(color: Theme.of(context).colorScheme.onSurface))),
                 Text(NumberFormat.currency(locale: 'hr_HR', symbol: '€').format(total),
                     style: Theme.of(context).textTheme.titleMedium?.copyWith(
                           color: AppTheme.expense(context),
                           fontWeight: FontWeight.bold,
                         )),
                 const SizedBox(width: 8),
-                Text('${pct.toStringAsFixed(0)}%', style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Colors.grey.shade600)),
+                Text('${pct.toStringAsFixed(0)}%', style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant)),
               ],
             ),
           );
@@ -535,26 +646,32 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
             margin: const EdgeInsets.only(bottom: 8),
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: Theme.of(context).cardTheme.color,
               borderRadius: BorderRadius.circular(16),
-              boxShadow: [BoxShadow(color: AppTheme.cardShadow, blurRadius: 10, offset: const Offset(0, 2))],
+              boxShadow: [
+                BoxShadow(
+                  color: Theme.of(context).brightness == Brightness.dark ? Colors.black54 : AppTheme.cardShadow,
+                  blurRadius: 10,
+                  offset: const Offset(0, 2),
+                ),
+              ],
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(label, style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
+                Text(label, style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.onSurface)),
                 const SizedBox(height: 8),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text('Income: ', style: Theme.of(context).textTheme.bodyMedium),
+                    Text('Income: ', style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Theme.of(context).colorScheme.onSurface)),
                     Text(currencyFormat.format(income), style: TextStyle(color: AppTheme.income(context), fontWeight: FontWeight.w600)),
                   ],
                 ),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text('Expense: ', style: Theme.of(context).textTheme.bodyMedium),
+                    Text('Expense: ', style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Theme.of(context).colorScheme.onSurface)),
                     Text(currencyFormat.format(expense), style: TextStyle(color: AppTheme.expense(context), fontWeight: FontWeight.w600)),
                   ],
                 ),

@@ -8,4 +8,5 @@ public interface IWalletRepository
     Task<Wallet?> GetByIdAsync(Guid id);
     Task<Wallet> AddAsync(Wallet wallet);
     Task<bool> UpdateAsync(Wallet wallet);
+    Task<bool> DeleteAsync(Guid id);
 }
