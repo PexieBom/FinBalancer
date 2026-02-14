@@ -1,0 +1,9 @@
+{
+    "name": "FinBalancer",
+    "short_name": "FinBalancer",
+    "start_url": ".",
+    "display": "standalone",
+    "background_color": "#FFFFFF",
+    "theme_color": "#0F3460",
+    "description": "Personal Finance Application"
+}
