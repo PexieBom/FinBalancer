@@ -220,6 +220,7 @@ class _CategoryTile extends StatelessWidget {
   IconData _getIcon(String name) {
     const icons = {
       'restaurant': Icons.restaurant,
+      'restaurant_menu': Icons.restaurant_menu,
       'directions_car': Icons.directions_car,
       'home': Icons.home,
       'movie': Icons.movie,
@@ -229,6 +230,14 @@ class _CategoryTile extends StatelessWidget {
       'star': Icons.star,
       'attach_money': Icons.attach_money,
       'custom': Icons.bookmark,
+      'credit_card': Icons.credit_card,
+      'handshake': Icons.handshake,
+      'build': Icons.build,
+      'home_repair_service': Icons.home_repair_service,
+      'bolt': Icons.bolt,
+      'local_gas_station': Icons.local_gas_station,
+      'subscriptions': Icons.subscriptions,
+      'health_and_safety': Icons.health_and_safety,
     };
     return icons[name] ?? Icons.receipt;
   }

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'package:intl/intl.dart';
+import 'package:intl/intl.dart' as intl;
 
 import '../services/api_service.dart';
 import '../providers/locale_provider.dart';
@@ -12,6 +12,9 @@ import '../l10n/app_localizations.dart';
 import '../theme/app_theme.dart';
 import '../providers/data_provider.dart';
 import '../providers/app_provider.dart';
+import '../providers/subscription_provider.dart';
+import '../providers/dashboard_settings_provider.dart';
+import '../models/wallet_budget.dart';
 import '../models/category.dart' as app_models;
 import '../models/achievement.dart';
 import '../widgets/balance_card.dart';
@@ -25,14 +28,26 @@ class DashboardScreen extends StatefulWidget {
 }
 
 class _DashboardScreenState extends State<DashboardScreen> {
+  final ScrollController _scrollController = ScrollController();
+
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final locale = context.read<LocaleProvider>().localeCode;
       context.read<DataProvider>().loadAll(locale: locale);
+      context.read<SubscriptionProvider>().loadStatus(
+            context.read<AppProvider>().user?.id,
+          );
     });
   }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
+
 
   void _showExportMenu(BuildContext context) {
     final api = ApiService();
@@ -69,6 +84,41 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
+  void _showCustomizeDashboard(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    showModalBottomSheet(
+      context: context,
+      builder: (ctx) => SafeArea(
+        child: Consumer<DashboardSettingsProvider>(
+          builder: (ctx2, settings, _) {
+            return Padding(
+              padding: const EdgeInsets.all(24),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Text(l10n.customizeDashboard, style: Theme.of(ctx2).textTheme.titleLarge),
+                  const SizedBox(height: 20),
+                  _CustomizeSwitch(label: l10n.showPlan, value: settings.showPlan, onChanged: settings.setShowPlan),
+                  _CustomizeSwitch(label: l10n.showGoals, value: settings.showGoals, onChanged: settings.setShowGoals),
+                  _CustomizeSwitch(label: l10n.showAchievements, value: settings.showAchievements, onChanged: settings.setShowAchievements),
+                  _CustomizeSwitch(label: l10n.showBudget, value: settings.showBudget, onChanged: settings.setShowBudget),
+                  _CustomizeSwitch(label: l10n.showStatistics, value: settings.showStatistics, onChanged: settings.setShowStatistics),
+                  _CustomizeSwitch(label: l10n.showExpensesChart, value: settings.showExpensesChart, onChanged: settings.setShowExpensesChart),
+                  const SizedBox(height: 16),
+                  TextButton(
+                    onPressed: () => Navigator.pop(ctx),
+                    child: Text(l10n.cancel),
+                  ),
+                ],
+              ),
+            );
+          },
+        ),
+      ),
+    );
+  }
+
   Future<void> _launchExport(BuildContext sheetContext, String url) async {
     Navigator.pop(sheetContext);
     final uri = Uri.parse(url);
@@ -83,6 +133,277 @@ class _DashboardScreenState extends State<DashboardScreen> {
     } catch (_) {
       return null;
     }
+  }
+
+  Widget _buildPlanCard(BuildContext context, LocaleProvider localeProvider) {
+    final l10n = AppLocalizations.of(context)!;
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20),
+      child: Consumer<SubscriptionProvider>(
+        builder: (context, subProvider, _) {
+          if (subProvider.isPremium) {
+            final productId = subProvider.status.productId ?? '';
+            final planName = productId.contains('yearly')
+                ? l10n.premiumYearly
+                : l10n.premiumMonthly;
+            return Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              decoration: BoxDecoration(
+                color: Colors.amber.withOpacity(0.2),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: Colors.amber.shade300),
+              ),
+              child: Row(
+                children: [
+                  Icon(Icons.star, color: Colors.amber.shade700, size: 22),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          l10n.plan,
+                          style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                                color: Theme.of(context).colorScheme.onSurfaceVariant,
+                              ),
+                        ),
+                        Text(
+                          planName,
+                          style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                                fontWeight: FontWeight.bold,
+                              ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            );
+          }
+
+          return InkWell(
+            onTap: () => Navigator.pushNamed(context, '/premium-features')
+                .then((_) => context.read<SubscriptionProvider>().loadStatus(
+                      context.read<AppProvider>().user?.id,
+                    )),
+            borderRadius: BorderRadius.circular(12),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              decoration: BoxDecoration(
+                color: Theme.of(context).cardTheme.color,
+                borderRadius: BorderRadius.circular(12),
+                boxShadow: [
+                  BoxShadow(
+                    color: Theme.of(context).brightness == Brightness.dark
+                        ? Colors.black54
+                        : Colors.black.withOpacity(0.06),
+                    blurRadius: 12,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+              ),
+              child: Row(
+                children: [
+                  Icon(
+                    Icons.check_circle_outline,
+                    color: Colors.green.shade600,
+                    size: 22,
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          l10n.plan,
+                          style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                                color: Theme.of(context).colorScheme.onSurfaceVariant,
+                              ),
+                        ),
+                        Text(
+                          l10n.freePlan,
+                          style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                                fontWeight: FontWeight.w600,
+                              ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Text(
+                    l10n.upgradeToPremium,
+                    style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                          color: AppTheme.accent(context),
+                          fontWeight: FontWeight.w600,
+                        ),
+                  ),
+                  const SizedBox(width: 4),
+                  Icon(Icons.arrow_forward_ios, size: 12, color: AppTheme.accent(context)),
+                ],
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildBudgetCard(
+    BuildContext context,
+    DataProvider provider,
+    intl.NumberFormat fmt,
+    AppLocalizations l10n, {
+    String? walletName,
+    BudgetCurrent? budget,
+  }) {
+    final name = walletName ?? provider.dashboardBudgetWalletName ?? l10n.allWallets;
+    final b = budget ?? provider.dashboardBudget;
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 8),
+      child: InkWell(
+        onTap: () => Navigator.pushNamed(context, '/wallets').then((_) => provider.loadAll()),
+        borderRadius: BorderRadius.circular(20),
+        child: Container(
+          width: MediaQuery.of(context).size.width - 56,
+          padding: const EdgeInsets.all(20),
+          decoration: BoxDecoration(
+            color: Theme.of(context).cardTheme.color,
+            borderRadius: BorderRadius.circular(20),
+            boxShadow: [
+              BoxShadow(
+                color: Theme.of(context).brightness == Brightness.dark ? Colors.black54 : AppTheme.cardShadow,
+                blurRadius: 20,
+                offset: const Offset(0, 4),
+              ),
+            ],
+          ),
+          child: b == null
+              ? Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(14),
+                      decoration: BoxDecoration(
+                        color: AppTheme.accent(context).withValues(alpha: 0.15),
+                        borderRadius: BorderRadius.circular(14),
+                      ),
+                      child: Icon(Icons.pie_chart_outline, color: AppTheme.accent(context), size: 28),
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            l10n.budget,
+                            style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+                          ),
+                          Text(
+                            l10n.setBudget,
+                            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                                ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Icon(Icons.arrow_forward_ios, size: 16, color: Theme.of(context).colorScheme.onSurfaceVariant),
+                  ],
+                )
+              : _buildBudgetCardContent(context, b, name, fmt, l10n),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildBudgetCardContent(BuildContext context, BudgetCurrent budget, String walletName, intl.NumberFormat fmt, AppLocalizations l10n) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: AppTheme.accent(context).withValues(alpha: 0.15),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Icon(Icons.pie_chart_outline, color: AppTheme.accent(context), size: 24),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                '${l10n.budget} · $walletName',
+                style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+              ),
+            ),
+            _PaceChip(paceStatus: budget.paceStatus, l10n: l10n),
+          ],
+        ),
+        const SizedBox(height: 16),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            _BudgetLabelValue(label: l10n.budget, value: fmt.format(budget.budgetAmount)),
+            _BudgetLabelValue(label: l10n.spent, value: fmt.format(budget.spent), valueColor: AppTheme.expense(context)),
+            _BudgetLabelValue(
+              label: l10n.remaining,
+              value: fmt.format(budget.remaining),
+              valueColor: budget.remaining >= 0 ? AppTheme.income(context) : AppTheme.expense(context),
+            ),
+          ],
+        ),
+        const SizedBox(height: 8),
+        Text(
+          '${l10n.allowancePerDay}: ${fmt.format(budget.allowancePerDay)}',
+          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+                fontWeight: FontWeight.w600,
+              ),
+        ),
+        if (budget.explanation.isNotEmpty) ...[
+          const SizedBox(height: 8),
+          Text(
+            budget.explanation,
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
+          ),
+        ],
+        const SizedBox(height: 4),
+        Align(
+          alignment: Alignment.centerRight,
+          child: Text(
+            l10n.wallets,
+            style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                  color: AppTheme.accent(context),
+                  fontWeight: FontWeight.w600,
+                ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildBudgetSection(BuildContext context, DataProvider provider, intl.NumberFormat fmt, AppLocalizations l10n) {
+    final budgets = provider.dashboardBudgets;
+    if (budgets.isEmpty) {
+      return _buildBudgetCard(context, provider, fmt, l10n);
+    }
+    if (budgets.length == 1) {
+      final name = budgets.first.walletName == 'All Wallets' ? l10n.allWallets : budgets.first.walletName;
+      return _buildBudgetCard(context, provider, fmt, l10n, walletName: name, budget: budgets.first.budget);
+    }
+    return SizedBox(
+      height: 220,
+      child: PageView.builder(
+        itemCount: budgets.length,
+        itemBuilder: (_, i) {
+          final item = budgets[i];
+          final name = item.walletName == 'All Wallets' ? l10n.allWallets : item.walletName;
+          return _buildBudgetCard(context, provider, fmt, l10n, walletName: name, budget: item.budget);
+        },
+      ),
+    );
   }
 
   @override
@@ -100,6 +421,37 @@ class _DashboardScreenState extends State<DashboardScreen> {
               ),
         ),
         actions: [
+          Consumer<SubscriptionProvider>(
+            builder: (context, sub, _) => sub.isPremium
+                ? Padding(
+                    padding: const EdgeInsets.only(right: 4, top: 12),
+                    child: Tooltip(
+                      message: 'Premium Active',
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: Colors.amber,
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(Icons.star, size: 16, color: Colors.black87),
+                            const SizedBox(width: 4),
+                            Text(
+                              'Premium',
+                              style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                                    color: Colors.black87,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  )
+                : const SizedBox.shrink(),
+          ),
           Consumer<LocaleProvider>(
             builder: (context, locale, _) => IconButton(
               icon: Icon(
@@ -112,7 +464,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
           ),
           IconButton(
             icon: const Icon(Icons.refresh),
-            onPressed: () => context.read<DataProvider>().loadAll(locale: context.read<LocaleProvider>().localeCode),
+            onPressed: () {
+              final locale = context.read<LocaleProvider>().localeCode;
+              context.read<DataProvider>().loadAll(locale: locale);
+              context.read<SubscriptionProvider>().loadStatus(
+                    context.read<AppProvider>().user?.id,
+                  );
+            },
           ),
           PopupMenuButton<String>(
             icon: const Icon(Icons.more_vert),
@@ -125,15 +483,22 @@ class _DashboardScreenState extends State<DashboardScreen> {
               if (v == 'export') _showExportMenu(context);
               if (v == 'settings') Navigator.pushNamed(context, '/settings');
               if (v == 'premium') Navigator.pushNamed(context, '/premium-features');
+              if (v == 'customize') _showCustomizeDashboard(context);
             },
-            itemBuilder: (_) => [
-              PopupMenuItem(value: 'categories', child: Text(AppLocalizations.of(context)!.categories)),
-              PopupMenuItem(value: 'projects', child: Text(AppLocalizations.of(context)!.projects)),
-              PopupMenuItem(value: 'achievements', child: Text(AppLocalizations.of(context)!.achievements)),
-              PopupMenuItem(value: 'export', child: Text(AppLocalizations.of(context)!.exportData)),
-              PopupMenuItem(value: 'premium', child: Text(AppLocalizations.of(context)!.premiumFeatures)),
-              PopupMenuItem(value: 'settings', child: Text(AppLocalizations.of(context)!.settings)),
-            ],
+            itemBuilder: (_) {
+              final l10n = AppLocalizations.of(context)!;
+              final isPremium = context.read<SubscriptionProvider>().isPremium;
+              final iconColor = Theme.of(context).colorScheme.onSurface;
+              return [
+                PopupMenuItem(value: 'categories', child: Row(children: [Icon(Icons.category, size: 22, color: iconColor), const SizedBox(width: 12), Text(l10n.categories)])),
+                PopupMenuItem(value: 'projects', child: Row(children: [Icon(Icons.folder_special, size: 22, color: iconColor), const SizedBox(width: 12), Text(l10n.projects)])),
+                PopupMenuItem(value: 'achievements', child: Row(children: [Icon(Icons.emoji_events, size: 22, color: iconColor), const SizedBox(width: 12), Text(l10n.achievements)])),
+                PopupMenuItem(value: 'export', child: Row(children: [Icon(Icons.upload_file, size: 22, color: iconColor), const SizedBox(width: 12), Text(l10n.exportData)])),
+                PopupMenuItem(value: 'premium', child: Row(children: [Icon(Icons.star, size: 22, color: isPremium ? Colors.amber : iconColor), const SizedBox(width: 12), Text(l10n.premiumFeatures)])),
+                PopupMenuItem(value: 'customize', child: Row(children: [Icon(Icons.dashboard_customize, size: 22, color: iconColor), const SizedBox(width: 12), Text(l10n.customizeDashboard)])),
+                PopupMenuItem(value: 'settings', child: Row(children: [Icon(Icons.settings, size: 22, color: iconColor), const SizedBox(width: 12), Text(l10n.settings)])),
+              ];
+            },
           ),
           IconButton(
             icon: const Icon(Icons.logout),
@@ -146,8 +511,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
           ),
         ],
       ),
-      body: Consumer2<DataProvider, LocaleProvider>(
-        builder: (context, provider, localeProvider, _) {
+      body: Consumer3<DataProvider, LocaleProvider, DashboardSettingsProvider>(
+        builder: (context, provider, localeProvider, dashSettings, _) {
           final l10n = AppLocalizations.of(context)!;
           final fmt = currencyNumberFormat(localeProvider);
           if (provider.isLoading && provider.transactions.isEmpty) {
@@ -188,8 +553,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
           }
 
           return RefreshIndicator(
-            onRefresh: () => provider.loadAll(locale: localeProvider.localeCode),
+            onRefresh: () async {
+              await provider.loadAll(locale: localeProvider.localeCode);
+              await context.read<SubscriptionProvider>().loadStatus(
+                    context.read<AppProvider>().user?.id,
+                  );
+            },
             child: SingleChildScrollView(
+              controller: _scrollController,
               physics: const AlwaysScrollableScrollPhysics(),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -292,8 +663,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       ],
                     ),
                   ),
-                  const SizedBox(height: 24),
-                  Padding(
+                  const SizedBox(height: 16),
+                  if (dashSettings.showPlan) _buildPlanCard(context, localeProvider),
+                  if (dashSettings.showPlan) const SizedBox(height: 24),
+                  if (dashSettings.showBudget) _buildBudgetSection(context, provider, fmt, l10n),
+                  if (dashSettings.showBudget) const SizedBox(height: 24),
+                  if (dashSettings.showGoals)
+                    Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 20),
                     child: InkWell(
                       onTap: () => Navigator.pushNamed(context, '/goals')
@@ -347,11 +723,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             Icon(Icons.arrow_forward_ios, size: 16, color: Theme.of(context).colorScheme.onSurfaceVariant),
                           ],
                         ),
+                        ),
                       ),
                     ),
-                  ),
-                  const SizedBox(height: 12),
-                  if (provider.achievements.isNotEmpty)
+                  if (dashSettings.showGoals) const SizedBox(height: 12),
+                  if (dashSettings.showAchievements && provider.achievements.isNotEmpty)
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 20),
                       child: InkWell(
@@ -360,11 +736,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         child: _AchievementsRow(achievements: provider.achievements, l10n: l10n),
                       ),
                     ),
-                  const SizedBox(height: 24),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20),
-                    child: InkWell(
-                      onTap: () => Navigator.pushNamed(context, '/statistics'),
+                  if (dashSettings.showAchievements && provider.achievements.isNotEmpty) const SizedBox(height: 24),
+                  if (dashSettings.showStatistics)
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                      child: InkWell(
+                        onTap: () => Navigator.pushNamed(context, '/statistics'),
                       borderRadius: BorderRadius.circular(20),
                       child: Container(
                         padding: const EdgeInsets.all(20),
@@ -417,7 +794,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       ),
                     ),
                   ),
-                  if (provider.getExpensesByCategory().isNotEmpty) ...[
+                  if (dashSettings.showExpensesChart && provider.getExpensesByCategory().isNotEmpty) ...[
                     const SizedBox(height: 24),
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -429,8 +806,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       ),
                     ),
                     const SizedBox(height: 16),
-                    SizedBox(
-                      height: 200,
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20),
                       child: _buildPieChart(context, provider),
                     ),
                   ],
@@ -485,15 +862,31 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         ),
                       ),
                     )
-                  else
+                  else ...[
                     ...provider.recentTransactions.map(
                       (t) => TransactionTile(
                         transaction: t,
                         category: _getCategory(provider, t.categoryId),
+                        onEdit: () => Navigator.pushNamed(
+                          context,
+                          '/add-transaction',
+                          arguments: t,
+                        ).then((_) => provider.loadAll()),
                         onDelete: () => provider.deleteTransaction(t.id),
                         currencyFormat: fmt,
                       ),
                     ),
+                    if (provider.hasMoreTransactions)
+                      Padding(
+                        padding: const EdgeInsets.all(16),
+                        child: Center(
+                          child: OutlinedButton(
+                            onPressed: () => provider.loadMoreDisplayedTransactions(),
+                            child: Text(l10n.loadMore),
+                          ),
+                        ),
+                      ),
+                  ],
                   const SizedBox(height: 100),
                 ],
               ),
@@ -519,26 +912,67 @@ class _DashboardScreenState extends State<DashboardScreen> {
     ];
 
     final spots = data.entries.toList();
-    return PieChart(
-      PieChartData(
-        sections: spots.asMap().entries.map((e) {
-          final total = data.values.fold(0.0, (a, b) => a + b);
-          final value = total > 0 ? (e.value.value / total * 100) : 0.0;
-          return PieChartSectionData(
-            value: value,
-            title: '${value.toStringAsFixed(0)}%',
-            color: colors[e.key % colors.length],
-            radius: 60,
-            titleStyle: const TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.bold,
-              color: Colors.white,
+    final chartSize = 180.0;
+    final screenWidth = MediaQuery.of(context).size.width;
+    final availableWidth = screenWidth - 40; // horizontal padding
+
+    return SizedBox(
+      width: availableWidth,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(
+            width: availableWidth,
+            height: chartSize,
+            child: PieChart(
+            PieChartData(
+              sections: spots.asMap().entries.map((e) {
+                final total = data.values.fold(0.0, (a, b) => a + b);
+                final value = total > 0 ? (e.value.value / total * 100) : 0.0;
+                return PieChartSectionData(
+                  value: value,
+                  title: '${value.toStringAsFixed(0)}%',
+                  color: colors[e.key % colors.length],
+                  radius: 50,
+                  titleStyle: const TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
+                );
+              }).toList(),
+              sectionsSpace: 2,
+              centerSpaceRadius: 35,
             ),
-          );
-        }).toList(),
-        sectionsSpace: 2,
-        centerSpaceRadius: 40,
-      ),
+          ),
+        ),
+        const SizedBox(height: 12),
+        SizedBox(
+          width: availableWidth,
+          child: Wrap(
+            spacing: 10,
+            runSpacing: 6,
+            children: spots.asMap().entries.map((e) {
+              final color = colors[e.key % colors.length];
+              return Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(width: 8, height: 8, decoration: BoxDecoration(color: color, shape: BoxShape.circle)),
+                  const SizedBox(width: 4),
+                  Text(
+                    e.value.key,
+                    style: Theme.of(context).textTheme.bodySmall,
+                    overflow: TextOverflow.ellipsis,
+                    maxLines: 1,
+                  ),
+                ],
+              );
+            }).toList(),
+          ),
+        ),
+      ],
+    ),
     );
   }
 
@@ -558,35 +992,41 @@ class _DashboardScreenState extends State<DashboardScreen> {
         ],
       ),
       child: SafeArea(
+        top: false,
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+          padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 4),
           child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              _NavItem(icon: Icons.dashboard, label: l10n.home, isActive: true),
-              _NavItem(
+              Expanded(child: _NavItem(icon: Icons.dashboard, label: l10n.home, isActive: true)),
+              Expanded(child: _NavItem(
                 icon: Icons.add_circle_outline,
                 label: l10n.add,
                 onTap: () => Navigator.pushNamed(context, '/add-transaction')
                     .then((_) => context.read<DataProvider>().loadAll(locale: context.read<LocaleProvider>().localeCode)),
-              ),
-              _NavItem(
+              )),
+              Expanded(child: _NavItem(
                 icon: Icons.bar_chart,
                 label: l10n.stats,
                 onTap: () => Navigator.pushNamed(context, '/statistics'),
-              ),
-              _NavItem(
+              )),
+              Expanded(child: _NavItem(
                 icon: Icons.flag,
                 label: l10n.goals,
                 onTap: () => Navigator.pushNamed(context, '/goals')
                     .then((_) => context.read<DataProvider>().loadAll(locale: context.read<LocaleProvider>().localeCode)),
-              ),
-              _NavItem(
+              )),
+              Expanded(child: _NavItem(
+                icon: Icons.psychology,
+                label: l10n.decisionEngine,
+                onTap: () => Navigator.pushNamed(context, '/decision-engine'),
+              )),
+              Expanded(child: _NavItem(
                 icon: Icons.account_balance_wallet,
-                label: l10n.wallets,
+                label: l10n.walletsBudgets,
                 onTap: () => Navigator.pushNamed(context, '/wallets')
                     .then((_) => context.read<DataProvider>().loadAll(locale: context.read<LocaleProvider>().localeCode)),
-              ),
+              )),
             ],
           ),
         ),
@@ -666,6 +1106,76 @@ class _AchievementsRow extends StatelessWidget {
   }
 }
 
+class _PaceChip extends StatelessWidget {
+  final String paceStatus;
+  final AppLocalizations l10n;
+
+  const _PaceChip({required this.paceStatus, required this.l10n});
+
+  @override
+  Widget build(BuildContext context) {
+    String label;
+    Color color;
+    switch (paceStatus) {
+      case 'OnTrack':
+        label = l10n.onTrack;
+        color = AppTheme.income(context);
+        break;
+      case 'OverPace':
+        label = l10n.overPace;
+        color = AppTheme.expense(context);
+        break;
+      case 'UnderPace':
+        label = l10n.underPace;
+        color = Colors.orange;
+        break;
+      default:
+        label = paceStatus;
+        color = Theme.of(context).colorScheme.onSurface;
+    }
+    return Chip(
+      label: Text(label, style: TextStyle(fontSize: 12, color: color)),
+      backgroundColor: color.withValues(alpha: 0.15),
+    );
+  }
+}
+
+class _BudgetLabelValue extends StatelessWidget {
+  final String label;
+  final String value;
+  final Color? valueColor;
+
+  const _BudgetLabelValue({required this.label, required this.value, this.valueColor});
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(label, style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant)),
+        Text(value, style: Theme.of(context).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold, color: valueColor)),
+      ],
+    );
+  }
+}
+
+class _CustomizeSwitch extends StatelessWidget {
+  final String label;
+  final bool value;
+  final Future<void> Function(bool) onChanged;
+
+  const _CustomizeSwitch({required this.label, required this.value, required this.onChanged});
+
+  @override
+  Widget build(BuildContext context) {
+    return SwitchListTile(
+      title: Text(label),
+      value: value,
+      onChanged: (v) => onChanged(v),
+    );
+  }
+}
+
 class _NavItem extends StatelessWidget {
   final IconData icon;
   final String label;
@@ -685,22 +1195,27 @@ class _NavItem extends StatelessWidget {
       onTap: onTap,
       borderRadius: BorderRadius.circular(12),
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 2),
         child: Column(
           mainAxisSize: MainAxisSize.min,
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(
               icon,
               color: isActive ? AppTheme.accent(context) : Theme.of(context).colorScheme.onSurfaceVariant,
-              size: 24,
+              size: 20,
             ),
-            const SizedBox(height: 4),
+            const SizedBox(height: 1),
             Text(
               label,
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
                     color: isActive ? AppTheme.accent(context) : Theme.of(context).colorScheme.onSurfaceVariant,
                     fontWeight: isActive ? FontWeight.w600 : FontWeight.normal,
+                    fontSize: 9,
                   ),
+              overflow: TextOverflow.ellipsis,
+              maxLines: 1,
+              textAlign: TextAlign.center,
             ),
           ],
         ),

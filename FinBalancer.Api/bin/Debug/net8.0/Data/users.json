@@ -8,6 +8,17 @@
     "appleId": null,
     "emailVerified": false,
     "createdAt": "2026-02-14T11:17:49.9410594Z",
-    "lastLoginAt": "2026-02-14T19:27:37.5548779Z"
+    "lastLoginAt": "2026-02-15T13:41:11.294441Z"
+  },
+  {
+    "id": "bd2265c8-fc6d-4c8c-beaa-cb37ea4eefa2",
+    "email": "tperisa22@gmail.com",
+    "passwordHash": "k07yJwpyldt4HjCytKj4gAdDCNEK1sLqkXWGvIRlX4o=",
+    "displayName": "Tomislav",
+    "googleId": null,
+    "appleId": null,
+    "emailVerified": false,
+    "createdAt": "2026-02-14T22:12:50.456682Z",
+    "lastLoginAt": "2026-02-15T19:50:36.7137882Z"
   }
 ]

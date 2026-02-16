@@ -10,6 +10,7 @@ import 'l10n/app_localizations.dart';
 import 'screens/splash_screen.dart';
 import 'screens/login_screen.dart';
 import 'screens/dashboard_screen.dart';
+import 'models/transaction.dart';
 import 'screens/add_transaction_screen.dart';
 import 'screens/wallets_screen.dart';
 import 'screens/categories_screen.dart';
@@ -21,6 +22,11 @@ import 'screens/settings_screen.dart';
 import 'screens/premium_features_screen.dart';
 import 'screens/projects_screen.dart';
 import 'screens/achievements_list_screen.dart';
+import 'screens/decision_engine_screen.dart';
+import 'providers/subscription_provider.dart';
+import 'providers/dashboard_settings_provider.dart';
+import 'providers/app_lock_provider.dart';
+import 'screens/app_lock_screen.dart';
 
 void main() {
   runApp(const FinBalancerApp());
@@ -36,6 +42,9 @@ class FinBalancerApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => AppProvider()),
         ChangeNotifierProvider(create: (_) => DataProvider()),
         ChangeNotifierProvider(create: (_) => LocaleProvider()),
+        ChangeNotifierProvider(create: (_) => SubscriptionProvider()),
+        ChangeNotifierProvider(create: (_) => DashboardSettingsProvider()),
+        ChangeNotifierProvider(create: (_) => AppLockProvider()),
       ],
       child: Consumer<LocaleProvider>(
         builder: (context, localeProvider, _) => MaterialApp(
@@ -53,10 +62,20 @@ class FinBalancerApp extends StatelessWidget {
           ],
           supportedLocales: AppLocalizations.supportedLocales,
           initialRoute: '/',
+        onGenerateRoute: (settings) {
+          if (settings.name == '/add-transaction') {
+            final t = settings.arguments;
+            return MaterialPageRoute(
+              builder: (_) => AddTransactionScreen(
+                editingTransaction: t is Transaction ? t : null,
+              ),
+            );
+          }
+          return null;
+        },
         routes: {
           '/': (context) => const _AppRouter(),
           '/dashboard': (context) => const DashboardScreen(),
-          '/add-transaction': (context) => const AddTransactionScreen(),
           '/wallets': (context) => const WalletsScreen(),
           '/categories': (context) => const CategoriesScreen(),
           '/register': (context) => const RegisterScreen(),
@@ -67,6 +86,8 @@ class FinBalancerApp extends StatelessWidget {
           '/premium-features': (context) => const PremiumFeaturesScreen(),
           '/projects': (context) => const ProjectsScreen(),
           '/achievements-list': (context) => const AchievementsListScreen(),
+          '/decision-engine': (context) => const DecisionEngineScreen(),
+          '/app-lock': (context) => const AppLockScreen(),
         },
         ),
       ),
@@ -79,17 +100,25 @@ class _AppRouter extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Consumer<AppProvider>(
-      builder: (context, app, _) {
+    return Consumer2<AppProvider, AppLockProvider>(
+      builder: (context, app, lock, _) {
         if (!app.splashComplete) {
           return SplashScreen(
             onFinish: () => context.read<AppProvider>().completeSplash(),
           );
         }
-        if (app.isLoggedIn) {
-          return const DashboardScreen();
+        if (!app.isLoggedIn) {
+          return const LoginScreen();
         }
-        return const LoginScreen();
+        if (lock.isLoading) {
+          return const Scaffold(
+            body: Center(child: CircularProgressIndicator()),
+          );
+        }
+        if (lock.isMobile && lock.isEnabled && lock.isLocked) {
+          return const AppLockScreen();
+        }
+        return const DashboardScreen();
       },
     );
   }

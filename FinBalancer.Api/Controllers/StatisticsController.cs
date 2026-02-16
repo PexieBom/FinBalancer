@@ -23,6 +23,7 @@ public class StatisticsController : ControllerBase
         [FromQuery] Guid? walletId, [FromQuery] DateTime? dateFrom, [FromQuery] DateTime? dateTo)
     {
         var result = await _statisticsService.GetSpendingByCategoryAsync(walletId, dateFrom, dateTo);
+        if (result == null) return Unauthorized();
         return Ok(result);
     }
 
@@ -31,6 +32,7 @@ public class StatisticsController : ControllerBase
         [FromQuery] Guid? walletId, [FromQuery] DateTime? dateFrom, [FromQuery] DateTime? dateTo)
     {
         var result = await _statisticsService.GetIncomeExpenseSummaryAsync(walletId, dateFrom, dateTo);
+        if (result == null) return Unauthorized();
         return Ok(result);
     }
 
@@ -38,6 +40,7 @@ public class StatisticsController : ControllerBase
     public async Task<ActionResult<BudgetPredictionDto>> GetBudgetPrediction([FromQuery] Guid? walletId)
     {
         var result = await _advancedStatisticsService.GetBudgetPredictionAsync(walletId);
+        if (result == null) return Unauthorized();
         return Ok(result);
     }
 
@@ -45,6 +48,7 @@ public class StatisticsController : ControllerBase
     public async Task<ActionResult<List<BudgetAlertDto>>> GetBudgetAlerts([FromQuery] Guid? walletId)
     {
         var result = await _advancedStatisticsService.GetBudgetAlertsAsync(walletId);
+        if (result == null) return Unauthorized();
         return Ok(result);
     }
 
@@ -53,6 +57,7 @@ public class StatisticsController : ControllerBase
         [FromQuery] Guid? walletId, [FromQuery] DateTime? dateFrom, [FromQuery] DateTime? dateTo, [FromQuery] int months = 6)
     {
         var result = await _advancedStatisticsService.GetCashflowTrendAsync(walletId, months, dateFrom, dateTo);
+        if (result == null) return Unauthorized();
         return Ok(result);
     }
 }

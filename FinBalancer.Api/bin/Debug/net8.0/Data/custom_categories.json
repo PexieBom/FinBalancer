@@ -1,8 +1,15 @@
 [
   {
-    "id": "2e30191f-0ec8-466e-b004-ef92758581fa",
-    "userId": "00000000-0000-0000-0000-000000000000",
-    "name": "Re\u017Eije",
+    "id": "30bc6481-745a-444a-947f-db5b6ba5ce8e",
+    "userId": "bd2265c8-fc6d-4c8c-beaa-cb37ea4eefa2",
+    "name": "Obrt Prihod",
+    "type": "income",
+    "icon": "custom"
+  },
+  {
+    "id": "ef1712af-c309-4940-8842-132f815090d4",
+    "userId": "bd2265c8-fc6d-4c8c-beaa-cb37ea4eefa2",
+    "name": "Dizanje s bankomata",
     "type": "expense",
     "icon": "custom"
   }

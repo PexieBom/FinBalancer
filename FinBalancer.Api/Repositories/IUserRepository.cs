@@ -4,6 +4,7 @@ namespace FinBalancer.Api.Repositories;
 
 public interface IUserRepository
 {
+    Task<User?> GetFirstOrDefaultAsync();
     Task<User?> GetByIdAsync(Guid id);
     Task<User?> GetByEmailAsync(string email);
     Task<User?> GetByGoogleIdAsync(string googleId);

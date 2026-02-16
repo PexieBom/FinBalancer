@@ -19,10 +19,22 @@ public class JsonTransactionRepository : ITransactionRepository
         return await _storage.ReadJsonAsync<Transaction>(FileName);
     }
 
+    public async Task<List<Transaction>> GetAllByUserIdAsync(Guid userId)
+    {
+        var items = await _storage.ReadJsonAsync<Transaction>(FileName);
+        return items.Where(t => t.UserId == userId).ToList();
+    }
+
     public async Task<Transaction?> GetByIdAsync(Guid id)
     {
         var items = await _storage.ReadJsonAsync<Transaction>(FileName);
         return items.FirstOrDefault(t => t.Id == id);
+    }
+
+    public async Task<Transaction?> GetByIdAndUserIdAsync(Guid id, Guid userId)
+    {
+        var items = await _storage.ReadJsonAsync<Transaction>(FileName);
+        return items.FirstOrDefault(t => t.Id == id && t.UserId == userId);
     }
 
     public async Task<Transaction> AddAsync(Transaction transaction)

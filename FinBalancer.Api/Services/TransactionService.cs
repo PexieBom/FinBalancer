@@ -7,26 +7,35 @@ public class TransactionService
 {
     private readonly ITransactionRepository _transactionRepository;
     private readonly IWalletRepository _walletRepository;
+    private readonly ICurrentUserService _currentUser;
 
     public TransactionService(
         ITransactionRepository transactionRepository,
-        IWalletRepository walletRepository)
+        IWalletRepository walletRepository,
+        ICurrentUserService currentUser)
     {
         _transactionRepository = transactionRepository;
         _walletRepository = walletRepository;
+        _currentUser = currentUser;
     }
 
     public async Task<List<Transaction>> GetTransactionsAsync()
     {
-        return await _transactionRepository.GetAllAsync();
+        var userId = _currentUser.UserId;
+        if (!userId.HasValue) return new List<Transaction>();
+        return await _transactionRepository.GetAllByUserIdAsync(userId.Value);
     }
 
     public async Task<Transaction?> AddTransactionAsync(Transaction transaction)
     {
+        var userId = _currentUser.UserId;
+        if (!userId.HasValue) return null;
+
         transaction.Id = Guid.NewGuid();
         transaction.DateCreated = DateTime.UtcNow;
+        transaction.UserId = userId.Value;
 
-        var wallet = await _walletRepository.GetByIdAsync(transaction.WalletId);
+        var wallet = await _walletRepository.GetByIdAndUserIdAsync(transaction.WalletId, userId.Value);
         if (wallet == null)
             return null;
 
@@ -42,20 +51,27 @@ public class TransactionService
 
     public async Task<Transaction?> UpdateTransactionAsync(Transaction transaction)
     {
-        var existing = await _transactionRepository.GetByIdAsync(transaction.Id);
+        var userId = _currentUser.UserId;
+        if (!userId.HasValue) return null;
+
+        var existing = await _transactionRepository.GetByIdAndUserIdAsync(transaction.Id, userId.Value);
         if (existing == null) return null;
 
+        transaction.UserId = userId.Value;
         var updated = await _transactionRepository.UpdateAsync(transaction);
         return updated ? transaction : null;
     }
 
     public async Task<bool> DeleteTransactionAsync(Guid id)
     {
-        var transaction = await _transactionRepository.GetByIdAsync(id);
+        var userId = _currentUser.UserId;
+        if (!userId.HasValue) return false;
+
+        var transaction = await _transactionRepository.GetByIdAndUserIdAsync(id, userId.Value);
         if (transaction == null)
             return false;
 
-        var wallet = await _walletRepository.GetByIdAsync(transaction.WalletId);
+        var wallet = await _walletRepository.GetByIdAndUserIdAsync(transaction.WalletId, userId.Value);
         if (wallet != null)
         {
             if (transaction.Type == "income")

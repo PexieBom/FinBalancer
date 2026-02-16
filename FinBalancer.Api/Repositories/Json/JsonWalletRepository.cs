@@ -19,10 +19,22 @@ public class JsonWalletRepository : IWalletRepository
         return await _storage.ReadJsonAsync<Wallet>(FileName);
     }
 
+    public async Task<List<Wallet>> GetAllByUserIdAsync(Guid userId)
+    {
+        var items = await _storage.ReadJsonAsync<Wallet>(FileName);
+        return items.Where(w => w.UserId == userId).ToList();
+    }
+
     public async Task<Wallet?> GetByIdAsync(Guid id)
     {
         var items = await _storage.ReadJsonAsync<Wallet>(FileName);
         return items.FirstOrDefault(w => w.Id == id);
+    }
+
+    public async Task<Wallet?> GetByIdAndUserIdAsync(Guid id, Guid userId)
+    {
+        var items = await _storage.ReadJsonAsync<Wallet>(FileName);
+        return items.FirstOrDefault(w => w.Id == id && w.UserId == userId);
     }
 
     public async Task<Wallet> AddAsync(Wallet wallet)

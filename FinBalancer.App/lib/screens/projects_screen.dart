@@ -5,6 +5,7 @@ import '../theme/app_theme.dart';
 import '../services/api_service.dart';
 import '../models/project.dart';
 import '../providers/data_provider.dart';
+import '../providers/subscription_provider.dart';
 
 class ProjectsScreen extends StatefulWidget {
   const ProjectsScreen({super.key});
@@ -112,11 +113,13 @@ class _ProjectsScreenState extends State<ProjectsScreen> {
         title: Text('Projects', style: Theme.of(context).textTheme.headlineMedium?.copyWith(color: Theme.of(context).colorScheme.onSurface, fontWeight: FontWeight.bold)),
         leading: IconButton(icon: const Icon(Icons.arrow_back), onPressed: () => Navigator.pop(context)),
       ),
-      body: _buildBody(),
+      body: Consumer<SubscriptionProvider>(
+        builder: (context, sub, _) => _buildBody(isPremium: sub.isPremium),
+      ),
     );
   }
 
-  Widget _buildBody() {
+  Widget _buildBody({required bool isPremium}) {
     if (_isLoading) return const Center(child: CircularProgressIndicator());
     if (_error != null) {
       return Center(
@@ -138,18 +141,37 @@ class _ProjectsScreenState extends State<ProjectsScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            if (_showForm) _buildForm(),
-            if (!_showForm) _buildAddButton(),
+            if (!isPremium) ...[
+              Container(
+                padding: const EdgeInsets.all(16),
+                margin: const EdgeInsets.only(bottom: 16),
+                decoration: BoxDecoration(
+                  color: Colors.amber.withValues(alpha: 0.2),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: Colors.amber),
+                ),
+                child: Row(
+                  children: [
+                    Icon(Icons.lock, color: Colors.amber.shade700),
+                    const SizedBox(width: 12),
+                    Expanded(child: Text('Projects is a Premium feature. Upgrade to add or edit.', style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Colors.amber.shade900))),
+                    TextButton(onPressed: () => Navigator.pushNamed(context, '/premium-features'), child: const Text('Upgrade')),
+                  ],
+                ),
+              ),
+            ],
+            if (_showForm) _buildForm(isPremium: isPremium),
+            if (!_showForm) _buildAddButton(isPremium: isPremium),
             const SizedBox(height: 24),
             if (_projects.isEmpty && !_showForm) _buildEmpty()
-            else ..._projects.map((p) => _buildProjectCard(p)),
+            else ..._projects.map((p) => _buildProjectCard(p, isPremium: isPremium)),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildForm() {
+  Widget _buildForm({required bool isPremium}) {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -188,7 +210,7 @@ class _ProjectsScreenState extends State<ProjectsScreen> {
                 ),
               ),
               const SizedBox(width: 12),
-              Expanded(child: ElevatedButton(onPressed: _save, child: const Text('Save'))),
+              Expanded(child: ElevatedButton(onPressed: isPremium ? _save : null, child: const Text('Save'))),
             ],
           ),
         ],
@@ -196,11 +218,11 @@ class _ProjectsScreenState extends State<ProjectsScreen> {
     );
   }
 
-  Widget _buildAddButton() {
+  Widget _buildAddButton({required bool isPremium}) {
     return SizedBox(
       height: 56,
       child: OutlinedButton.icon(
-        onPressed: () => setState(() => _showForm = true),
+        onPressed: isPremium ? () => setState(() => _showForm = true) : null,
         icon: const Icon(Icons.add),
         label: const Text('Add Project'),
         style: OutlinedButton.styleFrom(side: BorderSide(color: AppTheme.accent(context))),
@@ -227,7 +249,7 @@ class _ProjectsScreenState extends State<ProjectsScreen> {
     );
   }
 
-  Widget _buildProjectCard(Project p) {
+  Widget _buildProjectCard(Project p, {required bool isPremium}) {
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(20),
@@ -256,8 +278,8 @@ class _ProjectsScreenState extends State<ProjectsScreen> {
               ],
             ),
           ),
-          IconButton(icon: const Icon(Icons.edit), onPressed: () => _edit(p)),
-          IconButton(icon: Icon(Icons.delete, color: AppTheme.expense(context)), onPressed: () => _delete(p)),
+          IconButton(icon: const Icon(Icons.edit), onPressed: isPremium ? () => _edit(p) : null),
+          IconButton(icon: Icon(Icons.delete, color: AppTheme.expense(context)), onPressed: isPremium ? () => _delete(p) : null),
         ],
       ),
     );

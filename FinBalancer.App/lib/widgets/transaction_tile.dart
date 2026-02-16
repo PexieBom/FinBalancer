@@ -9,6 +9,7 @@ import '../theme/app_theme.dart';
 class TransactionTile extends StatelessWidget {
   final Transaction transaction;
   final app_models.TransactionCategory? category;
+  final VoidCallback? onEdit;
   final VoidCallback? onDelete;
   final NumberFormat? currencyFormat;
 
@@ -16,6 +17,7 @@ class TransactionTile extends StatelessWidget {
     super.key,
     required this.transaction,
     this.category,
+    this.onEdit,
     this.onDelete,
     this.currencyFormat,
   });
@@ -23,6 +25,7 @@ class TransactionTile extends StatelessWidget {
   IconData _getIconForName(String iconName) {
     const icons = {
       'restaurant': Icons.restaurant,
+      'restaurant_menu': Icons.restaurant_menu,
       'directions_car': Icons.directions_car,
       'home': Icons.home,
       'movie': Icons.movie,
@@ -31,6 +34,14 @@ class TransactionTile extends StatelessWidget {
       'account_balance_wallet': Icons.account_balance_wallet,
       'star': Icons.star,
       'attach_money': Icons.attach_money,
+      'credit_card': Icons.credit_card,
+      'handshake': Icons.handshake,
+      'build': Icons.build,
+      'home_repair_service': Icons.home_repair_service,
+      'bolt': Icons.bolt,
+      'local_gas_station': Icons.local_gas_station,
+      'subscriptions': Icons.subscriptions,
+      'health_and_safety': Icons.health_and_safety,
     };
     return icons[iconName] ?? Icons.receipt;
   }
@@ -41,23 +52,23 @@ class TransactionTile extends StatelessWidget {
     final fmt = currencyFormat ?? NumberFormat.currency(locale: 'en_US', symbol: '€');
     final dateFormat = DateFormat('dd.MM.yyyy');
 
-    return Dismissible(
-      key: Key(transaction.id),
-      direction: onDelete != null
-          ? DismissDirection.endToStart
-          : DismissDirection.none,
-      onDismissed: (_) => onDelete?.call(),
-      background: Container(
-        alignment: Alignment.centerRight,
-        padding: const EdgeInsets.only(right: 20),
-        margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
-        decoration: BoxDecoration(
-          color: AppTheme.expense(context),
-          borderRadius: BorderRadius.circular(16),
-        ),
-        child: const Icon(Icons.delete, color: Colors.white, size: 28),
-      ),
-      child: Container(
+    return InkWell(
+        onTap: onEdit != null ? () => onEdit!() : null,
+        onLongPress: onDelete != null ? () {
+          showDialog<bool>(
+            context: context,
+            builder: (ctx) => AlertDialog(
+              title: Text(AppLocalizations.of(context)?.deleteTransactionConfirm ?? 'Izbriši transakciju?'),
+              content: Text(AppLocalizations.of(context)?.deleteTransactionConfirmMessage ?? 'Jeste li sigurni da želite izbrisati transakciju?'),
+              actions: [
+                TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text(AppLocalizations.of(context)?.cancel ?? 'Odustani')),
+                TextButton(onPressed: () => Navigator.pop(ctx, true), child: Text(AppLocalizations.of(context)?.delete ?? 'Izbriši', style: TextStyle(color: AppTheme.expense(context)))),
+              ],
+            ),
+          ).then((ok) { if (ok == true) onDelete?.call(); });
+        } : null,
+        borderRadius: BorderRadius.circular(16),
+        child: Container(
         margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
@@ -118,7 +129,7 @@ class TransactionTile extends StatelessWidget {
             ),
           ],
         ),
-      ),
-    );
+        ),
+      );
   }
 }

@@ -1,14 +1,26 @@
 [
   {
     "id": "813cf0bc-19cf-4a39-a24a-ba4b80b2fc23",
+    "userId": "f6b8ccb6-6ce9-470c-9a71-a5af29ceab31",
     "name": "Test Wallet",
-    "balance": 824.75,
-    "currency": "EUR"
+    "balance": 13324.75,
+    "currency": "EUR",
+    "isMain": true
   },
   {
     "id": "468e4ab0-4236-4ca2-84f0-857b2d834677",
+    "userId": "f6b8ccb6-6ce9-470c-9a71-a5af29ceab31",
     "name": "Testni",
     "balance": 883,
-    "currency": "EUR"
+    "currency": "EUR",
+    "isMain": false
+  },
+  {
+    "id": "e6bc4221-b7ed-490b-9057-8110d61da5d5",
+    "userId": "bd2265c8-fc6d-4c8c-beaa-cb37ea4eefa2",
+    "name": "Main wallet",
+    "balance": 9215,
+    "currency": "EUR",
+    "isMain": true
   }
 ]

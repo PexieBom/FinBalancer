@@ -42,6 +42,7 @@
   "due": "Fällig: {date}",
   "addToGoalButton": "Zum Ziel hinzufügen",
   "addTransactionTitle": "Transaktion hinzufügen",
+  "editTransaction": "Transaktion bearbeiten",
   "addWalletFirst": "Zuerst Geldbörse hinzufügen",
   "needWalletFirst": "Sie benötigen mindestens eine Geldbörse für Transaktionen.",
   "addWallet": "Geldbörse hinzufügen",

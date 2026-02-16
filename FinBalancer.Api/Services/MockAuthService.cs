@@ -185,11 +185,13 @@ public class MockAuthService : IAuthService
         return new AuthResult { Success = true, Token = newToken, RefreshToken = newRefreshToken, TokenExpiresAt = DateTime.UtcNow.Add(AccessTokenLifetime), User = user };
     }
 
-    public Task<User?> GetUserByTokenAsync(string token)
+    public async Task<User?> GetUserByTokenAsync(string token)
     {
         if (MockTokens.TryGetValue(token, out var userId))
-            return _userRepository.GetByIdAsync(userId);
-        return Task.FromResult<User?>(null);
+            return await _userRepository.GetByIdAsync(userId);
+        if (token == "local_mock")
+            return await _userRepository.GetFirstOrDefaultAsync();
+        return null;
     }
 
     private async Task<(string AccessToken, string RefreshToken)> GenerateTokensAsync(Guid userId)

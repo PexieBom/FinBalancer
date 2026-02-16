@@ -10,6 +10,7 @@ class Transaction {
   final String? project;
   final String? projectId;
   final DateTime dateCreated;
+  final bool isYearlyExpense;
 
   Transaction({
     required this.id,
@@ -23,6 +24,7 @@ class Transaction {
     this.project,
     this.projectId,
     required this.dateCreated,
+    this.isYearlyExpense = false,
   });
 
   factory Transaction.fromJson(Map<String, dynamic> json) {
@@ -41,6 +43,7 @@ class Transaction {
       project: json['project'] as String?,
       projectId: json['projectId']?.toString(),
       dateCreated: DateTime.parse(json['dateCreated'] as String),
+      isYearlyExpense: json['isYearlyExpense'] == true,
     );
   }
 
@@ -55,7 +58,9 @@ class Transaction {
       'note': note,
       'tags': tags,
       'project': project,
+      'projectId': projectId,
       'dateCreated': dateCreated.toIso8601String(),
+      'isYearlyExpense': isYearlyExpense,
     };
   }
 
@@ -70,6 +75,7 @@ class Transaction {
       'tags': tags.isEmpty ? [] : tags,
       'project': project,
       'projectId': projectId,
+      'isYearlyExpense': isYearlyExpense,
     };
   }
 }

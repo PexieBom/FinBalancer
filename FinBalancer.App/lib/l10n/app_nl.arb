@@ -42,6 +42,7 @@
   "due": "Vervaldatum: {date}",
   "addToGoalButton": "Toevoegen aan doel",
   "addTransactionTitle": "Transactie toevoegen",
+  "editTransaction": "Transactie bewerken",
   "addWalletFirst": "Voeg eerst een portemonnee toe",
   "needWalletFirst": "Je hebt minimaal één portemonnee nodig voor transacties.",
   "addWallet": "Portemonnee toevoegen",

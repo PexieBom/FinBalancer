@@ -6,22 +6,29 @@ public class AdvancedStatisticsService
 {
     private readonly ITransactionRepository _transactionRepository;
     private readonly ICategoryRepository _categoryRepository;
+    private readonly ICurrentUserService _currentUser;
 
     public AdvancedStatisticsService(
         ITransactionRepository transactionRepository,
-        ICategoryRepository categoryRepository)
+        ICategoryRepository categoryRepository,
+        ICurrentUserService currentUser)
     {
         _transactionRepository = transactionRepository;
         _categoryRepository = categoryRepository;
+        _currentUser = currentUser;
     }
 
-    public async Task<BudgetPredictionDto> GetBudgetPredictionAsync(Guid? walletId = null)
+    public async Task<BudgetPredictionDto?> GetBudgetPredictionAsync(Guid? walletId = null)
     {
-        var transactions = await _transactionRepository.GetAllAsync();
+        var userId = _currentUser.UserId;
+        if (!userId.HasValue) return null;
+
+        var transactions = await _transactionRepository.GetAllByUserIdAsync(userId.Value);
         var categories = await _categoryRepository.GetOrSeedDefaultsAsync();
 
         var filtered = transactions
             .Where(t => t.Type == "expense")
+            .Where(t => !t.IsYearlyExpense)
             .Where(t => !walletId.HasValue || t.WalletId == walletId)
             .Where(t => t.DateCreated >= DateTime.UtcNow.AddMonths(-3))
             .ToList();
@@ -47,9 +54,12 @@ public class AdvancedStatisticsService
         return new BudgetPredictionDto(byCategory, byCategory.Sum(c => c.PredictedNextMonth));
     }
 
-    public async Task<List<BudgetAlertDto>> GetBudgetAlertsAsync(Guid? walletId = null)
+    public async Task<List<BudgetAlertDto>?> GetBudgetAlertsAsync(Guid? walletId = null)
     {
-        var transactions = await _transactionRepository.GetAllAsync();
+        var userId = _currentUser.UserId;
+        if (!userId.HasValue) return null;
+
+        var transactions = await _transactionRepository.GetAllByUserIdAsync(userId.Value);
         var categories = await _categoryRepository.GetOrSeedDefaultsAsync();
 
         var thisMonth = transactions
@@ -90,9 +100,12 @@ public class AdvancedStatisticsService
         return alerts;
     }
 
-    public async Task<TrendDataDto> GetCashflowTrendAsync(Guid? walletId = null, int months = 6, DateTime? dateFrom = null, DateTime? dateTo = null)
+    public async Task<TrendDataDto?> GetCashflowTrendAsync(Guid? walletId = null, int months = 6, DateTime? dateFrom = null, DateTime? dateTo = null)
     {
-        var transactions = await _transactionRepository.GetAllAsync();
+        var userId = _currentUser.UserId;
+        if (!userId.HasValue) return null;
+
+        var transactions = await _transactionRepository.GetAllByUserIdAsync(userId.Value);
 
         var filtered = walletId.HasValue
             ? transactions.Where(t => t.WalletId == walletId)

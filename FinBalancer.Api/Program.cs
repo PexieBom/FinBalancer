@@ -1,5 +1,6 @@
 using FinBalancer.Api.Configuration;
 using FinBalancer.Api.Infrastructure;
+using FinBalancer.Api.Middleware;
 using FinBalancer.Api.Repositories;
 using FinBalancer.Api.Repositories.Json;
 using FinBalancer.Api.Services;
@@ -9,6 +10,8 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
 
 // Config
 builder.Services.Configure<StorageOptions>(
@@ -30,6 +33,9 @@ if (useMockData)
     builder.Services.AddScoped<IRefreshTokenRepository, JsonRefreshTokenRepository>();
     builder.Services.AddScoped<IProjectRepository, JsonProjectRepository>();
     builder.Services.AddScoped<ICustomCategoryRepository, JsonCustomCategoryRepository>();
+    builder.Services.AddScoped<ISubscriptionRepository, JsonSubscriptionRepository>();
+    builder.Services.AddScoped<ISubscriptionPlanRepository, JsonSubscriptionPlanRepository>();
+    builder.Services.AddScoped<IWalletBudgetRepository, JsonWalletBudgetRepository>();
 }
 else
 {
@@ -47,9 +53,13 @@ builder.Services.AddScoped<CategoryService>();
 builder.Services.AddScoped<StatisticsService>();
 builder.Services.AddScoped<AdvancedStatisticsService>();
 builder.Services.AddScoped<GoalService>();
+builder.Services.AddScoped<ProjectService>();
 builder.Services.AddScoped<AchievementService>();
 builder.Services.AddScoped<UserPreferencesService>();
 builder.Services.AddScoped<IAuthService, MockAuthService>();
+builder.Services.AddScoped<ISubscriptionValidationService, SubscriptionValidationService>();
+builder.Services.AddScoped<SubscriptionService>();
+builder.Services.AddScoped<BudgetService>();
 
 builder.Services.AddCors(options =>
 {
@@ -70,6 +80,7 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseCors();
+app.UseMiddleware<CurrentUserMiddleware>();
 app.MapControllers();
 
 app.Run();

@@ -79,10 +79,16 @@ class AppLocalizationsHr extends AppLocalizations {
   String get add => 'Dodaj';
 
   @override
+  String get loadMore => 'Učitaj više';
+
+  @override
   String get stats => 'Statistika';
 
   @override
   String get wallets => 'Novčanici';
+
+  @override
+  String get walletsBudgets => 'Novčanici / Budžeti';
 
   @override
   String get newGoal => 'Novi cilj';
@@ -127,6 +133,13 @@ class AppLocalizationsHr extends AppLocalizations {
   String get delete => 'Izbriši';
 
   @override
+  String get deleteTransactionConfirm => 'Izbriši transakciju?';
+
+  @override
+  String get deleteTransactionConfirmMessage =>
+      'Jeste li sigurni da želite izbrisati transakciju?';
+
+  @override
   String get noGoalsYet => 'Još nema ciljeva';
 
   @override
@@ -145,6 +158,9 @@ class AppLocalizationsHr extends AppLocalizations {
 
   @override
   String get addTransactionTitle => 'Dodaj transakciju';
+
+  @override
+  String get editTransaction => 'Uredi transakciju';
 
   @override
   String get addWalletFirst => 'Prvo dodajte novčanik';
@@ -263,6 +279,35 @@ class AppLocalizationsHr extends AppLocalizations {
   String get unknown => 'Nepoznato';
 
   @override
+  String get decisionEngine => 'Decision Engine';
+
+  @override
+  String get decisionEngineSubtitle =>
+      'Unesite iznos i opis da vidite kako se uspoređuje s mjesečnim prihodom.';
+
+  @override
+  String get decisionEngineDescription => 'Opis (opcionalno)';
+
+  @override
+  String get decisionEngineResult => 'Ocjena';
+
+  @override
+  String get decisionEnginePercentOfIncome => 'Postotak mjesečnog prihoda';
+
+  @override
+  String get decisionEngineScore => 'Ocjena (0-10)';
+
+  @override
+  String get evaluate => 'Ocijeni';
+
+  @override
+  String get yearlyExpenseFlag => 'Trošak jednom godišnje';
+
+  @override
+  String get yearlyExpenseFlagHint =>
+      'Izuzeo iz predviđanja za idući mjesec (npr. osiguranje, godišnja naknada)';
+
+  @override
   String get login => 'Prijava';
 
   @override
@@ -294,6 +339,24 @@ class AppLocalizationsHr extends AppLocalizations {
 
   @override
   String get premiumFeatures => 'Premium značajke';
+
+  @override
+  String get freePlan => 'Besplatan plan';
+
+  @override
+  String get upgradeToPremium => 'Nadogradnja na Premium';
+
+  @override
+  String get plan => 'Plan';
+
+  @override
+  String get premiumMonthly => 'Premium mjesečno';
+
+  @override
+  String get premiumYearly => 'Premium godišnje';
+
+  @override
+  String get choosePlan => 'Odaberite plan';
 
   @override
   String get language => 'Jezik';
@@ -433,4 +496,77 @@ class AppLocalizationsHr extends AppLocalizations {
   String unlockedOn(String date) {
     return 'Otključano: $date';
   }
+
+  @override
+  String get budgets => 'Budžeti';
+
+  @override
+  String get budget => 'Budžet';
+
+  @override
+  String get spent => 'Potrošeno';
+
+  @override
+  String get remaining => 'Preostalo';
+
+  @override
+  String get allowancePerDay => 'Dnevno dopušteno';
+
+  @override
+  String get onTrack => 'U planu';
+
+  @override
+  String get overPace => 'Prekoračeno';
+
+  @override
+  String get underPace => 'Ispod plana';
+
+  @override
+  String get setBudget => 'Postavi budžet';
+
+  @override
+  String get addBudget => 'Dodaj budžet';
+
+  @override
+  String get editBudget => 'Uredi budžet';
+
+  @override
+  String get budgetAmount => 'Iznos budžeta';
+
+  @override
+  String get periodStartDay => 'Početni dan razdoblja (1–28)';
+
+  @override
+  String get noBudgetsYet => 'Još nema budžeta';
+
+  @override
+  String get addBudgetForWallet => 'Dodaj mjesečni budžet za novčanik';
+
+  @override
+  String get deleteBudgetQuestion => 'Izbrisati budžet?';
+
+  @override
+  String get noWalletsForBudget =>
+      'Prvo dodajte novčanik za postavljanje budžeta.';
+
+  @override
+  String get customizeDashboard => 'Prilagodi nadzornu ploču';
+
+  @override
+  String get showPlan => 'Plan';
+
+  @override
+  String get showGoals => 'Ciljevi';
+
+  @override
+  String get showAchievements => 'Postignuća';
+
+  @override
+  String get showBudget => 'Budžet';
+
+  @override
+  String get showStatistics => 'Statistika';
+
+  @override
+  String get showExpensesChart => 'Graf rashoda';
 }

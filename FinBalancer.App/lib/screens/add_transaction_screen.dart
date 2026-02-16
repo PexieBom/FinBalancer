@@ -11,7 +11,9 @@ import '../utils/currency_formatter.dart';
 import '../l10n/app_localizations.dart';
 
 class AddTransactionScreen extends StatefulWidget {
-  const AddTransactionScreen({super.key});
+  final Transaction? editingTransaction;
+
+  const AddTransactionScreen({super.key, this.editingTransaction});
 
   @override
   State<AddTransactionScreen> createState() => _AddTransactionScreenState();
@@ -30,14 +32,33 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
   String? _selectedCategoryId;
   String? _selectedWalletId;
   String? _selectedProjectId;
+  bool _isYearlyExpense = false;
   bool _isLoading = false;
   String? _error;
 
   @override
   void initState() {
     super.initState();
+    final editing = widget.editingTransaction;
+    if (editing != null) {
+      _amountController.text = editing.amount.toStringAsFixed(2).replaceAll('.', ',');
+      _noteController.text = editing.note ?? '';
+      _isIncome = editing.type == 'income';
+      _selectedCategoryId = editing.categoryId;
+      _selectedSubcategoryId = editing.subcategoryId;
+      _selectedWalletId = editing.walletId;
+      _selectedProjectId = editing.projectId;
+      _tags.addAll(editing.tags);
+      _isYearlyExpense = editing.isYearlyExpense;
+      if (editing.project != null && editing.project!.isNotEmpty) {
+        _projectController.text = editing.project!;
+      }
+    }
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<DataProvider>().loadAll(locale: context.read<LocaleProvider>().localeCode);
+      if (editing != null && _selectedCategoryId != null) {
+        context.read<DataProvider>().loadSubcategories(categoryId: _selectedCategoryId!);
+      }
     });
   }
 
@@ -62,20 +83,26 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
     });
 
     try {
+      final editing = widget.editingTransaction;
       final transaction = Transaction(
-        id: '',
+        id: editing?.id ?? '',
         amount: amount,
         type: _isIncome ? 'income' : 'expense',
         categoryId: _selectedCategoryId!,
         walletId: _selectedWalletId!,
         note: _noteController.text.isEmpty ? null : _noteController.text,
-        dateCreated: DateTime.now(),
+        dateCreated: editing?.dateCreated ?? DateTime.now(),
         tags: List.from(_tags),
         subcategoryId: _selectedSubcategoryId,
         project: _projectController.text.trim().isEmpty ? null : _projectController.text.trim(),
         projectId: _selectedProjectId,
+        isYearlyExpense: _isYearlyExpense,
       );
-      await provider.addTransaction(transaction);
+      if (editing != null) {
+        await provider.updateTransaction(transaction);
+      } else {
+        await provider.addTransaction(transaction);
+      }
       if (mounted) Navigator.pop(context);
     } catch (e) {
       setState(() {
@@ -93,7 +120,9 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
         backgroundColor: Theme.of(context).appBarTheme.backgroundColor,
         elevation: 0,
         title: Text(
-          AppLocalizations.of(context)!.addTransactionTitle,
+          widget.editingTransaction != null
+              ? AppLocalizations.of(context)!.editTransaction
+              : AppLocalizations.of(context)!.addTransactionTitle,
           style: Theme.of(context).textTheme.headlineMedium?.copyWith(
                 color: AppTheme.primaryColor,
                 fontWeight: FontWeight.bold,
@@ -110,6 +139,12 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
               .where((c) => c.type == (_isIncome ? 'income' : 'expense'))
               .toList();
           final wallets = provider.wallets;
+          final main = provider.mainWallet;
+          if (_selectedWalletId == null && main != null) {
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              if (mounted) setState(() => _selectedWalletId = main.id);
+            });
+          }
 
           if (wallets.isEmpty) {
             return Center(
@@ -277,6 +312,15 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
                           decoration: InputDecoration(labelText: AppLocalizations.of(context)!.noteOptional),
                           maxLines: 2,
                         ),
+                        if (!_isIncome) ...[
+                          const SizedBox(height: 16),
+                          SwitchListTile(
+                            title: Text(AppLocalizations.of(context)!.yearlyExpenseFlag),
+                            subtitle: Text(AppLocalizations.of(context)!.yearlyExpenseFlagHint),
+                            value: _isYearlyExpense,
+                            onChanged: (v) => setState(() => _isYearlyExpense = v),
+                          ),
+                        ],
                         const SizedBox(height: 16),
                         Consumer<DataProvider>(
                           builder: (context, prov, _) {
@@ -371,6 +415,7 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
   IconData _getIcon(String name) {
     const icons = {
       'restaurant': Icons.restaurant,
+      'restaurant_menu': Icons.restaurant_menu,
       'directions_car': Icons.directions_car,
       'home': Icons.home,
       'movie': Icons.movie,
@@ -380,6 +425,14 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
       'star': Icons.star,
       'attach_money': Icons.attach_money,
       'custom': Icons.bookmark,
+      'credit_card': Icons.credit_card,
+      'handshake': Icons.handshake,
+      'build': Icons.build,
+      'home_repair_service': Icons.home_repair_service,
+      'bolt': Icons.bolt,
+      'local_gas_station': Icons.local_gas_station,
+      'subscriptions': Icons.subscriptions,
+      'health_and_safety': Icons.health_and_safety,
     };
     return icons[name] ?? Icons.receipt;
   }

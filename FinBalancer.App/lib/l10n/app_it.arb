@@ -42,6 +42,7 @@
   "due": "Scadenza: {date}",
   "addToGoalButton": "Aggiungi all'obiettivo",
   "addTransactionTitle": "Aggiungi transazione",
+  "editTransaction": "Modifica transazione",
   "addWalletFirst": "Aggiungi prima un portafoglio",
   "needWalletFirst": "Serve almeno un portafoglio per le transazioni.",
   "addWallet": "Aggiungi portafoglio",

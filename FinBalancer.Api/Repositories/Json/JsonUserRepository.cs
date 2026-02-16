@@ -14,6 +14,12 @@ public class JsonUserRepository : IUserRepository
         _storage = storage;
     }
 
+    public async Task<User?> GetFirstOrDefaultAsync()
+    {
+        var users = await _storage.ReadJsonAsync<User>(FileName);
+        return users.FirstOrDefault();
+    }
+
     public async Task<User?> GetByIdAsync(Guid id)
     {
         var users = await _storage.ReadJsonAsync<User>(FileName);

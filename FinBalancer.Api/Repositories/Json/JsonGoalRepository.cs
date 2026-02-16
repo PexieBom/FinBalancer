@@ -19,10 +19,22 @@ public class JsonGoalRepository : IGoalRepository
         return await _storage.ReadJsonAsync<Goal>(FileName);
     }
 
+    public async Task<List<Goal>> GetAllByUserIdAsync(Guid userId)
+    {
+        var items = await _storage.ReadJsonAsync<Goal>(FileName);
+        return items.Where(g => g.UserId == userId).ToList();
+    }
+
     public async Task<Goal?> GetByIdAsync(Guid id)
     {
         var items = await _storage.ReadJsonAsync<Goal>(FileName);
         return items.FirstOrDefault(g => g.Id == id);
+    }
+
+    public async Task<Goal?> GetByIdAndUserIdAsync(Guid id, Guid userId)
+    {
+        var items = await _storage.ReadJsonAsync<Goal>(FileName);
+        return items.FirstOrDefault(g => g.Id == id && g.UserId == userId);
     }
 
     public async Task<Goal> AddAsync(Goal goal)

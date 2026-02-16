@@ -24,6 +24,7 @@ public class GoalsController : ControllerBase
         if (string.IsNullOrWhiteSpace(goal.Name))
             return BadRequest("Name required");
         var created = await _goalService.CreateAsync(goal);
+        if (created == null) return Unauthorized();
         return CreatedAtAction(nameof(Get), created);
     }
 

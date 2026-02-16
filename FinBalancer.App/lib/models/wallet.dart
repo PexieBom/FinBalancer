@@ -3,12 +3,14 @@ class Wallet {
   final String name;
   final double balance;
   final String currency;
+  final bool isMain;
 
   Wallet({
     required this.id,
     required this.name,
     required this.balance,
     this.currency = 'EUR',
+    this.isMain = false,
   });
 
   factory Wallet.fromJson(Map<String, dynamic> json) {
@@ -17,6 +19,7 @@ class Wallet {
       name: json['name'] as String,
       balance: (json['balance'] as num).toDouble(),
       currency: json['currency'] as String? ?? 'EUR',
+      isMain: json['isMain'] as bool? ?? false,
     );
   }
 
@@ -26,6 +29,7 @@ class Wallet {
       'name': name,
       'balance': balance,
       'currency': currency,
+      'isMain': isMain,
     };
   }
 
@@ -37,12 +41,13 @@ class Wallet {
     };
   }
 
-  Wallet copyWith({String? id, String? name, double? balance, String? currency}) {
+  Wallet copyWith({String? id, String? name, double? balance, String? currency, bool? isMain}) {
     return Wallet(
       id: id ?? this.id,
       name: name ?? this.name,
       balance: balance ?? this.balance,
       currency: currency ?? this.currency,
+      isMain: isMain ?? this.isMain,
     );
   }
 }

@@ -77,10 +77,16 @@ class AppLocalizationsPt extends AppLocalizations {
   String get add => 'Adicionar';
 
   @override
+  String get loadMore => 'Load more';
+
+  @override
   String get stats => 'Estatísticas';
 
   @override
   String get wallets => 'Carteiras';
+
+  @override
+  String get walletsBudgets => 'Wallets / Budgets';
 
   @override
   String get newGoal => 'Novo objetivo';
@@ -125,6 +131,13 @@ class AppLocalizationsPt extends AppLocalizations {
   String get delete => 'Excluir';
 
   @override
+  String get deleteTransactionConfirm => 'Delete transaction?';
+
+  @override
+  String get deleteTransactionConfirmMessage =>
+      'Are you sure you want to delete this transaction?';
+
+  @override
   String get noGoalsYet => 'Ainda sem objetivos';
 
   @override
@@ -143,6 +156,9 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get addTransactionTitle => 'Adicionar transação';
+
+  @override
+  String get editTransaction => 'Editar transação';
 
   @override
   String get addWalletFirst => 'Adicione primeiro uma carteira';
@@ -259,6 +275,35 @@ class AppLocalizationsPt extends AppLocalizations {
   String get unknown => 'Desconhecido';
 
   @override
+  String get decisionEngine => 'Decision Engine';
+
+  @override
+  String get decisionEngineSubtitle =>
+      'Enter an amount and description to see how it compares to your monthly income.';
+
+  @override
+  String get decisionEngineDescription => 'Description (optional)';
+
+  @override
+  String get decisionEngineResult => 'Evaluation';
+
+  @override
+  String get decisionEnginePercentOfIncome => 'Percent of monthly income';
+
+  @override
+  String get decisionEngineScore => 'Score (0-10)';
+
+  @override
+  String get evaluate => 'Evaluate';
+
+  @override
+  String get yearlyExpenseFlag => 'Yearly expense (once per year)';
+
+  @override
+  String get yearlyExpenseFlagHint =>
+      'Excluded from next month prediction (e.g. insurance, annual fee)';
+
+  @override
   String get login => 'Entrar';
 
   @override
@@ -290,6 +335,24 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get premiumFeatures => 'Premium features';
+
+  @override
+  String get freePlan => 'Free plan';
+
+  @override
+  String get upgradeToPremium => 'Upgrade to Premium';
+
+  @override
+  String get plan => 'Plan';
+
+  @override
+  String get premiumMonthly => 'Premium Monthly';
+
+  @override
+  String get premiumYearly => 'Premium Yearly';
+
+  @override
+  String get choosePlan => 'Choose your plan';
 
   @override
   String get language => 'Idioma';
@@ -429,4 +492,76 @@ class AppLocalizationsPt extends AppLocalizations {
   String unlockedOn(String date) {
     return 'Unlocked: $date';
   }
+
+  @override
+  String get budgets => 'Budgets';
+
+  @override
+  String get budget => 'Budget';
+
+  @override
+  String get spent => 'Spent';
+
+  @override
+  String get remaining => 'Remaining';
+
+  @override
+  String get allowancePerDay => 'Allowance/day';
+
+  @override
+  String get onTrack => 'On track';
+
+  @override
+  String get overPace => 'Over pace';
+
+  @override
+  String get underPace => 'Under pace';
+
+  @override
+  String get setBudget => 'Set a budget';
+
+  @override
+  String get addBudget => 'Add budget';
+
+  @override
+  String get editBudget => 'Edit budget';
+
+  @override
+  String get budgetAmount => 'Budget amount';
+
+  @override
+  String get periodStartDay => 'Period start day (1–28)';
+
+  @override
+  String get noBudgetsYet => 'No budgets yet';
+
+  @override
+  String get addBudgetForWallet => 'Add a monthly budget for a wallet';
+
+  @override
+  String get deleteBudgetQuestion => 'Delete budget?';
+
+  @override
+  String get noWalletsForBudget => 'Add a wallet first to set budgets.';
+
+  @override
+  String get customizeDashboard => 'Customize dashboard';
+
+  @override
+  String get showPlan => 'Plan';
+
+  @override
+  String get showGoals => 'Goals';
+
+  @override
+  String get showAchievements => 'Achievements';
+
+  @override
+  String get showBudget => 'Budget';
+
+  @override
+  String get showStatistics => 'Statistics';
+
+  @override
+  String get showExpensesChart => 'Expenses chart';
 }

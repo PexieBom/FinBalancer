@@ -19,7 +19,10 @@ public class TransactionsController : ControllerBase
     public async Task<ActionResult<List<Transaction>>> Get(
         [FromQuery] string? tag,
         [FromQuery] string? project,
-        [FromQuery] Guid? walletId)
+        [FromQuery] Guid? walletId,
+        [FromQuery] Guid? categoryId,
+        [FromQuery] DateTime? dateFrom,
+        [FromQuery] DateTime? dateTo)
     {
         var transactions = await _transactionService.GetTransactionsAsync();
 
@@ -29,6 +32,12 @@ public class TransactionsController : ControllerBase
             transactions = transactions.Where(t => t.Project == project).ToList();
         if (walletId.HasValue)
             transactions = transactions.Where(t => t.WalletId == walletId).ToList();
+        if (categoryId.HasValue)
+            transactions = transactions.Where(t => t.CategoryId == categoryId.Value).ToList();
+        if (dateFrom.HasValue)
+            transactions = transactions.Where(t => t.DateCreated.Date >= dateFrom.Value.Date).ToList();
+        if (dateTo.HasValue)
+            transactions = transactions.Where(t => t.DateCreated.Date <= dateTo.Value.Date).ToList();
 
         return Ok(transactions.OrderByDescending(t => t.DateCreated).ToList());
     }

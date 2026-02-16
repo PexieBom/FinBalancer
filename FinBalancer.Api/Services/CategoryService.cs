@@ -36,7 +36,8 @@ public class CategoryService
 
     public async Task<Category?> AddCustomCategoryAsync(string name, string type, Guid? userId = null)
     {
-        var cc = new CustomCategory { UserId = userId ?? Guid.Empty, Name = name, Type = type };
+        if (!userId.HasValue) return null;
+        var cc = new CustomCategory { UserId = userId.Value, Name = name, Type = type };
         var added = await _customCategoryRepository.AddAsync(cc);
         return new Category { Id = added.Id, Name = added.Name, Icon = "custom", Type = added.Type };
     }

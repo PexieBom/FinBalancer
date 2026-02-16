@@ -19,10 +19,22 @@ public class JsonProjectRepository : IProjectRepository
         return await _storage.ReadJsonAsync<Project>(FileName);
     }
 
+    public async Task<List<Project>> GetAllByUserIdAsync(Guid userId)
+    {
+        var items = await _storage.ReadJsonAsync<Project>(FileName);
+        return items.Where(p => p.UserId == userId).ToList();
+    }
+
     public async Task<Project?> GetByIdAsync(Guid id)
     {
         var list = await _storage.ReadJsonAsync<Project>(FileName);
         return list.FirstOrDefault(p => p.Id == id);
+    }
+
+    public async Task<Project?> GetByIdAndUserIdAsync(Guid id, Guid userId)
+    {
+        var list = await _storage.ReadJsonAsync<Project>(FileName);
+        return list.FirstOrDefault(p => p.Id == id && p.UserId == userId);
     }
 
     public async Task<Project> AddAsync(Project project)

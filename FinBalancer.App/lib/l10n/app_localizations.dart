@@ -242,6 +242,12 @@ abstract class AppLocalizations {
   /// **'Add'**
   String get add;
 
+  /// No description provided for @loadMore.
+  ///
+  /// In en, this message translates to:
+  /// **'Load more'**
+  String get loadMore;
+
   /// No description provided for @stats.
   ///
   /// In en, this message translates to:
@@ -253,6 +259,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Wallets'**
   String get wallets;
+
+  /// No description provided for @walletsBudgets.
+  ///
+  /// In en, this message translates to:
+  /// **'Wallets / Budgets'**
+  String get walletsBudgets;
 
   /// No description provided for @newGoal.
   ///
@@ -326,6 +338,18 @@ abstract class AppLocalizations {
   /// **'Delete'**
   String get delete;
 
+  /// No description provided for @deleteTransactionConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete transaction?'**
+  String get deleteTransactionConfirm;
+
+  /// No description provided for @deleteTransactionConfirmMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to delete this transaction?'**
+  String get deleteTransactionConfirmMessage;
+
   /// No description provided for @noGoalsYet.
   ///
   /// In en, this message translates to:
@@ -361,6 +385,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Add Transaction'**
   String get addTransactionTitle;
+
+  /// No description provided for @editTransaction.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit Transaction'**
+  String get editTransaction;
 
   /// No description provided for @addWalletFirst.
   ///
@@ -590,6 +620,60 @@ abstract class AppLocalizations {
   /// **'Unknown'**
   String get unknown;
 
+  /// No description provided for @decisionEngine.
+  ///
+  /// In en, this message translates to:
+  /// **'Decision Engine'**
+  String get decisionEngine;
+
+  /// No description provided for @decisionEngineSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter an amount and description to see how it compares to your monthly income.'**
+  String get decisionEngineSubtitle;
+
+  /// No description provided for @decisionEngineDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Description (optional)'**
+  String get decisionEngineDescription;
+
+  /// No description provided for @decisionEngineResult.
+  ///
+  /// In en, this message translates to:
+  /// **'Evaluation'**
+  String get decisionEngineResult;
+
+  /// No description provided for @decisionEnginePercentOfIncome.
+  ///
+  /// In en, this message translates to:
+  /// **'Percent of monthly income'**
+  String get decisionEnginePercentOfIncome;
+
+  /// No description provided for @decisionEngineScore.
+  ///
+  /// In en, this message translates to:
+  /// **'Score (0-10)'**
+  String get decisionEngineScore;
+
+  /// No description provided for @evaluate.
+  ///
+  /// In en, this message translates to:
+  /// **'Evaluate'**
+  String get evaluate;
+
+  /// No description provided for @yearlyExpenseFlag.
+  ///
+  /// In en, this message translates to:
+  /// **'Yearly expense (once per year)'**
+  String get yearlyExpenseFlag;
+
+  /// No description provided for @yearlyExpenseFlagHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Excluded from next month prediction (e.g. insurance, annual fee)'**
+  String get yearlyExpenseFlagHint;
+
   /// No description provided for @login.
   ///
   /// In en, this message translates to:
@@ -655,6 +739,42 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Premium features'**
   String get premiumFeatures;
+
+  /// No description provided for @freePlan.
+  ///
+  /// In en, this message translates to:
+  /// **'Free plan'**
+  String get freePlan;
+
+  /// No description provided for @upgradeToPremium.
+  ///
+  /// In en, this message translates to:
+  /// **'Upgrade to Premium'**
+  String get upgradeToPremium;
+
+  /// No description provided for @plan.
+  ///
+  /// In en, this message translates to:
+  /// **'Plan'**
+  String get plan;
+
+  /// No description provided for @premiumMonthly.
+  ///
+  /// In en, this message translates to:
+  /// **'Premium Monthly'**
+  String get premiumMonthly;
+
+  /// No description provided for @premiumYearly.
+  ///
+  /// In en, this message translates to:
+  /// **'Premium Yearly'**
+  String get premiumYearly;
+
+  /// No description provided for @choosePlan.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose your plan'**
+  String get choosePlan;
 
   /// No description provided for @language.
   ///
@@ -913,6 +1033,150 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Unlocked: {date}'**
   String unlockedOn(String date);
+
+  /// No description provided for @budgets.
+  ///
+  /// In en, this message translates to:
+  /// **'Budgets'**
+  String get budgets;
+
+  /// No description provided for @budget.
+  ///
+  /// In en, this message translates to:
+  /// **'Budget'**
+  String get budget;
+
+  /// No description provided for @spent.
+  ///
+  /// In en, this message translates to:
+  /// **'Spent'**
+  String get spent;
+
+  /// No description provided for @remaining.
+  ///
+  /// In en, this message translates to:
+  /// **'Remaining'**
+  String get remaining;
+
+  /// No description provided for @allowancePerDay.
+  ///
+  /// In en, this message translates to:
+  /// **'Allowance/day'**
+  String get allowancePerDay;
+
+  /// No description provided for @onTrack.
+  ///
+  /// In en, this message translates to:
+  /// **'On track'**
+  String get onTrack;
+
+  /// No description provided for @overPace.
+  ///
+  /// In en, this message translates to:
+  /// **'Over pace'**
+  String get overPace;
+
+  /// No description provided for @underPace.
+  ///
+  /// In en, this message translates to:
+  /// **'Under pace'**
+  String get underPace;
+
+  /// No description provided for @setBudget.
+  ///
+  /// In en, this message translates to:
+  /// **'Set a budget'**
+  String get setBudget;
+
+  /// No description provided for @addBudget.
+  ///
+  /// In en, this message translates to:
+  /// **'Add budget'**
+  String get addBudget;
+
+  /// No description provided for @editBudget.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit budget'**
+  String get editBudget;
+
+  /// No description provided for @budgetAmount.
+  ///
+  /// In en, this message translates to:
+  /// **'Budget amount'**
+  String get budgetAmount;
+
+  /// No description provided for @periodStartDay.
+  ///
+  /// In en, this message translates to:
+  /// **'Period start day (1–28)'**
+  String get periodStartDay;
+
+  /// No description provided for @noBudgetsYet.
+  ///
+  /// In en, this message translates to:
+  /// **'No budgets yet'**
+  String get noBudgetsYet;
+
+  /// No description provided for @addBudgetForWallet.
+  ///
+  /// In en, this message translates to:
+  /// **'Add a monthly budget for a wallet'**
+  String get addBudgetForWallet;
+
+  /// No description provided for @deleteBudgetQuestion.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete budget?'**
+  String get deleteBudgetQuestion;
+
+  /// No description provided for @noWalletsForBudget.
+  ///
+  /// In en, this message translates to:
+  /// **'Add a wallet first to set budgets.'**
+  String get noWalletsForBudget;
+
+  /// No description provided for @customizeDashboard.
+  ///
+  /// In en, this message translates to:
+  /// **'Customize dashboard'**
+  String get customizeDashboard;
+
+  /// No description provided for @showPlan.
+  ///
+  /// In en, this message translates to:
+  /// **'Plan'**
+  String get showPlan;
+
+  /// No description provided for @showGoals.
+  ///
+  /// In en, this message translates to:
+  /// **'Goals'**
+  String get showGoals;
+
+  /// No description provided for @showAchievements.
+  ///
+  /// In en, this message translates to:
+  /// **'Achievements'**
+  String get showAchievements;
+
+  /// No description provided for @showBudget.
+  ///
+  /// In en, this message translates to:
+  /// **'Budget'**
+  String get showBudget;
+
+  /// No description provided for @showStatistics.
+  ///
+  /// In en, this message translates to:
+  /// **'Statistics'**
+  String get showStatistics;
+
+  /// No description provided for @showExpensesChart.
+  ///
+  /// In en, this message translates to:
+  /// **'Expenses chart'**
+  String get showExpensesChart;
 }
 
 class _AppLocalizationsDelegate

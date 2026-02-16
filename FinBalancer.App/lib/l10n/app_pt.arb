@@ -42,6 +42,7 @@
   "due": "Vencimento: {date}",
   "addToGoalButton": "Adicionar ao objetivo",
   "addTransactionTitle": "Adicionar transação",
+  "editTransaction": "Editar transação",
   "addWalletFirst": "Adicione primeiro uma carteira",
   "needWalletFirst": "Precisa de uma carteira para transações.",
   "addWallet": "Adicionar carteira",

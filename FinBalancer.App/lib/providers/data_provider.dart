@@ -7,6 +7,7 @@ import '../models/goal.dart';
 import '../models/achievement.dart';
 import '../models/subcategory.dart';
 import '../models/project.dart';
+import '../models/wallet_budget.dart';
 import '../services/api_service.dart';
 
 class DataProvider extends ChangeNotifier {
@@ -19,6 +20,7 @@ class DataProvider extends ChangeNotifier {
   List<Achievement> _achievements = [];
   List<Subcategory> _subcategories = [];
   List<Project> _projects = [];
+  List<BudgetSummary> _budgetSummaries = [];
   String? _filterTag;
   String? _filterProject;
   String? _filterWalletId;
@@ -32,6 +34,7 @@ class DataProvider extends ChangeNotifier {
   List<Achievement> get achievements => _achievements;
   List<Subcategory> get subcategories => _subcategories;
   List<Project> get projects => _projects;
+  List<BudgetSummary> get budgetSummaries => _budgetSummaries;
   String? get filterTag => _filterTag;
   String? get filterProject => _filterProject;
   String? get filterWalletId => _filterWalletId;
@@ -42,7 +45,14 @@ class DataProvider extends ChangeNotifier {
     _filterTag = tag;
     _filterProject = project;
     _filterWalletId = walletId;
+    resetDisplayedTransactionCount();
     notifyListeners();
+  }
+
+  Wallet? get mainWallet {
+    if (_wallets.isEmpty) return null;
+    final main = _wallets.where((w) => w.isMain).toList();
+    return main.isNotEmpty ? main.first : _wallets.first;
   }
 
   double get totalBalance =>
@@ -56,8 +66,65 @@ class DataProvider extends ChangeNotifier {
       .where((t) => t.type == 'expense')
       .fold(0, (sum, t) => sum + t.amount);
 
+  static const int _initialDisplayCount = 20;
+  static const int _loadMoreCount = 20;
+  int _displayedTransactionCount = _initialDisplayCount;
+
   List<Transaction> get recentTransactions =>
-      _transactions.take(10).toList();
+      _transactions.take(_displayedTransactionCount).toList();
+
+  bool get hasMoreTransactions => _displayedTransactionCount < _transactions.length;
+
+  void loadMoreDisplayedTransactions() {
+    if (_displayedTransactionCount < _transactions.length) {
+      _displayedTransactionCount = (_displayedTransactionCount + _loadMoreCount)
+          .clamp(0, _transactions.length);
+      notifyListeners();
+    }
+  }
+
+  void resetDisplayedTransactionCount() {
+    _displayedTransactionCount = _initialDisplayCount;
+    notifyListeners();
+  }
+
+  /// List of budgets to show on dashboard (for carousel). Only shows budgets that are set.
+  /// Single wallet: that wallet's budget if set. All wallets: global + per-wallet budgets.
+  List<({String walletId, String walletName, BudgetCurrent budget})> get dashboardBudgets {
+    final result = <({String walletId, String walletName, BudgetCurrent budget})>[];
+    if (_filterWalletId != null) {
+      for (final b in _budgetSummaries) {
+        if (b.walletId == _filterWalletId) {
+          final w = _wallets.where((x) => x.id == b.walletId).toList();
+          final name = w.isEmpty ? 'Wallet' : w.first.name;
+          result.add((walletId: b.walletId, walletName: name, budget: b.current));
+        }
+      }
+    } else {
+      for (final b in _budgetSummaries) {
+        if (b.walletId == ApiService.globalBudgetId) {
+          result.add((walletId: b.walletId, walletName: 'All Wallets', budget: b.current));
+        } else {
+          final w = _wallets.where((x) => x.id == b.walletId).toList();
+          final name = w.isEmpty ? 'Wallet' : w.first.name;
+          result.add((walletId: b.walletId, walletName: name, budget: b.current));
+        }
+      }
+    }
+    return result;
+  }
+
+  BudgetCurrent? get dashboardBudget {
+    final list = dashboardBudgets;
+    return list.isEmpty ? null : list.first.budget;
+  }
+
+  String? get dashboardBudgetWalletName {
+    if (_filterWalletId == null) return null;
+    if (_filterWalletId == ApiService.globalBudgetId) return null;
+    final w = _wallets.where((x) => x.id == _filterWalletId).toList();
+    return w.isEmpty ? null : w.first.name;
+  }
 
   Future<void> loadAll({String? locale}) async {
     _isLoading = true;
@@ -72,6 +139,7 @@ class DataProvider extends ChangeNotifier {
         loadGoals(),
         loadAchievements(),
         loadProjects(),
+        loadBudgets(),
       ]);
     } catch (e) {
       _error = e.toString();
@@ -88,6 +156,7 @@ class DataProvider extends ChangeNotifier {
         project: _filterProject,
         walletId: _filterWalletId,
       );
+      resetDisplayedTransactionCount();
       notifyListeners();
     } catch (e) {
       _error = e.toString();
@@ -151,12 +220,81 @@ class DataProvider extends ChangeNotifier {
     }
   }
 
+  Future<void> loadBudgets() async {
+    try {
+      _budgetSummaries = await _api.getBudgetsCurrent();
+      notifyListeners();
+    } catch (e) {
+      _budgetSummaries = [];
+      rethrow;
+    }
+  }
+
+  Future<BudgetCurrent?> getWalletBudget(String walletId) async {
+    try {
+      if (walletId == ApiService.globalBudgetId) {
+        return await _api.getGlobalBudgetCurrent();
+      }
+      return await _api.getWalletBudgetCurrent(walletId);
+    } catch (_) {
+      return null;
+    }
+  }
+
+  Future<BudgetCurrent> createOrUpdateBudget(
+    String walletId, {
+    required double budgetAmount,
+    int periodStartDay = 1,
+  }) async {
+    final BudgetCurrent result;
+    if (walletId == ApiService.globalBudgetId) {
+      result = await _api.createOrUpdateGlobalBudget(
+        budgetAmount: budgetAmount,
+        periodStartDay: periodStartDay,
+      );
+    } else {
+      result = await _api.createOrUpdateWalletBudget(
+        walletId,
+        budgetAmount: budgetAmount,
+        periodStartDay: periodStartDay,
+      );
+    }
+    await loadBudgets();
+    return result;
+  }
+
+  Future<void> deleteBudget(String walletId) async {
+    if (walletId == ApiService.globalBudgetId) {
+      await _api.deleteGlobalBudget();
+    } else {
+      await _api.deleteWalletBudget(walletId);
+    }
+    await loadBudgets();
+    notifyListeners();
+  }
+
   Future<void> addTransaction(Transaction transaction) async {
     _error = null;
     try {
       final created = await _api.addTransaction(transaction);
       _transactions.insert(0, created);
       await loadWallets();
+      await loadBudgets();
+      notifyListeners();
+    } catch (e) {
+      _error = e.toString();
+      rethrow;
+    }
+  }
+
+  Future<void> updateTransaction(Transaction transaction) async {
+    _error = null;
+    try {
+      final updated = await _api.updateTransaction(transaction);
+      final i = _transactions.indexWhere((t) => t.id == transaction.id);
+      if (i >= 0) _transactions[i] = updated;
+      await loadWallets();
+      await loadBudgets();
       notifyListeners();
     } catch (e) {
       _error = e.toString();
@@ -170,6 +308,7 @@ class DataProvider extends ChangeNotifier {
       await _api.deleteTransaction(id);
       _transactions.removeWhere((t) => t.id == id);
       await loadWallets();
+      await loadBudgets();
       notifyListeners();
     } catch (e) {
       _error = e.toString();
@@ -196,6 +335,17 @@ class DataProvider extends ChangeNotifier {
       final i = _wallets.indexWhere((w) => w.id == wallet.id);
       if (i >= 0) _wallets[i] = wallet;
       notifyListeners();
+    } catch (e) {
+      _error = e.toString();
+      rethrow;
+    }
+  }
+
+  Future<void> setMainWallet(String walletId) async {
+    _error = null;
+    try {
+      await _api.setMainWallet(walletId);
+      await loadWallets();
     } catch (e) {
       _error = e.toString();
       rethrow;

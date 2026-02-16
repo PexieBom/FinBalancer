@@ -42,6 +42,7 @@
   "due": "Échéance : {date}",
   "addToGoalButton": "Ajouter à l'objectif",
   "addTransactionTitle": "Ajouter une transaction",
+  "editTransaction": "Modifier la transaction",
   "addWalletFirst": "Ajoutez d'abord un portefeuille",
   "needWalletFirst": "Vous avez besoin d'au moins un portefeuille pour les transactions.",
   "addWallet": "Ajouter un portefeuille",

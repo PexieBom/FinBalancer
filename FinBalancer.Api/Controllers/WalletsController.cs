@@ -9,10 +9,12 @@ namespace FinBalancer.Api.Controllers;
 public class WalletsController : ControllerBase
 {
     private readonly WalletService _walletService;
+    private readonly BudgetService _budgetService;
 
-    public WalletsController(WalletService walletService)
+    public WalletsController(WalletService walletService, BudgetService budgetService)
     {
         _walletService = walletService;
+        _budgetService = budgetService;
     }
 
     [HttpGet]
@@ -29,7 +31,16 @@ public class WalletsController : ControllerBase
             return BadRequest("Name is required");
 
         var created = await _walletService.AddWalletAsync(wallet);
+        if (created == null) return Unauthorized();
         return CreatedAtAction(nameof(Get), created);
+    }
+
+    [HttpPut("{id:guid}/main")]
+    public async Task<ActionResult<Wallet>> SetMain(Guid id)
+    {
+        var updated = await _walletService.SetMainWalletAsync(id);
+        if (updated == null) return NotFound();
+        return Ok(updated);
     }
 
     [HttpPut("{id:guid}")]
@@ -48,4 +59,37 @@ public class WalletsController : ControllerBase
         if (!deleted) return NotFound();
         return NoContent();
     }
+
+    [HttpGet("{walletId:guid}/budget/current")]
+    public async Task<ActionResult<BudgetCurrentDto>> GetBudgetCurrent(Guid walletId)
+    {
+        var result = await _budgetService.GetCurrentAsync(walletId);
+        if (result == null) return NotFound();
+        return Ok(result);
+    }
+
+    [HttpPost("{walletId:guid}/budget")]
+    public async Task<ActionResult<BudgetCurrentDto>> CreateOrUpdateBudget(
+        Guid walletId,
+        [FromBody] CreateBudgetRequest request)
+    {
+        var wallet = await _walletService.GetByIdAsync(walletId);
+        if (wallet == null) return NotFound("Wallet not found");
+        var result = await _budgetService.CreateOrUpdateAsync(
+            walletId,
+            request.BudgetAmount,
+            request.PeriodStartDay);
+        if (result == null) return Unauthorized();
+        return Ok(result);
+    }
+
+    [HttpDelete("{walletId:guid}/budget")]
+    public async Task<IActionResult> DeleteBudget(Guid walletId)
+    {
+        var deleted = await _budgetService.DeleteAsync(walletId);
+        if (!deleted) return NotFound();
+        return NoContent();
+    }
 }
+
+public record CreateBudgetRequest(decimal BudgetAmount, int PeriodStartDay = 1);

@@ -6,18 +6,24 @@ public class StatisticsService
 {
     private readonly ITransactionRepository _transactionRepository;
     private readonly ICategoryRepository _categoryRepository;
+    private readonly ICurrentUserService _currentUser;
 
     public StatisticsService(
         ITransactionRepository transactionRepository,
-        ICategoryRepository categoryRepository)
+        ICategoryRepository categoryRepository,
+        ICurrentUserService currentUser)
     {
         _transactionRepository = transactionRepository;
         _categoryRepository = categoryRepository;
+        _currentUser = currentUser;
     }
 
-    public async Task<SpendingByCategoryDto> GetSpendingByCategoryAsync(Guid? walletId = null, DateTime? dateFrom = null, DateTime? dateTo = null)
+    public async Task<SpendingByCategoryDto?> GetSpendingByCategoryAsync(Guid? walletId = null, DateTime? dateFrom = null, DateTime? dateTo = null)
     {
-        var transactions = await _transactionRepository.GetAllAsync();
+        var userId = _currentUser.UserId;
+        if (!userId.HasValue) return null;
+
+        var transactions = await _transactionRepository.GetAllByUserIdAsync(userId.Value);
         var categories = await _categoryRepository.GetOrSeedDefaultsAsync();
 
         var filtered = transactions
@@ -45,9 +51,12 @@ public class StatisticsService
         return new SpendingByCategoryDto(byCategory.Sum(x => x.Total), byCategory);
     }
 
-    public async Task<IncomeExpenseSummaryDto> GetIncomeExpenseSummaryAsync(Guid? walletId = null, DateTime? dateFrom = null, DateTime? dateTo = null)
+    public async Task<IncomeExpenseSummaryDto?> GetIncomeExpenseSummaryAsync(Guid? walletId = null, DateTime? dateFrom = null, DateTime? dateTo = null)
     {
-        var transactions = await _transactionRepository.GetAllAsync();
+        var userId = _currentUser.UserId;
+        if (!userId.HasValue) return null;
+
+        var transactions = await _transactionRepository.GetAllByUserIdAsync(userId.Value);
 
         var filtered = walletId.HasValue
             ? transactions.Where(t => t.WalletId == walletId)

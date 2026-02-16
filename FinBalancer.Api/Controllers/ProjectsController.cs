@@ -1,5 +1,5 @@
 using FinBalancer.Api.Models;
-using FinBalancer.Api.Repositories;
+using FinBalancer.Api.Services;
 using Microsoft.AspNetCore.Mvc;
 
 namespace FinBalancer.Api.Controllers;
@@ -8,24 +8,24 @@ namespace FinBalancer.Api.Controllers;
 [Route("api/[controller]")]
 public class ProjectsController : ControllerBase
 {
-    private readonly IProjectRepository _projectRepository;
+    private readonly ProjectService _projectService;
 
-    public ProjectsController(IProjectRepository projectRepository)
+    public ProjectsController(ProjectService projectService)
     {
-        _projectRepository = projectRepository;
+        _projectService = projectService;
     }
 
     [HttpGet]
     public async Task<ActionResult<List<Project>>> Get()
     {
-        var projects = await _projectRepository.GetAllAsync();
+        var projects = await _projectService.GetAllAsync();
         return Ok(projects.OrderBy(p => p.Name));
     }
 
     [HttpGet("{id:guid}")]
     public async Task<ActionResult<Project>> GetById(Guid id)
     {
-        var project = await _projectRepository.GetByIdAsync(id);
+        var project = await _projectService.GetByIdAsync(id);
         if (project == null) return NotFound();
         return Ok(project);
     }
@@ -36,7 +36,8 @@ public class ProjectsController : ControllerBase
         if (string.IsNullOrWhiteSpace(project.Name))
             return BadRequest("Name is required");
 
-        var created = await _projectRepository.AddAsync(project);
+        var created = await _projectService.CreateAsync(project);
+        if (created == null) return Unauthorized();
         return CreatedAtAction(nameof(GetById), new { id = created.Id }, created);
     }
 
@@ -44,17 +45,17 @@ public class ProjectsController : ControllerBase
     public async Task<ActionResult<Project>> Put(Guid id, [FromBody] Project project)
     {
         if (id != project.Id) return BadRequest();
-        var existing = await _projectRepository.GetByIdAsync(id);
+        var existing = await _projectService.GetByIdAsync(id);
         if (existing == null) return NotFound();
 
-        var updated = await _projectRepository.UpdateAsync(project);
+        var updated = await _projectService.UpdateAsync(project);
         return updated ? Ok(project) : StatusCode(500);
     }
 
     [HttpDelete("{id:guid}")]
     public async Task<IActionResult> Delete(Guid id)
     {
-        var deleted = await _projectRepository.DeleteAsync(id);
+        var deleted = await _projectService.DeleteAsync(id);
         if (!deleted) return NotFound();
         return NoContent();
     }

@@ -3,8 +3,13 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import 'package:provider/provider.dart';
+
 import '../theme/app_theme.dart';
 import '../services/api_service.dart';
+import '../providers/subscription_provider.dart';
+import '../models/transaction.dart';
+import '../l10n/app_localizations.dart';
 
 class StatisticsScreen extends StatefulWidget {
   const StatisticsScreen({super.key});
@@ -15,6 +20,7 @@ class StatisticsScreen extends StatefulWidget {
 
 class _StatisticsScreenState extends State<StatisticsScreen> {
   final ApiService _api = ApiService();
+  bool _predictionExpanded = false;
   Map<String, dynamic>? _spendingData;
   Map<String, dynamic>? _summaryData;
   Map<String, dynamic>? _budgetPrediction;
@@ -77,6 +83,11 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
           onPressed: () => Navigator.pop(context),
         ),
         actions: [
+          TextButton.icon(
+            icon: const Icon(Icons.filter_list, size: 20),
+            label: const Text('Filter'),
+            onPressed: () => _showDateRangePicker(context),
+          ),
           IconButton(
             icon: const Icon(Icons.date_range),
             onPressed: () => _showDateRangePicker(context),
@@ -91,11 +102,16 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
           ),
         ],
       ),
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : _error != null
-              ? _buildError()
-              : RefreshIndicator(
+      body: Consumer<SubscriptionProvider>(
+        builder: (context, sub, _) {
+          if (!sub.isPremium) {
+            return _buildPremiumPlaceholder(context);
+          }
+          return _isLoading
+              ? const Center(child: CircularProgressIndicator())
+              : _error != null
+                  ? _buildError()
+                  : RefreshIndicator(
                   onRefresh: _loadData,
                   child: SingleChildScrollView(
                     physics: const AlwaysScrollableScrollPhysics(),
@@ -104,6 +120,10 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         if (_summaryData != null) _buildSummaryCards(),
+                        if (_summaryData != null) ...[
+                          const SizedBox(height: 24),
+                          _buildMonthlyChart(),
+                        ],
                         if (_budgetAlerts.isNotEmpty) ...[
                           const SizedBox(height: 24),
                           _buildBudgetAlerts(),
@@ -120,17 +140,15 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
                           const SizedBox(height: 24),
                           _buildSpendingByCategory(),
                         ],
-                        if (_summaryData != null) ...[
-                          const SizedBox(height: 24),
-                          _buildMonthlyChart(),
-                        ],
                         const SizedBox(height: 40),
                         if (_summaryData == null && _spendingData == null && _budgetPrediction == null)
                           const Center(child: Text('No data available')),
                       ],
                     ),
                   ),
-                ),
+                );
+        },
+      ),
       bottomNavigationBar: _buildBottomNav(context),
     );
   }
@@ -156,7 +174,7 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
               _NavItem(icon: Icons.dashboard, label: 'Home', onTap: () => Navigator.popUntil(context, (r) => r.isFirst)),
               _NavItem(icon: Icons.add_circle_outline, label: 'Add', onTap: () => Navigator.pushReplacementNamed(context, '/add-transaction')),
               _NavItem(icon: Icons.bar_chart, label: 'Stats', isActive: true),
-              _NavItem(icon: Icons.account_balance_wallet, label: 'Wallets', onTap: () => Navigator.pushReplacementNamed(context, '/wallets')),
+              _NavItem(icon: Icons.account_balance_wallet, label: AppLocalizations.of(context)?.walletsBudgets ?? 'Wallets / Budgets', onTap: () => Navigator.pushReplacementNamed(context, '/wallets')),
               _NavItem(icon: Icons.category, label: 'Categories', onTap: () => Navigator.pushReplacementNamed(context, '/categories')),
             ],
           ),
@@ -279,12 +297,86 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
     );
   }
 
+  Future<void> _showCategoryTransactions(BuildContext context, String categoryId, String categoryName) async {
+    DateTime? from = _dateFrom;
+    DateTime? to = _dateTo;
+    if (from == null && to == null && _months > 0) {
+      final now = DateTime.now();
+      to = now;
+      from = DateTime(now.year, now.month - _months, now.day);
+    }
+    try {
+      final txList = await _api.getTransactions(categoryId: categoryId, dateFrom: from, dateTo: to);
+      if (!context.mounted) return;
+      showDialog(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          title: Text('$categoryName (${txList.length})'),
+          content: SizedBox(
+            width: double.maxFinite,
+            child: txList.isEmpty
+                ? const Text('No transactions in this period')
+                : ListView.builder(
+                    shrinkWrap: true,
+                    itemCount: txList.length,
+                    itemBuilder: (_, i) {
+                      final t = txList[i];
+                      final fmt = NumberFormat.currency(locale: 'hr_HR', symbol: '€');
+                      return ListTile(
+                        title: Text(t.note ?? DateFormat('dd.MM.yyyy').format(t.dateCreated)),
+                        trailing: Text('${t.type == 'income' ? '+' : '-'}${fmt.format(t.amount)}', style: TextStyle(color: t.type == 'income' ? AppTheme.income(ctx) : AppTheme.expense(ctx), fontWeight: FontWeight.w600)),
+                      );
+                    },
+                  ),
+          ),
+          actions: [TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('OK'))],
+        ),
+      );
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to load: $e')));
+      }
+    }
+  }
+
   Future<void> _launchExport(BuildContext sheetContext, String url) async {
     Navigator.pop(sheetContext);
     final uri = Uri.parse(url);
     if (await canLaunchUrl(uri)) {
       await launchUrl(uri, mode: LaunchMode.externalApplication);
     }
+  }
+
+  Widget _buildPremiumPlaceholder(BuildContext context) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(32),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.bar_chart_rounded, size: 80, color: Theme.of(context).colorScheme.onSurfaceVariant.withOpacity(0.5)),
+            const SizedBox(height: 24),
+            Text(
+              'Statistics',
+              style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 12),
+            Text(
+              'Upgrade to Premium to view your statistics, charts, and insights.',
+              style: Theme.of(context).textTheme.bodyLarge?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 24),
+            FilledButton.icon(
+              onPressed: () => Navigator.pushNamed(context, '/premium-features'),
+              icon: const Icon(Icons.star),
+              label: const Text('Upgrade to Premium'),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   Widget _buildError() {
@@ -411,29 +503,41 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
           ),
           child: Column(
             children: [
-              ...byCategory.map((c) {
-                final cat = c as Map<String, dynamic>;
-                final name = cat['categoryName'] as String? ?? '';
-                final predicted = (cat['predictedNextMonth'] as num?)?.toDouble() ?? 0.0;
-                return Padding(
-                  padding: const EdgeInsets.only(bottom: 12),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(name, style: TextStyle(color: Theme.of(context).colorScheme.onSurface)),
-                      Text(currencyFormat.format(predicted), style: TextStyle(fontWeight: FontWeight.w600, color: Theme.of(context).colorScheme.onSurface)),
-                    ],
-                  ),
-                );
-              }),
-              const Divider(),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text('Total predicted', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
-                  Text(currencyFormat.format(total), style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold, color: AppTheme.accent(context))),
-                ],
+              InkWell(
+                onTap: () => setState(() => _predictionExpanded = !_predictionExpanded),
+                borderRadius: BorderRadius.circular(8),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text('Total predicted', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
+                    Row(
+                      children: [
+                        Text(currencyFormat.format(total), style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold, color: AppTheme.accent(context))),
+                        const SizedBox(width: 8),
+                        Icon(_predictionExpanded ? Icons.expand_less : Icons.expand_more),
+                      ],
+                    ),
+                  ],
+                ),
               ),
+              if (_predictionExpanded) ...[
+                const Divider(),
+                ...byCategory.map((c) {
+                  final cat = c as Map<String, dynamic>;
+                  final name = cat['categoryName'] as String? ?? '';
+                  final predicted = (cat['predictedNextMonth'] as num?)?.toDouble() ?? 0.0;
+                  return Padding(
+                    padding: const EdgeInsets.only(bottom: 12),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(name, style: TextStyle(color: Theme.of(context).colorScheme.onSurface)),
+                        Text(currencyFormat.format(predicted), style: TextStyle(fontWeight: FontWeight.w600, color: Theme.of(context).colorScheme.onSurface)),
+                      ],
+                    ),
+                  );
+                }),
+              ],
             ],
           ),
         ),
@@ -465,29 +569,36 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
         const SizedBox(height: 16),
         SizedBox(
           height: 220,
-          child: BarChart(
-            BarChartData(
-              alignment: BarChartAlignment.spaceAround,
+          child: LineChart(
+            LineChartData(
               maxY: maxY,
               minY: minY,
-              barGroups: points.asMap().entries.map((e) {
-                final pt = e.value as Map<String, dynamic>;
-                final net = (pt['net'] as num?)?.toDouble() ?? 0.0;
-                return BarChartGroupData(
-                  x: e.key,
-                  barRods: [
-                    BarChartRodData(
-                      toY: net,
-                      color: net >= 0 ? AppTheme.income(context) : AppTheme.expense(context),
-                      width: 20,
-                      borderRadius: const BorderRadius.vertical(top: Radius.circular(4)),
-                    ),
-                  ],
-                  showingTooltipIndicators: [0],
-                );
-              }).toList(),
+              lineBarsData: [
+                LineChartBarData(
+                  spots: points.asMap().entries.map((e) {
+                    final pt = e.value as Map<String, dynamic>;
+                    final net = (pt['net'] as num?)?.toDouble() ?? 0.0;
+                    return FlSpot(e.key.toDouble(), net);
+                  }).toList(),
+                  isCurved: true,
+                  color: AppTheme.accent(context),
+                  barWidth: 2,
+                  isStrokeCapRound: true,
+                  dotData: FlDotData(show: true),
+                  belowBarData: BarAreaData(show: false),
+                ),
+              ],
               titlesData: FlTitlesData(
-                leftTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                leftTitles: AxisTitles(
+                  sideTitles: SideTitles(
+                    showTitles: true,
+                    reservedSize: 42,
+                    getTitlesWidget: (v, meta) => Text(
+                      currencyFormat.format(v),
+                      style: TextStyle(fontSize: 10, color: Theme.of(context).colorScheme.onSurfaceVariant),
+                    ),
+                  ),
+                ),
                 rightTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
                 topTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
                 bottomTitles: AxisTitles(
@@ -508,16 +619,16 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
                   ),
                 ),
               ),
-              gridData: FlGridData(show: false),
+              gridData: FlGridData(show: true, drawVerticalLine: false),
               borderData: FlBorderData(show: true, border: Border(bottom: BorderSide(color: Theme.of(context).colorScheme.outline))),
-              barTouchData: BarTouchData(
-                touchTooltipData: BarTouchTooltipData(
+              lineTouchData: LineTouchData(
+                touchTooltipData: LineTouchTooltipData(
                   getTooltipColor: (_) => Colors.grey.shade800,
-                  getTooltipItem: (group, groupIndex, rod, rodIndex) {
-                    final pt = points[group.x] as Map<String, dynamic>;
-                    final net = (pt['net'] as num?)?.toDouble() ?? 0.0;
-                    return BarTooltipItem('Net: ${currencyFormat.format(net)}', const TextStyle(color: Colors.white, fontSize: 12));
-                  },
+                  tooltipRoundedRadius: 8,
+                  getTooltipItems: (spots) => spots.map((s) => LineTooltipItem(
+                    'Net: ${currencyFormat.format(s.y)}',
+                    const TextStyle(color: Colors.white, fontSize: 12),
+                  )).toList(),
                 ),
               ),
             ),
@@ -585,37 +696,60 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
             ),
           ),
         ),
+        const SizedBox(height: 12),
+        Wrap(
+          spacing: 12,
+          runSpacing: 6,
+          children: byCategory.asMap().entries.take(6).map((e) {
+            final cat = e.value as Map<String, dynamic>;
+            final name = cat['categoryName'] as String? ?? 'Unknown';
+            final color = colors[e.key % colors.length];
+            return Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(width: 12, height: 12, decoration: BoxDecoration(color: color, shape: BoxShape.circle)),
+                const SizedBox(width: 6),
+                Text(name, style: Theme.of(context).textTheme.bodySmall),
+              ],
+            );
+          }).toList(),
+        ),
         const SizedBox(height: 16),
         ...byCategory.map((c) {
           final cat = c as Map<String, dynamic>;
+          final catId = cat['categoryId']?.toString();
           final name = cat['categoryName'] as String? ?? 'Unknown';
           final total = (cat['total'] as num?)?.toDouble() ?? 0.0;
           final pct = totalExpense > 0 ? (total / totalExpense * 100) : 0.0;
-          return Container(
-            margin: const EdgeInsets.only(bottom: 8),
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: Theme.of(context).cardTheme.color,
-              borderRadius: BorderRadius.circular(16),
-              boxShadow: [
-                BoxShadow(
-                  color: Theme.of(context).brightness == Brightness.dark ? Colors.black54 : AppTheme.cardShadow,
-                  blurRadius: 10,
-                  offset: const Offset(0, 2),
-                ),
-              ],
-            ),
-            child: Row(
-              children: [
-                Expanded(child: Text(name, style: Theme.of(context).textTheme.titleMedium?.copyWith(color: Theme.of(context).colorScheme.onSurface))),
-                Text(NumberFormat.currency(locale: 'hr_HR', symbol: '€').format(total),
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                          color: AppTheme.expense(context),
-                          fontWeight: FontWeight.bold,
-                        )),
-                const SizedBox(width: 8),
-                Text('${pct.toStringAsFixed(0)}%', style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant)),
-              ],
+          return InkWell(
+            onTap: catId != null ? () => _showCategoryTransactions(context, catId, name) : null,
+            borderRadius: BorderRadius.circular(16),
+            child: Container(
+              margin: const EdgeInsets.only(bottom: 8),
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Theme.of(context).cardTheme.color,
+                borderRadius: BorderRadius.circular(16),
+                boxShadow: [
+                  BoxShadow(
+                    color: Theme.of(context).brightness == Brightness.dark ? Colors.black54 : AppTheme.cardShadow,
+                    blurRadius: 10,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+              ),
+              child: Row(
+                children: [
+                  Expanded(child: Text(name, style: Theme.of(context).textTheme.titleMedium?.copyWith(color: Theme.of(context).colorScheme.onSurface))),
+                  Text(NumberFormat.currency(locale: 'hr_HR', symbol: '€').format(total),
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                            color: AppTheme.expense(context),
+                            fontWeight: FontWeight.bold,
+                          )),
+                  const SizedBox(width: 8),
+                  Text('${pct.toStringAsFixed(0)}%', style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant)),
+                ],
+              ),
             ),
           );
         }),
@@ -641,6 +775,8 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
           final expense = (m['expense'] as num?)?.toDouble() ?? 0.0;
           final month = m['month'] as int? ?? 0;
           final year = m['year'] as int? ?? 0;
+          final diff = income - expense;
+          final diffStr = diff >= 0 ? '+${currencyFormat.format(diff)}' : currencyFormat.format(diff);
           final label = '${monthNames[month]} $year';
           return Container(
             margin: const EdgeInsets.only(bottom: 8),
@@ -673,6 +809,14 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
                   children: [
                     Text('Expense: ', style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Theme.of(context).colorScheme.onSurface)),
                     Text(currencyFormat.format(expense), style: TextStyle(color: AppTheme.expense(context), fontWeight: FontWeight.w600)),
+                  ],
+                ),
+                const SizedBox(height: 4),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text('Difference: ', style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Theme.of(context).colorScheme.onSurface)),
+                    Text(diffStr, style: TextStyle(color: diff >= 0 ? AppTheme.income(context) : AppTheme.expense(context), fontWeight: FontWeight.w600)),
                   ],
                 ),
               ],

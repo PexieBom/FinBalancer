@@ -10,5 +10,13 @@
   {
     "key": "goal_reached",
     "unlockedAt": "2026-02-14T14:14:35.6888787Z"
+  },
+  {
+    "key": "ten_transactions",
+    "unlockedAt": "2026-02-14T20:24:01.998095Z"
+  },
+  {
+    "key": "month_saved",
+    "unlockedAt": "2026-02-15T16:34:43.337979Z"
   }
 ]

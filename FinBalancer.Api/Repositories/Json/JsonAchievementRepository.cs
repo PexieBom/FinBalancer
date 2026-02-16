@@ -60,7 +60,11 @@ public class JsonAchievementRepository : IAchievementRepository
             new() { Key = "week_streak", Name = "Weekly Tracker", Icon = "local_fire_department", Description = "Log transactions 7 days in a row", Period = "weekly" },
             new() { Key = "budget_keeper", Name = "Budget Master", Icon = "savings", Description = "Stay under budget for a month", Period = "monthly" },
             new() { Key = "early_bird", Name = "Early Bird", Icon = "schedule", Description = "Add transaction before 9 AM", Period = "daily" },
-            new() { Key = "ten_transactions", Name = "Power User", Icon = "star", Description = "Add 10 transactions", Period = "lifetime" }
+            new() { Key = "ten_transactions", Name = "Power User", Icon = "star", Description = "Add 10 transactions", Period = "lifetime" },
+            new() { Key = "month_saved", Name = "Monthly Saver", Icon = "savings", Description = "Saved money in a month (income > expense)", Period = "monthly" },
+            new() { Key = "quarter_positive", Name = "Quarter Winner", Icon = "trending_up", Description = "3 months in a row with income > expense", Period = "lifetime" },
+            new() { Key = "app_month", Name = "One Month Active", Icon = "calendar_today", Description = "Using FinBalancer for 1 month", Period = "lifetime" },
+            new() { Key = "app_year", Name = "One Year Strong", Icon = "celebration", Description = "Using FinBalancer for 1 year", Period = "lifetime" }
         };
     }
 
