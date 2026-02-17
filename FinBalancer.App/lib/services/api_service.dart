@@ -428,14 +428,21 @@ class ApiService {
     String walletId, {
     required double budgetAmount,
     int periodStartDay = 1,
+    DateTime? periodStartDate,
+    DateTime? periodEndDate,
+    String? categoryId,
   }) async {
+    final body = <String, dynamic>{
+      'budgetAmount': budgetAmount,
+      'periodStartDay': periodStartDay,
+    };
+    if (periodStartDate != null) body['periodStartDate'] = periodStartDate.toIso8601String();
+    if (periodEndDate != null) body['periodEndDate'] = periodEndDate.toIso8601String();
+    if (categoryId != null && categoryId.isNotEmpty) body['categoryId'] = categoryId;
     final response = await _client.post(
       Uri.parse('$_baseUrl/wallets/$walletId/budget'),
       headers: _headers,
-      body: json.encode({
-        'budgetAmount': budgetAmount,
-        'periodStartDay': periodStartDay,
-      }),
+      body: json.encode(body),
     );
     if (response.statusCode >= 200 && response.statusCode < 300) {
       return BudgetCurrent.fromJson(
@@ -482,14 +489,21 @@ class ApiService {
   Future<BudgetCurrent> createOrUpdateGlobalBudget({
     required double budgetAmount,
     int periodStartDay = 1,
+    DateTime? periodStartDate,
+    DateTime? periodEndDate,
+    String? categoryId,
   }) async {
+    final body = <String, dynamic>{
+      'budgetAmount': budgetAmount,
+      'periodStartDay': periodStartDay,
+    };
+    if (periodStartDate != null) body['periodStartDate'] = periodStartDate.toIso8601String();
+    if (periodEndDate != null) body['periodEndDate'] = periodEndDate.toIso8601String();
+    if (categoryId != null && categoryId.isNotEmpty) body['categoryId'] = categoryId;
     final response = await _client.post(
       Uri.parse('$_baseUrl/budgets/global'),
       headers: _headers,
-      body: json.encode({
-        'budgetAmount': budgetAmount,
-        'periodStartDay': periodStartDay,
-      }),
+      body: json.encode(body),
     );
     if (response.statusCode >= 200 && response.statusCode < 300) {
       return BudgetCurrent.fromJson(

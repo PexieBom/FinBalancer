@@ -502,6 +502,9 @@ class _BudgetsTab extends StatelessWidget {
     final budgetAmountController = TextEditingController();
     final periodStartController = TextEditingController(text: '1');
     String? selectedWalletId = targetBudgetId ?? (provider.wallets.isNotEmpty ? provider.wallets.first.id : null);
+    DateTime? selectedPeriodStartDate;
+    DateTime? selectedPeriodEndDate;
+    String? selectedCategoryId;
     if (targetBudgetId != null) {
       try {
         final current = await provider.getWalletBudget(targetBudgetId);
@@ -517,6 +520,7 @@ class _BudgetsTab extends StatelessWidget {
 
     if (!context.mounted) return;
     final isPremium = context.read<SubscriptionProvider>().isPremium;
+    final expenseCategories = provider.categories.where((c) => c.type == 'expense').toList();
     await showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
@@ -568,6 +572,72 @@ class _BudgetsTab extends StatelessWidget {
                       hintText: '1',
                     ),
                   ),
+                  const SizedBox(height: 16),
+                  ListTile(
+                    title: Text(selectedPeriodStartDate == null ? l10n.periodStartDate : DateFormat.yMd().format(selectedPeriodStartDate!)),
+                    trailing: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        if (selectedPeriodStartDate != null)
+                          TextButton(
+                            onPressed: () => setModalState(() {
+                              selectedPeriodStartDate = null;
+                              if (selectedPeriodEndDate != null) selectedPeriodEndDate = null;
+                            }),
+                            child: const Text('Clear'),
+                          ),
+                        IconButton(
+                          icon: const Icon(Icons.calendar_today),
+                          onPressed: () async {
+                            final picked = await showDatePicker(
+                              context: ctx2,
+                              initialDate: selectedPeriodStartDate ?? DateTime.now(),
+                              firstDate: DateTime(2020),
+                              lastDate: DateTime.now().add(const Duration(days: 365 * 2)),
+                            );
+                            if (picked != null) setModalState(() => selectedPeriodStartDate = picked);
+                          },
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  ListTile(
+                    title: Text(selectedPeriodEndDate == null ? l10n.periodEndDate : DateFormat.yMd().format(selectedPeriodEndDate!)),
+                    trailing: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        if (selectedPeriodEndDate != null)
+                          TextButton(
+                            onPressed: () => setModalState(() => selectedPeriodEndDate = null),
+                            child: const Text('Clear'),
+                          ),
+                        IconButton(
+                          icon: const Icon(Icons.calendar_today),
+                          onPressed: () async {
+                            final start = selectedPeriodStartDate ?? DateTime.now();
+                            final picked = await showDatePicker(
+                              context: ctx2,
+                              initialDate: selectedPeriodEndDate ?? start.add(const Duration(days: 30)),
+                              firstDate: start,
+                              lastDate: DateTime.now().add(const Duration(days: 365 * 2)),
+                            );
+                            if (picked != null) setModalState(() => selectedPeriodEndDate = picked);
+                          },
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  DropdownButtonFormField<String?>(
+                    value: selectedCategoryId,
+                    decoration: InputDecoration(labelText: l10n.trackCategory),
+                    items: [
+                      DropdownMenuItem<String?>(value: null, child: Text(l10n.allCategories)),
+                      ...expenseCategories.map((c) => DropdownMenuItem(value: c.id, child: Text(c.name))),
+                    ],
+                    onChanged: (v) => setModalState(() => selectedCategoryId = v),
+                  ),
                   if (!isPremium) ...[
                     Container(
                       padding: const EdgeInsets.all(12),
@@ -611,7 +681,14 @@ class _BudgetsTab extends StatelessWidget {
                             final startDay = int.tryParse(periodStartController.text) ?? 1;
                             final clamped = startDay.clamp(1, 28);
                             try {
-                              await provider.createOrUpdateBudget(wid, budgetAmount: amount, periodStartDay: clamped);
+                              await provider.createOrUpdateBudget(
+                                wid,
+                                budgetAmount: amount,
+                                periodStartDay: clamped,
+                                periodStartDate: selectedPeriodStartDate,
+                                periodEndDate: selectedPeriodEndDate,
+                                categoryId: selectedCategoryId,
+                              );
                               if (ctx.mounted) Navigator.pop(ctx);
                             } catch (e) {
                               if (ctx2.mounted) ScaffoldMessenger.of(ctx2).showSnackBar(SnackBar(content: Text('$e')));

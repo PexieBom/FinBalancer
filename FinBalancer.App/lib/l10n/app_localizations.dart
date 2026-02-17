@@ -1112,6 +1112,30 @@ abstract class AppLocalizations {
   /// **'Period start day (1–28)'**
   String get periodStartDay;
 
+  /// No description provided for @periodStartDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Period start date (custom period)'**
+  String get periodStartDate;
+
+  /// No description provided for @periodEndDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Period end date (custom period)'**
+  String get periodEndDate;
+
+  /// No description provided for @trackCategory.
+  ///
+  /// In en, this message translates to:
+  /// **'Track category'**
+  String get trackCategory;
+
+  /// No description provided for @allCategories.
+  ///
+  /// In en, this message translates to:
+  /// **'All categories'**
+  String get allCategories;
+
   /// No description provided for @noBudgetsYet.
   ///
   /// In en, this message translates to:

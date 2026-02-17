@@ -5,28 +5,22 @@
     "walletId": "813cf0bc-19cf-4a39-a24a-ba4b80b2fc23",
     "budgetAmount": 500,
     "periodStartDay": 28,
+    "periodStartDate": null,
     "periodEndDate": null,
+    "categoryId": null,
     "createdAt": "2026-02-14T22:13:22.6204812Z",
     "updatedAt": "2026-02-14T22:13:22.6188654Z"
   },
   {
-    "id": "347e3741-dd36-4ad4-afb1-0e8d2d89e5c4",
-    "userId": "f6b8ccb6-6ce9-470c-9a71-a5af29ceab31",
-    "walletId": "00000000-0000-0000-0000-000000000000",
-    "budgetAmount": 1000,
-    "periodStartDay": 25,
-    "periodEndDate": null,
-    "createdAt": "2026-02-15T13:42:04.8853745Z",
-    "updatedAt": "2026-02-15T13:42:04.8753686Z"
-  },
-  {
-    "id": "66bf5a42-48cc-4cd5-a24a-82ab4da4d522",
+    "id": "d3a3d0bc-05b3-452f-964b-0a26c5a65afc",
     "userId": "bd2265c8-fc6d-4c8c-beaa-cb37ea4eefa2",
     "walletId": "e6bc4221-b7ed-490b-9057-8110d61da5d5",
-    "budgetAmount": 815,
-    "periodStartDay": 15,
-    "periodEndDate": null,
-    "createdAt": "2026-02-15T19:51:10.5140858Z",
-    "updatedAt": "2026-02-15T19:51:18.1233345Z"
+    "budgetAmount": 250,
+    "periodStartDay": 1,
+    "periodStartDate": "2026-02-18T00:00:00",
+    "periodEndDate": "2026-03-25T00:00:00",
+    "categoryId": null,
+    "createdAt": "2026-02-17T12:19:03.7777963Z",
+    "updatedAt": "2026-02-17T12:19:03.7765841Z"
   }
 ]

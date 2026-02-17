@@ -537,6 +537,18 @@ class AppLocalizationsEs extends AppLocalizations {
   String get periodStartDay => 'Period start day (1–28)';
 
   @override
+  String get periodStartDate => 'Period start date (custom period)';
+
+  @override
+  String get periodEndDate => 'Period end date (custom period)';
+
+  @override
+  String get trackCategory => 'Track category';
+
+  @override
+  String get allCategories => 'All categories';
+
+  @override
   String get noBudgetsYet => 'No budgets yet';
 
   @override

@@ -44,15 +44,24 @@ class _LoginScreenState extends State<LoginScreen> {
     setState(() { _isLoading = true; _error = null; });
     try {
       final googleSignIn = GoogleSignIn(scopes: ['email']);
+      await googleSignIn.signOut(); // Clear previous account so user can switch
       final account = await googleSignIn.signIn();
       if (account == null) {
         setState(() => _isLoading = false);
         return;
       }
-      final auth = await account.authentication;
+      final googleId = account.id;
+      final email = account.email;
+      if (googleId == null || googleId.isEmpty || email == null || email.isEmpty) {
+        setState(() {
+          _isLoading = false;
+          _error = 'Google account info incomplete. Please grant email permission.';
+        });
+        return;
+      }
       final err = await context.read<AppProvider>().loginWithGoogle(
-            account.id,
-            account.email,
+            googleId,
+            email,
             account.displayName,
           );
       setState(() {

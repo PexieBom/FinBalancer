@@ -32,7 +32,7 @@ public class BudgetsController : ControllerBase
     [HttpPost("global")]
     public async Task<ActionResult<BudgetCurrentDto>> CreateOrUpdateGlobal([FromBody] CreateBudgetRequest request)
     {
-        var result = await _budgetService.CreateOrUpdateAsync(Guid.Empty, request.BudgetAmount, request.PeriodStartDay);
+        var result = await _budgetService.CreateOrUpdateAsync(Guid.Empty, request.BudgetAmount, request.PeriodStartDay, request.PeriodStartDate, request.PeriodEndDate, request.CategoryId);
         if (result == null) return Unauthorized();
         return Ok(result);
     }

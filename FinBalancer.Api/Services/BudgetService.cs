@@ -30,7 +30,7 @@ public class BudgetService
         return await ComputeCurrentAsync(walletId, budget, userId.Value);
     }
 
-    public async Task<BudgetCurrentDto?> CreateOrUpdateAsync(Guid walletId, decimal budgetAmount, int periodStartDay = 1)
+    public async Task<BudgetCurrentDto?> CreateOrUpdateAsync(Guid walletId, decimal budgetAmount, int periodStartDay = 1, DateTime? periodStartDate = null, DateTime? periodEndDate = null, Guid? categoryId = null)
     {
         var userId = _currentUser.UserId;
         if (!userId.HasValue) return null;
@@ -45,12 +45,18 @@ public class BudgetService
                 UserId = userId.Value,
                 BudgetAmount = budgetAmount,
                 PeriodStartDay = clamped,
+                PeriodStartDate = periodStartDate,
+                PeriodEndDate = periodEndDate,
+                CategoryId = categoryId,
             };
         }
         else
         {
             budget.BudgetAmount = budgetAmount;
             budget.PeriodStartDay = clamped;
+            budget.PeriodStartDate = periodStartDate;
+            budget.PeriodEndDate = periodEndDate;
+            budget.CategoryId = categoryId;
         }
 
         await _budgetRepo.UpsertAsync(budget);
@@ -85,13 +91,14 @@ public class BudgetService
     private async Task<BudgetCurrentDto?> ComputeCurrentAsync(Guid walletId, WalletBudget budget, Guid userId)
     {
         var now = DateTime.UtcNow.Date;
-        var (periodStart, periodEnd) = GetPeriodBoundaries(now, budget.PeriodStartDay, budget.CreatedAt, budget.PeriodEndDate);
+        var (periodStart, periodEnd) = GetPeriodBoundaries(now, budget.PeriodStartDay, budget.CreatedAt, budget.PeriodStartDate, budget.PeriodEndDate);
 
         var transactions = await _transactionRepo.GetAllByUserIdAsync(userId);
         var isGlobal = walletId == Guid.Empty;
         var expenseInPeriod = transactions
             .Where(t => t.Type == "expense" && (isGlobal || t.WalletId == walletId))
             .Where(t => t.DateCreated.Date >= periodStart && t.DateCreated.Date <= periodEnd)
+            .Where(t => !budget.CategoryId.HasValue || t.CategoryId == budget.CategoryId.Value)
             .Sum(t => t.Amount);
 
         var totalDays = (int)(periodEnd - periodStart).TotalDays + 1;
@@ -149,11 +156,22 @@ public class BudgetService
     }
 
     /// <summary>
-    /// Budget period: from date when set (CreatedAt) to end of month or PeriodEndDate.
+    /// Budget period: when PeriodStartDate and PeriodEndDate both set = custom range.
+    /// Otherwise: from date when set (CreatedAt) to end of month or PeriodEndDate.
     /// For subsequent months: full month (1st to last day).
     /// </summary>
-    private static (DateTime Start, DateTime End) GetPeriodBoundaries(DateTime date, int startDay, DateTime createdAt, DateTime? periodEndDate)
+    private static (DateTime Start, DateTime End) GetPeriodBoundaries(DateTime date, int startDay, DateTime createdAt, DateTime? periodStartDate, DateTime? periodEndDate)
     {
+        // Custom period: both start and end dates set
+        if (periodStartDate.HasValue && periodEndDate.HasValue)
+        {
+            var start = periodStartDate.Value.Date;
+            var end = periodEndDate.Value.Date;
+            if (date >= start && date <= end) return (start, end);
+            if (date < start) return (start, end); // show upcoming period
+            return (start, end); // period ended, show last period
+        }
+
         var created = createdAt.Date;
         var endOfCreatedMonth = new DateTime(created.Year, created.Month, DateTime.DaysInMonth(created.Year, created.Month), 0, 0, 0, DateTimeKind.Utc);
         var effectiveEnd = periodEndDate?.Date ?? endOfCreatedMonth;

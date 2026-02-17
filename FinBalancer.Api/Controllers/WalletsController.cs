@@ -78,7 +78,10 @@ public class WalletsController : ControllerBase
         var result = await _budgetService.CreateOrUpdateAsync(
             walletId,
             request.BudgetAmount,
-            request.PeriodStartDay);
+            request.PeriodStartDay,
+            request.PeriodStartDate,
+            request.PeriodEndDate,
+            request.CategoryId);
         if (result == null) return Unauthorized();
         return Ok(result);
     }
@@ -92,4 +95,4 @@ public class WalletsController : ControllerBase
     }
 }
 
-public record CreateBudgetRequest(decimal BudgetAmount, int PeriodStartDay = 1);
+public record CreateBudgetRequest(decimal BudgetAmount, int PeriodStartDay = 1, DateTime? PeriodStartDate = null, DateTime? PeriodEndDate = null, Guid? CategoryId = null);

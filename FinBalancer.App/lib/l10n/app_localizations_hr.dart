@@ -537,6 +537,18 @@ class AppLocalizationsHr extends AppLocalizations {
   String get periodStartDay => 'Početni dan razdoblja (1–28)';
 
   @override
+  String get periodStartDate => 'Početni datum razdoblja (custom period)';
+
+  @override
+  String get periodEndDate => 'Završni datum razdoblja (custom period)';
+
+  @override
+  String get trackCategory => 'Prati kategoriju';
+
+  @override
+  String get allCategories => 'Sve kategorije';
+
+  @override
   String get noBudgetsYet => 'Još nema budžeta';
 
   @override

@@ -21,6 +21,7 @@ class StatisticsScreen extends StatefulWidget {
 class _StatisticsScreenState extends State<StatisticsScreen> {
   final ApiService _api = ApiService();
   bool _predictionExpanded = false;
+  bool _categoriesExpanded = false;
   Map<String, dynamic>? _spendingData;
   Map<String, dynamic>? _summaryData;
   Map<String, dynamic>? _budgetPrediction;
@@ -669,17 +670,30 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
 
     final totalExpense = (spending['totalExpense'] as num?)?.toDouble() ?? 1.0;
     final colors = [AppTheme.expense(context), AppTheme.accent(context), Colors.orange, Colors.purple, Colors.teal, Colors.amber];
+    final displayCount = _categoriesExpanded ? byCategory.length : byCategory.length.clamp(0, 6);
+    final displayedCategories = byCategory.take(displayCount).toList();
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('Spending by Category', style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text('Spending by Category', style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
+            if (byCategory.length > 6)
+              TextButton.icon(
+                icon: Icon(_categoriesExpanded ? Icons.expand_less : Icons.expand_more, size: 20),
+                label: Text(_categoriesExpanded ? 'Show less' : 'Show all (${byCategory.length})'),
+                onPressed: () => setState(() => _categoriesExpanded = !_categoriesExpanded),
+              ),
+          ],
+        ),
         const SizedBox(height: 16),
         SizedBox(
           height: 220,
           child: PieChart(
             PieChartData(
-              sections: byCategory.asMap().entries.take(6).map((e) {
+              sections: displayedCategories.asMap().entries.map((e) {
                 final cat = e.value as Map<String, dynamic>;
                 final value = (cat['total'] as num?)?.toDouble() ?? 0.0;
                 final pct = totalExpense > 0 ? (value / totalExpense * 100) : 0.0;
@@ -700,7 +714,7 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
         Wrap(
           spacing: 12,
           runSpacing: 6,
-          children: byCategory.asMap().entries.take(6).map((e) {
+          children: displayedCategories.asMap().entries.map((e) {
             final cat = e.value as Map<String, dynamic>;
             final name = cat['categoryName'] as String? ?? 'Unknown';
             final color = colors[e.key % colors.length];
@@ -715,7 +729,7 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
           }).toList(),
         ),
         const SizedBox(height: 16),
-        ...byCategory.map((c) {
+        ...displayedCategories.map((c) {
           final cat = c as Map<String, dynamic>;
           final catId = cat['categoryId']?.toString();
           final name = cat['categoryName'] as String? ?? 'Unknown';

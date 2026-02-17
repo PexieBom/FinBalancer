@@ -8,8 +8,12 @@ public class WalletBudget
     public decimal BudgetAmount { get; set; }
     /// <summary>Day of month when period starts (1-28). Default 1. Ignored when using CreatedAt-based period.</summary>
     public int PeriodStartDay { get; set; } = 1;
-    /// <summary>Optional end date for the budget period. If null, period ends at end of month.</summary>
+    /// <summary>Optional start date for custom period. When set with PeriodEndDate, defines exact date range.</summary>
+    public DateTime? PeriodStartDate { get; set; }
+    /// <summary>Optional end date for the budget period. If null, period ends at end of month. For custom period, use with PeriodStartDate.</summary>
     public DateTime? PeriodEndDate { get; set; }
+    /// <summary>If set, budget tracks only expenses in this category. If null, tracks all expenses.</summary>
+    public Guid? CategoryId { get; set; }
     public DateTime CreatedAt { get; set; }
     public DateTime UpdatedAt { get; set; }
 }

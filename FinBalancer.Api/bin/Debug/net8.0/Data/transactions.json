@@ -11,7 +11,8 @@
     "tags": [],
     "project": null,
     "projectId": null,
-    "dateCreated": "2026-02-14T11:07:49.0537555Z"
+    "dateCreated": "2026-02-14T11:07:49.0537555Z",
+    "isYearlyExpense": false
   },
   {
     "id": "09aa19c7-3658-495c-8e72-8ba76bbdb0ee",
@@ -25,7 +26,8 @@
     "tags": [],
     "project": null,
     "projectId": null,
-    "dateCreated": "2026-02-14T11:08:10.7598118Z"
+    "dateCreated": "2026-02-14T11:08:10.7598118Z",
+    "isYearlyExpense": false
   },
   {
     "id": "2b3d4398-faca-4a8f-bd31-d8f9d7ff15c8",
@@ -39,7 +41,8 @@
     "tags": [],
     "project": null,
     "projectId": null,
-    "dateCreated": "2026-02-14T11:18:22.467157Z"
+    "dateCreated": "2026-02-14T11:18:22.467157Z",
+    "isYearlyExpense": false
   },
   {
     "id": "d15b45aa-0036-46f1-9d05-f7ff98b4e4f5",
@@ -53,7 +56,8 @@
     "tags": [],
     "project": null,
     "projectId": null,
-    "dateCreated": "2026-02-14T11:18:44.1434226Z"
+    "dateCreated": "2026-02-14T11:18:44.1434226Z",
+    "isYearlyExpense": false
   },
   {
     "id": "ec52d330-b046-40c1-82e5-c52605d8c6eb",
@@ -67,7 +71,8 @@
     "tags": [],
     "project": null,
     "projectId": null,
-    "dateCreated": "2026-02-14T11:22:18.3446558Z"
+    "dateCreated": "2026-02-14T11:22:18.3446558Z",
+    "isYearlyExpense": false
   },
   {
     "id": "36216b7c-946d-4b5b-968e-189d1ffda5a5",
@@ -81,7 +86,8 @@
     "tags": [],
     "project": null,
     "projectId": null,
-    "dateCreated": "2026-02-14T11:22:38.4960168Z"
+    "dateCreated": "2026-02-14T11:22:38.4960168Z",
+    "isYearlyExpense": false
   },
   {
     "id": "8e5e6a59-0a1e-4fd5-b115-2655b4ea1a66",
@@ -97,7 +103,8 @@
     ],
     "project": null,
     "projectId": null,
-    "dateCreated": "2026-02-14T14:13:05.152468Z"
+    "dateCreated": "2026-02-14T14:13:05.152468Z",
+    "isYearlyExpense": false
   },
   {
     "id": "df20a79c-375e-42ca-8098-f2ed7c37951d",
@@ -113,7 +120,8 @@
     ],
     "project": null,
     "projectId": null,
-    "dateCreated": "2026-02-14T16:32:46.8618275Z"
+    "dateCreated": "2026-02-14T16:32:46.8618275Z",
+    "isYearlyExpense": false
   },
   {
     "id": "d19330ea-8f62-4beb-91bc-c995338f8cf5",
@@ -129,7 +137,8 @@
     ],
     "project": null,
     "projectId": null,
-    "dateCreated": "2026-02-14T19:56:12.7577292Z"
+    "dateCreated": "2026-02-14T19:56:12.7577292Z",
+    "isYearlyExpense": false
   },
   {
     "id": "bfe257c4-6b87-46b0-bc9d-810e2d0dfad7",
@@ -143,7 +152,8 @@
     "tags": [],
     "project": null,
     "projectId": null,
-    "dateCreated": "2026-02-14T21:50:27.200473Z"
+    "dateCreated": "2026-02-14T21:50:27.200473Z",
+    "isYearlyExpense": false
   },
   {
     "id": "ad6d0134-ae94-499f-8953-2f363b75304d",
@@ -157,7 +167,8 @@
     "tags": [],
     "project": null,
     "projectId": null,
-    "dateCreated": "2026-02-15T16:31:23.594778Z"
+    "dateCreated": "2026-02-15T16:31:23.594778Z",
+    "isYearlyExpense": false
   },
   {
     "id": "24fe50a0-9a30-472d-950b-9691a9de286b",
@@ -171,7 +182,8 @@
     "tags": [],
     "project": null,
     "projectId": null,
-    "dateCreated": "2026-02-15T16:31:52.700725Z"
+    "dateCreated": "2026-02-15T16:31:52.700725Z",
+    "isYearlyExpense": false
   },
   {
     "id": "0f9d2275-1ba0-43fd-a245-492eddf866b0",
@@ -185,7 +197,8 @@
     "tags": [],
     "project": null,
     "projectId": null,
-    "dateCreated": "2026-02-15T16:32:28.5002462Z"
+    "dateCreated": "2026-02-15T16:32:28.5002462Z",
+    "isYearlyExpense": false
   },
   {
     "id": "354810ac-ef1f-4ab2-8dd1-e7797a87429e",
@@ -199,7 +212,8 @@
     "tags": [],
     "project": null,
     "projectId": null,
-    "dateCreated": "2026-02-15T16:32:47.4373387Z"
+    "dateCreated": "2026-02-15T16:32:47.4373387Z",
+    "isYearlyExpense": false
   },
   {
     "id": "e2180e3f-c5f6-49e8-b308-6ce756643269",
@@ -213,7 +227,8 @@
     "tags": [],
     "project": null,
     "projectId": null,
-    "dateCreated": "2026-02-15T16:33:15.904683Z"
+    "dateCreated": "2026-02-15T16:33:15.904683Z",
+    "isYearlyExpense": false
   },
   {
     "id": "9fd8a303-6ce2-4ce5-9108-520829a1cf8e",
@@ -227,7 +242,8 @@
     "tags": [],
     "project": null,
     "projectId": null,
-    "dateCreated": "2026-02-15T16:33:36.283732Z"
+    "dateCreated": "2026-02-15T16:33:36.283732Z",
+    "isYearlyExpense": false
   },
   {
     "id": "1f656008-4c97-422d-9e9a-3cfb46b2dded",
@@ -241,7 +257,8 @@
     "tags": [],
     "project": null,
     "projectId": null,
-    "dateCreated": "2026-02-15T16:34:03.1207687Z"
+    "dateCreated": "2026-02-15T16:34:03.1207687Z",
+    "isYearlyExpense": false
   },
   {
     "id": "c3519111-7186-4d0d-abc8-5e32563a788c",
@@ -255,7 +272,8 @@
     "tags": [],
     "project": null,
     "projectId": null,
-    "dateCreated": "2026-02-15T16:34:21.743147Z"
+    "dateCreated": "2026-02-15T16:34:21.743147Z",
+    "isYearlyExpense": false
   },
   {
     "id": "35c0adc6-339c-49dd-8fb3-317ce7702718",
@@ -269,7 +287,8 @@
     "tags": [],
     "project": null,
     "projectId": null,
-    "dateCreated": "2026-02-15T16:34:43.1068491Z"
+    "dateCreated": "2026-02-15T16:34:43.1068491Z",
+    "isYearlyExpense": false
   },
   {
     "id": "5c22f249-173a-4cf4-b722-3f5c85f77c19",
@@ -283,7 +302,8 @@
     "tags": [],
     "project": null,
     "projectId": null,
-    "dateCreated": "2026-02-15T16:35:11.160816Z"
+    "dateCreated": "2026-02-15T16:35:11.160816Z",
+    "isYearlyExpense": true
   },
   {
     "id": "886a24f9-030a-4d13-b5b0-4dad398314b0",
@@ -297,7 +317,8 @@
     "tags": [],
     "project": null,
     "projectId": null,
-    "dateCreated": "2026-02-15T16:35:28.0849773Z"
+    "dateCreated": "2026-02-15T16:35:28.0849773Z",
+    "isYearlyExpense": false
   },
   {
     "id": "777682bd-03f4-49c0-aed4-56e94df0654e",
@@ -311,7 +332,8 @@
     "tags": [],
     "project": null,
     "projectId": null,
-    "dateCreated": "2026-02-15T16:35:44.5876815Z"
+    "dateCreated": "2026-02-15T16:35:44.5876815Z",
+    "isYearlyExpense": false
   },
   {
     "id": "f54ed545-ac11-491e-8513-221229f66fc9",
@@ -325,7 +347,8 @@
     "tags": [],
     "project": null,
     "projectId": null,
-    "dateCreated": "2026-02-15T16:35:58.0993853Z"
+    "dateCreated": "2026-02-15T16:35:58.0993853Z",
+    "isYearlyExpense": false
   },
   {
     "id": "bbbcccc8-eb59-4e64-9c9d-3969e23fc5be",
@@ -339,7 +362,8 @@
     "tags": [],
     "project": null,
     "projectId": null,
-    "dateCreated": "2026-02-15T16:36:13.6884583Z"
+    "dateCreated": "2026-02-15T16:36:13.6884583Z",
+    "isYearlyExpense": false
   },
   {
     "id": "2f16bb57-5796-4205-a4e6-a307d38aac0f",
@@ -353,7 +377,8 @@
     "tags": [],
     "project": null,
     "projectId": null,
-    "dateCreated": "2026-02-15T16:36:33.7719903Z"
+    "dateCreated": "2026-02-15T16:36:33.7719903Z",
+    "isYearlyExpense": false
   },
   {
     "id": "679187d5-97c8-48cc-a70a-1645b6421403",
@@ -367,7 +392,8 @@
     "tags": [],
     "project": null,
     "projectId": null,
-    "dateCreated": "2026-02-15T16:36:46.7869828Z"
+    "dateCreated": "2026-02-15T16:36:46.7869828Z",
+    "isYearlyExpense": false
   },
   {
     "id": "79c2a05a-95f5-477a-93b8-0640eab6fd84",
@@ -381,7 +407,8 @@
     "tags": [],
     "project": null,
     "projectId": null,
-    "dateCreated": "2026-02-15T16:37:05.9733777Z"
+    "dateCreated": "2026-02-15T16:37:05.9733777Z",
+    "isYearlyExpense": false
   },
   {
     "id": "98e241ed-f731-431e-a9ec-c100890da916",
@@ -395,7 +422,8 @@
     "tags": [],
     "project": null,
     "projectId": null,
-    "dateCreated": "2026-02-15T16:37:19.967384Z"
+    "dateCreated": "2026-02-15T16:37:19.967384Z",
+    "isYearlyExpense": false
   },
   {
     "id": "69c6404d-9837-4a8a-8728-2e590a3bc122",
@@ -409,7 +437,8 @@
     "tags": [],
     "project": null,
     "projectId": null,
-    "dateCreated": "2026-02-15T16:37:43.933876Z"
+    "dateCreated": "2026-02-15T16:37:43.933876Z",
+    "isYearlyExpense": false
   },
   {
     "id": "f8059919-6092-4267-b9bc-ed59c09e01d9",
@@ -423,7 +452,8 @@
     "tags": [],
     "project": null,
     "projectId": null,
-    "dateCreated": "2026-02-15T16:38:19.5543359Z"
+    "dateCreated": "2026-02-15T16:38:19.5543359Z",
+    "isYearlyExpense": false
   },
   {
     "id": "6c8c5604-a1af-475d-9676-298730b3c6c3",
@@ -437,7 +467,8 @@
     "tags": [],
     "project": null,
     "projectId": null,
-    "dateCreated": "2026-02-15T16:38:35.6510051Z"
+    "dateCreated": "2026-02-15T16:38:35.6510051Z",
+    "isYearlyExpense": false
   },
   {
     "id": "56d2054a-d8fd-4ee9-a7c6-34d6eb6710f9",
@@ -451,7 +482,8 @@
     "tags": [],
     "project": null,
     "projectId": null,
-    "dateCreated": "2026-02-15T16:38:50.801695Z"
+    "dateCreated": "2026-02-15T16:38:50.801695Z",
+    "isYearlyExpense": false
   },
   {
     "id": "786e511d-3080-4dbc-a70a-951a72914e28",
@@ -465,7 +497,8 @@
     "tags": [],
     "project": null,
     "projectId": null,
-    "dateCreated": "2026-02-15T16:39:01.9513165Z"
+    "dateCreated": "2026-02-15T16:39:01.9513165Z",
+    "isYearlyExpense": false
   },
   {
     "id": "9c7525b4-38ef-4531-9278-49f3dedf582c",
@@ -479,7 +512,8 @@
     "tags": [],
     "project": null,
     "projectId": null,
-    "dateCreated": "2026-02-15T16:39:18.370781Z"
+    "dateCreated": "2026-02-15T16:39:18.370781Z",
+    "isYearlyExpense": false
   },
   {
     "id": "7b74753b-f7e7-450b-8860-9e4d214f6d68",
@@ -493,7 +527,8 @@
     "tags": [],
     "project": null,
     "projectId": null,
-    "dateCreated": "2026-02-15T16:39:30.1021938Z"
+    "dateCreated": "2026-02-15T16:39:30.1021938Z",
+    "isYearlyExpense": false
   },
   {
     "id": "c95f341e-556a-4c39-bbc3-45d19aa05a10",
@@ -507,7 +542,8 @@
     "tags": [],
     "project": null,
     "projectId": null,
-    "dateCreated": "2026-02-15T16:39:42.992325Z"
+    "dateCreated": "2026-02-15T16:39:42.992325Z",
+    "isYearlyExpense": false
   },
   {
     "id": "5f954fa3-7837-403f-a187-ab176dff65a1",
@@ -521,7 +557,8 @@
     "tags": [],
     "project": null,
     "projectId": null,
-    "dateCreated": "2026-02-15T16:40:01.632866Z"
+    "dateCreated": "2026-02-15T16:40:01.632866Z",
+    "isYearlyExpense": false
   },
   {
     "id": "6fd31327-d254-413a-9585-bfbaf75819d9",
@@ -535,7 +572,8 @@
     "tags": [],
     "project": null,
     "projectId": null,
-    "dateCreated": "2026-02-15T16:40:12.5577886Z"
+    "dateCreated": "2026-02-15T16:40:12.5577886Z",
+    "isYearlyExpense": false
   },
   {
     "id": "cf9137f1-3e78-45f6-bb43-84678d4b15a2",
@@ -549,7 +587,8 @@
     "tags": [],
     "project": null,
     "projectId": null,
-    "dateCreated": "2026-02-15T16:40:28.655Z"
+    "dateCreated": "2026-02-15T16:40:28.655Z",
+    "isYearlyExpense": false
   },
   {
     "id": "01b77e25-58fc-4b5d-ab73-b218317dc7cc",
@@ -563,7 +602,8 @@
     "tags": [],
     "project": null,
     "projectId": null,
-    "dateCreated": "2026-02-15T16:40:37.4176901Z"
+    "dateCreated": "2026-02-15T16:40:37.4176901Z",
+    "isYearlyExpense": false
   },
   {
     "id": "e4396289-c9d3-4a91-be4f-7bd7615e0282",
@@ -577,7 +617,8 @@
     "tags": [],
     "project": null,
     "projectId": null,
-    "dateCreated": "2026-02-15T16:40:51.5355218Z"
+    "dateCreated": "2026-02-15T16:40:51.5355218Z",
+    "isYearlyExpense": false
   },
   {
     "id": "01e88e3e-bfac-4fc9-88f0-34c5f72958e9",
@@ -591,7 +632,8 @@
     "tags": [],
     "project": null,
     "projectId": null,
-    "dateCreated": "2026-02-15T16:41:12.602875Z"
+    "dateCreated": "2026-02-15T16:41:12.602875Z",
+    "isYearlyExpense": false
   },
   {
     "id": "9e2138a5-90d5-4bcf-9565-8c0b7c13a018",
@@ -605,7 +647,8 @@
     "tags": [],
     "project": null,
     "projectId": null,
-    "dateCreated": "2026-02-15T16:41:27.490705Z"
+    "dateCreated": "2026-02-15T16:41:27.490705Z",
+    "isYearlyExpense": true
   },
   {
     "id": "093d8edf-269e-49f3-9c68-3abcd4af4921",
@@ -619,7 +662,8 @@
     "tags": [],
     "project": null,
     "projectId": null,
-    "dateCreated": "2026-02-15T16:41:57.559076Z"
+    "dateCreated": "2026-02-15T16:41:57.559076Z",
+    "isYearlyExpense": true
   },
   {
     "id": "3a71f16d-2732-4965-be13-eaee09596471",
@@ -633,7 +677,8 @@
     "tags": [],
     "project": null,
     "projectId": null,
-    "dateCreated": "2026-02-15T16:42:13.306496Z"
+    "dateCreated": "2026-02-15T16:42:13.306496Z",
+    "isYearlyExpense": false
   },
   {
     "id": "457da316-ae4d-4f93-830f-5d0c08d55e6f",
@@ -647,7 +692,8 @@
     "tags": [],
     "project": null,
     "projectId": null,
-    "dateCreated": "2026-02-15T16:42:23.6274458Z"
+    "dateCreated": "2026-02-15T16:42:23.6274458Z",
+    "isYearlyExpense": false
   },
   {
     "id": "1876ff8b-9cba-42ec-86b9-3786e505aa34",
@@ -661,7 +707,8 @@
     "tags": [],
     "project": null,
     "projectId": null,
-    "dateCreated": "2026-02-15T16:42:34.3192673Z"
+    "dateCreated": "2026-02-15T16:42:34.3192673Z",
+    "isYearlyExpense": false
   },
   {
     "id": "f4a313b7-3d9f-4c77-acba-00b857de713e",
@@ -675,7 +722,8 @@
     "tags": [],
     "project": null,
     "projectId": null,
-    "dateCreated": "2026-02-15T16:42:46.7354503Z"
+    "dateCreated": "2026-02-15T16:42:46.7354503Z",
+    "isYearlyExpense": false
   },
   {
     "id": "b683fdf5-9120-43c3-9e69-343295af471b",
@@ -689,7 +737,8 @@
     "tags": [],
     "project": null,
     "projectId": null,
-    "dateCreated": "2026-02-15T16:42:58.158087Z"
+    "dateCreated": "2026-02-15T16:42:58.158087Z",
+    "isYearlyExpense": false
   },
   {
     "id": "61d6f60a-4eef-4bee-968e-acfbae2fe7b2",
@@ -703,7 +752,8 @@
     "tags": [],
     "project": null,
     "projectId": null,
-    "dateCreated": "2026-02-15T16:43:12.258732Z"
+    "dateCreated": "2026-02-15T16:43:12.258732Z",
+    "isYearlyExpense": false
   },
   {
     "id": "ea9eac96-45d5-4eb7-931d-f2cf8c34f736",
@@ -717,7 +767,8 @@
     "tags": [],
     "project": null,
     "projectId": null,
-    "dateCreated": "2026-02-15T16:43:25.2511089Z"
+    "dateCreated": "2026-02-15T16:43:25.2511089Z",
+    "isYearlyExpense": false
   },
   {
     "id": "cf29086d-c3a3-45cd-b0d0-77eb266dbf4a",
@@ -731,7 +782,8 @@
     "tags": [],
     "project": null,
     "projectId": null,
-    "dateCreated": "2026-02-15T16:43:43.2526639Z"
+    "dateCreated": "2026-02-15T16:43:43.2526639Z",
+    "isYearlyExpense": false
   },
   {
     "id": "e3ea707c-6b0b-4e0b-b661-0dfb2f8fbc77",
@@ -745,7 +797,8 @@
     "tags": [],
     "project": null,
     "projectId": null,
-    "dateCreated": "2026-02-15T16:43:57.591778Z"
+    "dateCreated": "2026-02-15T16:43:57.591778Z",
+    "isYearlyExpense": false
   },
   {
     "id": "a720861e-f3cc-4b12-ad7f-bcdff93c92da",
@@ -759,7 +812,8 @@
     "tags": [],
     "project": null,
     "projectId": null,
-    "dateCreated": "2026-02-15T16:44:07.5591489Z"
+    "dateCreated": "2026-02-15T16:44:07.5591489Z",
+    "isYearlyExpense": false
   },
   {
     "id": "12803c79-162d-46ea-92a3-e2cf8d160d18",
@@ -773,7 +827,8 @@
     "tags": [],
     "project": null,
     "projectId": null,
-    "dateCreated": "2026-02-15T16:44:23.702793Z"
+    "dateCreated": "2026-02-15T16:44:23.702793Z",
+    "isYearlyExpense": false
   },
   {
     "id": "c16a9561-1722-4f6e-986a-dec3c981d23e",
@@ -787,7 +842,8 @@
     "tags": [],
     "project": null,
     "projectId": null,
-    "dateCreated": "2026-02-15T16:44:40.7048468Z"
+    "dateCreated": "2026-02-15T16:44:40.7048468Z",
+    "isYearlyExpense": false
   },
   {
     "id": "fe642768-eb68-4d09-93f6-5a3178893d36",
@@ -801,7 +857,8 @@
     "tags": [],
     "project": null,
     "projectId": null,
-    "dateCreated": "2026-02-15T16:44:58.1898443Z"
+    "dateCreated": "2026-02-15T16:44:58.1898443Z",
+    "isYearlyExpense": false
   },
   {
     "id": "e5d84533-d746-48de-ac1b-793ca0e37612",
@@ -815,7 +872,8 @@
     "tags": [],
     "project": null,
     "projectId": null,
-    "dateCreated": "2026-02-15T16:45:18.1720277Z"
+    "dateCreated": "2026-02-15T16:45:18.1720277Z",
+    "isYearlyExpense": false
   },
   {
     "id": "87d8031a-e11c-4804-995d-42c1e081ff90",
@@ -829,7 +887,8 @@
     "tags": [],
     "project": null,
     "projectId": null,
-    "dateCreated": "2026-02-15T16:45:35.6010426Z"
+    "dateCreated": "2026-02-15T16:45:35.6010426Z",
+    "isYearlyExpense": false
   },
   {
     "id": "3a2ab116-6c8f-45fd-b270-5ecbf39112ae",
@@ -843,7 +902,8 @@
     "tags": [],
     "project": null,
     "projectId": null,
-    "dateCreated": "2026-02-15T16:45:45.1090978Z"
+    "dateCreated": "2026-02-15T16:45:45.1090978Z",
+    "isYearlyExpense": false
   },
   {
     "id": "f54b3467-d631-4dd5-8adf-8121d61e95b0",
@@ -857,7 +917,8 @@
     "tags": [],
     "project": null,
     "projectId": null,
-    "dateCreated": "2026-02-15T16:46:05.5357484Z"
+    "dateCreated": "2026-02-15T16:46:05.5357484Z",
+    "isYearlyExpense": false
   },
   {
     "id": "345d3165-0e67-4b32-a862-74285de6c902",
@@ -871,7 +932,8 @@
     "tags": [],
     "project": null,
     "projectId": null,
-    "dateCreated": "2026-02-15T16:46:17.7370645Z"
+    "dateCreated": "2026-02-15T16:46:17.7370645Z",
+    "isYearlyExpense": false
   },
   {
     "id": "fb22dcd5-a499-41e2-a29c-686e30b82e94",
@@ -885,7 +947,8 @@
     "tags": [],
     "project": null,
     "projectId": null,
-    "dateCreated": "2026-02-15T16:46:30.4083042Z"
+    "dateCreated": "2026-02-15T16:46:30.4083042Z",
+    "isYearlyExpense": false
   },
   {
     "id": "55530345-963c-4c56-9086-70dd538d2177",
@@ -899,7 +962,8 @@
     "tags": [],
     "project": null,
     "projectId": null,
-    "dateCreated": "2026-02-15T16:46:45.006339Z"
+    "dateCreated": "2026-02-15T16:46:45.006339Z",
+    "isYearlyExpense": false
   },
   {
     "id": "3b259e74-8084-402d-8e69-2fdfd22904b3",
@@ -913,7 +977,8 @@
     "tags": [],
     "project": null,
     "projectId": null,
-    "dateCreated": "2026-02-15T16:47:05.3686148Z"
+    "dateCreated": "2026-02-15T16:47:05.3686148Z",
+    "isYearlyExpense": false
   },
   {
     "id": "2fe3fa4b-64b6-414e-86da-e3539447b24a",
@@ -927,7 +992,8 @@
     "tags": [],
     "project": null,
     "projectId": null,
-    "dateCreated": "2026-02-15T16:47:15.0350767Z"
+    "dateCreated": "2026-02-15T16:47:15.0350767Z",
+    "isYearlyExpense": false
   },
   {
     "id": "9b102ea5-7dae-4f20-bf2b-17646ab7f35a",
@@ -941,7 +1007,8 @@
     "tags": [],
     "project": null,
     "projectId": null,
-    "dateCreated": "2026-02-15T16:47:25.4388357Z"
+    "dateCreated": "2026-02-15T16:47:25.4388357Z",
+    "isYearlyExpense": false
   },
   {
     "id": "94356def-85d0-4378-b342-607374c3dbde",
@@ -955,7 +1022,8 @@
     "tags": [],
     "project": null,
     "projectId": null,
-    "dateCreated": "2026-02-15T16:47:44.4354334Z"
+    "dateCreated": "2026-02-15T16:47:44.4354334Z",
+    "isYearlyExpense": false
   },
   {
     "id": "74998ada-ea7f-4500-8853-7c3021392721",
@@ -969,7 +1037,8 @@
     "tags": [],
     "project": null,
     "projectId": null,
-    "dateCreated": "2026-02-15T16:48:00.157649Z"
+    "dateCreated": "2026-02-15T16:48:00.157649Z",
+    "isYearlyExpense": false
   },
   {
     "id": "2c319825-9dce-4080-8bac-ac013437ec5c",
@@ -983,7 +1052,8 @@
     "tags": [],
     "project": null,
     "projectId": null,
-    "dateCreated": "2026-02-15T16:50:20.2919775Z"
+    "dateCreated": "2026-02-15T16:50:20.2919775Z",
+    "isYearlyExpense": false
   },
   {
     "id": "a0a25f4b-a914-4f6f-9a02-927de20b5589",
@@ -997,7 +1067,8 @@
     "tags": [],
     "project": null,
     "projectId": null,
-    "dateCreated": "2026-02-15T18:31:17.28756Z"
+    "dateCreated": "2026-02-15T18:31:17.28756Z",
+    "isYearlyExpense": false
   },
   {
     "id": "e0d6b8d9-14fe-4da9-bb33-9c0362aba9d4",
@@ -1011,6 +1082,7 @@
     "tags": [],
     "project": null,
     "projectId": null,
-    "dateCreated": "2026-02-15T18:32:04.161139Z"
+    "dateCreated": "2026-02-15T18:32:04.161139Z",
+    "isYearlyExpense": false
   }
 ]

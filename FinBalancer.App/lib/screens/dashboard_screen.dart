@@ -354,6 +354,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
         ),
         const SizedBox(height: 8),
         Text(
+          '${l10n.period}: ${intl.DateFormat('dd.MM.yyyy').format(budget.periodStart)} – ${intl.DateFormat('dd.MM.yyyy').format(budget.periodEnd)}',
+          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
+        ),
+        const SizedBox(height: 4),
+        Text(
           '${l10n.allowancePerDay}: ${fmt.format(budget.allowancePerDay)}',
           style: Theme.of(context).textTheme.bodySmall?.copyWith(
                 color: Theme.of(context).colorScheme.onSurfaceVariant,
@@ -423,9 +430,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
         actions: [
           Consumer<SubscriptionProvider>(
             builder: (context, sub, _) => sub.isPremium
-                ? Padding(
-                    padding: const EdgeInsets.only(right: 4, top: 12),
-                    child: Tooltip(
+                ? Center(
+                    child: Padding(
+                      padding: const EdgeInsets.only(right: 4),
+                      child: Tooltip(
                       message: 'Premium Active',
                       child: Container(
                         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
@@ -449,7 +457,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         ),
                       ),
                     ),
-                  )
+                  ),
+                )
                 : const SizedBox.shrink(),
           ),
           Consumer<LocaleProvider>(
@@ -503,6 +512,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
           IconButton(
             icon: const Icon(Icons.logout),
             onPressed: () async {
+              context.read<DataProvider>().clearUserData();
               await context.read<AppProvider>().logout();
               if (context.mounted) {
                 Navigator.pushReplacementNamed(context, '/');
@@ -826,7 +836,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           onPressed: () => Navigator.pushNamed(
                             context,
                             '/add-transaction',
-                          ).then((_) => provider.loadAll()),
+                          ).then((_) {}),
                           child: Text(l10n.addTransaction),
                         ),
                       ],
@@ -855,7 +865,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                               onPressed: () => Navigator.pushNamed(
                                 context,
                                 '/add-transaction',
-                              ).then((_) => provider.loadAll()),
+                              ).then((_) {}),
                               child: Text(l10n.addTransaction),
                             ),
                           ],
@@ -871,7 +881,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           context,
                           '/add-transaction',
                           arguments: t,
-                        ).then((_) => provider.loadAll()),
+                        ).then((_) {}),
                         onDelete: () => provider.deleteTransaction(t.id),
                         currencyFormat: fmt,
                       ),

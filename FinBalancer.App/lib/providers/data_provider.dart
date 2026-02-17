@@ -132,31 +132,50 @@ class DataProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
+      // Phase 1: Core data for main view (transactions, wallets, categories)
       await Future.wait([
         loadTransactions(),
         loadWallets(),
         loadCategories(locale: locale),
+      ]);
+      _isLoading = false;
+      notifyListeners();
+
+      // Phase 2: Rest in parallel (budgets, goals, achievements, projects)
+      await Future.wait([
+        loadBudgets(),
         loadGoals(),
         loadAchievements(),
         loadProjects(),
-        loadBudgets(),
       ]);
     } catch (e) {
-      _error = e.toString();
-    } finally {
       _isLoading = false;
-      notifyListeners();
+      _error = e.toString();
     }
+    notifyListeners();
   }
 
-  Future<void> loadTransactions() async {
+  Future<void> loadTransactions({bool resetDisplayedCount = true}) async {
     try {
       _transactions = await _api.getTransactions(
         tag: _filterTag,
         project: _filterProject,
         walletId: _filterWalletId,
       );
-      resetDisplayedTransactionCount();
+      if (resetDisplayedCount) resetDisplayedTransactionCount();
+      notifyListeners();
+    } catch (e) {
+      _error = e.toString();
+      rethrow;
+    }
+  }
+
+  /// Refreshes transactions and related data after add/edit without resetting displayed count.
+  Future<void> refreshAfterTransactionChange() async {
+    try {
+      await loadTransactions(resetDisplayedCount: false);
+      await loadWallets();
+      await loadBudgets();
       notifyListeners();
     } catch (e) {
       _error = e.toString();
@@ -245,18 +264,27 @@ class DataProvider extends ChangeNotifier {
     String walletId, {
     required double budgetAmount,
     int periodStartDay = 1,
+    DateTime? periodStartDate,
+    DateTime? periodEndDate,
+    String? categoryId,
   }) async {
     final BudgetCurrent result;
     if (walletId == ApiService.globalBudgetId) {
       result = await _api.createOrUpdateGlobalBudget(
         budgetAmount: budgetAmount,
         periodStartDay: periodStartDay,
+        periodStartDate: periodStartDate,
+        periodEndDate: periodEndDate,
+        categoryId: categoryId,
       );
     } else {
       result = await _api.createOrUpdateWalletBudget(
         walletId,
         budgetAmount: budgetAmount,
         periodStartDay: periodStartDay,
+        periodStartDate: periodStartDate,
+        periodEndDate: periodEndDate,
+        categoryId: categoryId,
       );
     }
     await loadBudgets();
@@ -390,6 +418,25 @@ class DataProvider extends ChangeNotifier {
 
   void clearError() {
     _error = null;
+    notifyListeners();
+  }
+
+  /// Clears all user data (on logout). Prevents stale data when switching accounts.
+  void clearUserData() {
+    _transactions = [];
+    _wallets = [];
+    _categories = [];
+    _goals = [];
+    _achievements = [];
+    _subcategories = [];
+    _projects = [];
+    _budgetSummaries = [];
+    _filterTag = null;
+    _filterProject = null;
+    _filterWalletId = null;
+    _displayedTransactionCount = _initialDisplayCount;
+    _error = null;
+    _isLoading = false;
     notifyListeners();
   }
 
