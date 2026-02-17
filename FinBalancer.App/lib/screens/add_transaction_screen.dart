@@ -55,7 +55,8 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
       }
     }
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<DataProvider>().loadAll(locale: context.read<LocaleProvider>().localeCode);
+      // Ne pozivamo loadAll - resetirao bi displayedTransactionCount i scroll na dashboardu.
+      // Dashboard je već učitao podatke; dodajemo samo subcategories ako treba.
       if (editing != null && _selectedCategoryId != null) {
         context.read<DataProvider>().loadSubcategories(categoryId: _selectedCategoryId!);
       }

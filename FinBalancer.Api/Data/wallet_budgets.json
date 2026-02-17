@@ -12,15 +12,15 @@
     "updatedAt": "2026-02-14T22:13:22.6188654Z"
   },
   {
-    "id": "d3a3d0bc-05b3-452f-964b-0a26c5a65afc",
+    "id": "2eaa461b-4da8-486c-bc3e-483b2375eb62",
     "userId": "bd2265c8-fc6d-4c8c-beaa-cb37ea4eefa2",
     "walletId": "e6bc4221-b7ed-490b-9057-8110d61da5d5",
-    "budgetAmount": 250,
-    "periodStartDay": 1,
-    "periodStartDate": "2026-02-18T00:00:00",
-    "periodEndDate": "2026-03-25T00:00:00",
+    "budgetAmount": 815,
+    "periodStartDay": 16,
+    "periodStartDate": null,
+    "periodEndDate": null,
     "categoryId": null,
-    "createdAt": "2026-02-17T12:19:03.7777963Z",
-    "updatedAt": "2026-02-17T12:19:03.7765841Z"
+    "createdAt": "2026-02-17T15:23:14.8849128Z",
+    "updatedAt": "2026-02-17T15:23:14.8840055Z"
   }
 ]

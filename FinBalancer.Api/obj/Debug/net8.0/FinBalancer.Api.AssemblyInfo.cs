@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("FinBalancer.Api")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+d007e309c9dd9cf2e2128ac19df135bf83e9f068")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+22eebf450fb3efdca659cce3bfc45e286562eeb3")]
 [assembly: System.Reflection.AssemblyProductAttribute("FinBalancer.Api")]
 [assembly: System.Reflection.AssemblyTitleAttribute("FinBalancer.Api")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

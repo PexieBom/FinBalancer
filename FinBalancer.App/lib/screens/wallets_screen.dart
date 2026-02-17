@@ -505,10 +505,12 @@ class _BudgetsTab extends StatelessWidget {
     DateTime? selectedPeriodStartDate;
     DateTime? selectedPeriodEndDate;
     String? selectedCategoryId;
+    BudgetCurrent? currentBudget;
     if (targetBudgetId != null) {
       try {
         final current = await provider.getWalletBudget(targetBudgetId);
         if (current != null) {
+          currentBudget = current;
           budgetAmountController.text = current.budgetAmount.toStringAsFixed(0);
           periodStartController.text = current.periodStart.day.toString();
         }
@@ -554,6 +556,15 @@ class _BudgetsTab extends StatelessWidget {
                       leading: const Icon(Icons.account_balance_wallet),
                       title: Text(targetName ?? wallet?.name ?? l10n.allWallets),
                     ),
+                  if (targetBudgetId != null && currentBudget != null) ...[
+                    const SizedBox(height: 12),
+                    Text(
+                      '${l10n.period}: ${DateFormat('dd.MM.yyyy').format(currentBudget!.periodStart)} – ${DateFormat('dd.MM.yyyy').format(currentBudget!.periodEnd)}',
+                      style: Theme.of(ctx2).textTheme.bodyMedium?.copyWith(
+                            color: Theme.of(ctx2).colorScheme.onSurfaceVariant,
+                          ),
+                    ),
+                  ],
                   if (targetBudgetId != null) const SizedBox(height: 16),
                   TextField(
                     controller: budgetAmountController,
