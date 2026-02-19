@@ -9,14 +9,31 @@ namespace FinBalancer.Api.Controllers;
 public class GoalsController : ControllerBase
 {
     private readonly GoalService _goalService;
+    private readonly AccountLinkService _accountLinkService;
+    private readonly ICurrentUserService _currentUser;
 
-    public GoalsController(GoalService goalService)
+    public GoalsController(
+        GoalService goalService,
+        AccountLinkService accountLinkService,
+        ICurrentUserService currentUser)
     {
         _goalService = goalService;
+        _accountLinkService = accountLinkService;
+        _currentUser = currentUser;
     }
 
     [HttpGet]
-    public async Task<ActionResult<List<Goal>>> Get() => Ok(await _goalService.GetAllAsync());
+    public async Task<ActionResult<List<Goal>>> Get([FromQuery] Guid? viewAsHostId)
+    {
+        if (viewAsHostId.HasValue)
+        {
+            var userId = _currentUser.UserId;
+            if (!userId.HasValue) return Unauthorized();
+            if (!await _accountLinkService.CanGuestViewHostAsync(userId.Value, viewAsHostId.Value))
+                return Forbid();
+        }
+        return Ok(await _goalService.GetAllAsync(viewAsHostId));
+    }
 
     [HttpPost]
     public async Task<ActionResult<Goal>> Post([FromBody] Goal goal)

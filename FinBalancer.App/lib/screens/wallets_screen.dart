@@ -8,10 +8,13 @@ import '../models/wallet.dart';
 import '../models/wallet_budget.dart';
 import '../l10n/app_localizations.dart';
 import '../services/api_service.dart';
+import '../widgets/main_bottom_nav.dart';
 import '../providers/subscription_provider.dart';
 
 class WalletsScreen extends StatefulWidget {
-  const WalletsScreen({super.key});
+  final int initialTabIndex;
+
+  const WalletsScreen({super.key, this.initialTabIndex = 0});
 
   @override
   State<WalletsScreen> createState() => _WalletsScreenState();
@@ -30,7 +33,8 @@ class _WalletsScreenState extends State<WalletsScreen> with SingleTickerProvider
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 2, vsync: this);
+    final initialIndex = widget.initialTabIndex.clamp(0, 1);
+    _tabController = TabController(length: 2, vsync: this, initialIndex: initialIndex);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final provider = context.read<DataProvider>();
       provider.loadWallets();
@@ -193,6 +197,7 @@ class _WalletsScreenState extends State<WalletsScreen> with SingleTickerProvider
           const _BudgetsTab(),
         ],
       ),
+      bottomNavigationBar: const MainBottomNav(activeIndex: 4),
     );
   }
 }

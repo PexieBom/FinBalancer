@@ -6,6 +6,9 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:provider/provider.dart';
 
 import '../theme/app_theme.dart';
+import '../providers/notifications_provider.dart';
+import '../widgets/main_bottom_nav.dart';
+import '../widgets/notifications_icon.dart';
 import '../services/api_service.dart';
 import '../providers/subscription_provider.dart';
 import '../models/transaction.dart';
@@ -37,6 +40,9 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
   void initState() {
     super.initState();
     _loadData();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<NotificationsProvider>().loadUnreadCount();
+    });
   }
 
   Future<void> _loadData() async {
@@ -84,6 +90,7 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
           onPressed: () => Navigator.pop(context),
         ),
         actions: [
+          const NotificationsIcon(),
           TextButton.icon(
             icon: const Icon(Icons.filter_list, size: 20),
             label: const Text('Filter'),
@@ -150,37 +157,7 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
                 );
         },
       ),
-      bottomNavigationBar: _buildBottomNav(context),
-    );
-  }
-
-  Widget _buildBottomNav(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        color: Theme.of(context).cardTheme.color,
-        boxShadow: [
-          BoxShadow(
-            color: Theme.of(context).brightness == Brightness.dark ? Colors.black54 : Colors.black.withOpacity(0.05),
-            blurRadius: 20,
-            offset: const Offset(0, -4),
-          ),
-        ],
-      ),
-      child: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: [
-              _NavItem(icon: Icons.dashboard, label: 'Home', onTap: () => Navigator.popUntil(context, (r) => r.isFirst)),
-              _NavItem(icon: Icons.add_circle_outline, label: 'Add', onTap: () => Navigator.pushReplacementNamed(context, '/add-transaction')),
-              _NavItem(icon: Icons.bar_chart, label: 'Stats', isActive: true),
-              _NavItem(icon: Icons.account_balance_wallet, label: AppLocalizations.of(context)?.walletsBudgets ?? 'Wallets / Budgets', onTap: () => Navigator.pushReplacementNamed(context, '/wallets')),
-              _NavItem(icon: Icons.category, label: 'Categories', onTap: () => Navigator.pushReplacementNamed(context, '/categories')),
-            ],
-          ),
-        ),
-      ),
+      bottomNavigationBar: const MainBottomNav(activeIndex: 2),
     );
   }
 
@@ -838,37 +815,6 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
           );
         }),
       ],
-    );
-  }
-}
-
-class _NavItem extends StatelessWidget {
-  final IconData icon;
-  final String label;
-  final bool isActive;
-  final VoidCallback? onTap;
-
-  const _NavItem({required this.icon, required this.label, this.isActive = false, this.onTap});
-
-  @override
-  Widget build(BuildContext context) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(12),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(icon, color: isActive ? AppTheme.accent(context) : Theme.of(context).colorScheme.onSurfaceVariant, size: 24),
-            const SizedBox(height: 4),
-            Text(label, style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: isActive ? AppTheme.accent(context) : Theme.of(context).colorScheme.onSurfaceVariant,
-                  fontWeight: isActive ? FontWeight.w600 : FontWeight.normal,
-                )),
-          ],
-        ),
-      ),
     );
   }
 }

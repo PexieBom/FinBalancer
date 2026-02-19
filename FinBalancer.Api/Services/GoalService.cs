@@ -7,16 +7,31 @@ public class GoalService
 {
     private readonly IGoalRepository _goalRepository;
     private readonly ICurrentUserService _currentUser;
+    private readonly AccountLinkService _accountLinkService;
 
-    public GoalService(IGoalRepository goalRepository, ICurrentUserService currentUser)
+    public GoalService(
+        IGoalRepository goalRepository,
+        ICurrentUserService currentUser,
+        AccountLinkService accountLinkService)
     {
         _goalRepository = goalRepository;
         _currentUser = currentUser;
+        _accountLinkService = accountLinkService;
     }
 
-    public async Task<List<Goal>> GetAllAsync()
+    private async Task<Guid?> ResolveEffectiveUserIdForReadAsync(Guid? viewAsHostId)
     {
-        var userId = _currentUser.UserId;
+        var current = _currentUser.UserId;
+        if (!current.HasValue) return null;
+        if (!viewAsHostId.HasValue) return current;
+        if (viewAsHostId.Value == current.Value) return current;
+        var canView = await _accountLinkService.CanGuestViewHostAsync(current.Value, viewAsHostId.Value);
+        return canView ? viewAsHostId : null;
+    }
+
+    public async Task<List<Goal>> GetAllAsync(Guid? viewAsHostId = null)
+    {
+        var userId = await ResolveEffectiveUserIdForReadAsync(viewAsHostId);
         if (!userId.HasValue) return new List<Goal>();
         return await _goalRepository.GetAllByUserIdAsync(userId.Value);
     }

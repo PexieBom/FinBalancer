@@ -10,17 +10,32 @@ public class WalletsController : ControllerBase
 {
     private readonly WalletService _walletService;
     private readonly BudgetService _budgetService;
+    private readonly AccountLinkService _accountLinkService;
+    private readonly ICurrentUserService _currentUser;
 
-    public WalletsController(WalletService walletService, BudgetService budgetService)
+    public WalletsController(
+        WalletService walletService,
+        BudgetService budgetService,
+        AccountLinkService accountLinkService,
+        ICurrentUserService currentUser)
     {
         _walletService = walletService;
         _budgetService = budgetService;
+        _accountLinkService = accountLinkService;
+        _currentUser = currentUser;
     }
 
     [HttpGet]
-    public async Task<ActionResult<List<Wallet>>> Get()
+    public async Task<ActionResult<List<Wallet>>> Get([FromQuery] Guid? viewAsHostId)
     {
-        var wallets = await _walletService.GetWalletsAsync();
+        if (viewAsHostId.HasValue)
+        {
+            var userId = _currentUser.UserId;
+            if (!userId.HasValue) return Unauthorized();
+            if (!await _accountLinkService.CanGuestViewHostAsync(userId.Value, viewAsHostId.Value))
+                return Forbid();
+        }
+        var wallets = await _walletService.GetWalletsAsync(viewAsHostId);
         return Ok(wallets);
     }
 
@@ -61,9 +76,16 @@ public class WalletsController : ControllerBase
     }
 
     [HttpGet("{walletId:guid}/budget/current")]
-    public async Task<ActionResult<BudgetCurrentDto>> GetBudgetCurrent(Guid walletId)
+    public async Task<ActionResult<BudgetCurrentDto>> GetBudgetCurrent(Guid walletId, [FromQuery] Guid? viewAsHostId)
     {
-        var result = await _budgetService.GetCurrentAsync(walletId);
+        if (viewAsHostId.HasValue)
+        {
+            var userId = _currentUser.UserId;
+            if (!userId.HasValue) return Unauthorized();
+            if (!await _accountLinkService.CanGuestViewHostAsync(userId.Value, viewAsHostId.Value))
+                return Forbid();
+        }
+        var result = await _budgetService.GetCurrentAsync(walletId, viewAsHostId);
         if (result == null) return NotFound();
         return Ok(result);
     }

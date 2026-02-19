@@ -1084,5 +1084,35 @@
     "projectId": null,
     "dateCreated": "2026-02-15T18:32:04.161139Z",
     "isYearlyExpense": false
+  },
+  {
+    "id": "dd145374-e46b-4291-8236-8228c08d6b57",
+    "userId": "bd2265c8-fc6d-4c8c-beaa-cb37ea4eefa2",
+    "amount": 100,
+    "type": "expense",
+    "categoryId": "ef1712af-c309-4940-8842-132f815090d4",
+    "subcategoryId": null,
+    "walletId": "e6bc4221-b7ed-490b-9057-8110d61da5d5",
+    "note": null,
+    "tags": [],
+    "project": null,
+    "projectId": null,
+    "dateCreated": "2026-02-17T15:22:08.501187Z",
+    "isYearlyExpense": false
+  },
+  {
+    "id": "2fa5b851-6879-463f-aedd-4acd59934ee7",
+    "userId": "bd2265c8-fc6d-4c8c-beaa-cb37ea4eefa2",
+    "amount": 52.0,
+    "type": "expense",
+    "categoryId": "f6a7b8c9-d0e1-4f0a-3b4c-5d6e7f8a9b0c",
+    "subcategoryId": null,
+    "walletId": "e6bc4221-b7ed-490b-9057-8110d61da5d5",
+    "note": "Matej kolega rucak",
+    "tags": [],
+    "project": null,
+    "projectId": null,
+    "dateCreated": "2026-02-18T12:45:27.5566852Z",
+    "isYearlyExpense": false
   }
 ]

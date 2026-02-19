@@ -7,16 +7,31 @@ public class WalletService
 {
     private readonly IWalletRepository _walletRepository;
     private readonly ICurrentUserService _currentUser;
+    private readonly AccountLinkService _accountLinkService;
 
-    public WalletService(IWalletRepository walletRepository, ICurrentUserService currentUser)
+    public WalletService(
+        IWalletRepository walletRepository,
+        ICurrentUserService currentUser,
+        AccountLinkService accountLinkService)
     {
         _walletRepository = walletRepository;
         _currentUser = currentUser;
+        _accountLinkService = accountLinkService;
     }
 
-    public async Task<List<Wallet>> GetWalletsAsync()
+    public async Task<Guid?> ResolveEffectiveUserIdForReadAsync(Guid? viewAsHostId)
     {
-        var userId = _currentUser.UserId;
+        var current = _currentUser.UserId;
+        if (!current.HasValue) return null;
+        if (!viewAsHostId.HasValue) return current;
+        if (viewAsHostId.Value == current.Value) return current;
+        var canView = await _accountLinkService.CanGuestViewHostAsync(current.Value, viewAsHostId.Value);
+        return canView ? viewAsHostId : null;
+    }
+
+    public async Task<List<Wallet>> GetWalletsAsync(Guid? viewAsHostId = null)
+    {
+        var userId = await ResolveEffectiveUserIdForReadAsync(viewAsHostId);
         if (!userId.HasValue) return new List<Wallet>();
         var list = await _walletRepository.GetAllByUserIdAsync(userId.Value);
         var hasMain = list.Any(w => w.IsMain);
@@ -28,9 +43,9 @@ public class WalletService
         return list;
     }
 
-    public async Task<Wallet?> GetByIdAsync(Guid id)
+    public async Task<Wallet?> GetByIdAsync(Guid id, Guid? viewAsHostId = null)
     {
-        var userId = _currentUser.UserId;
+        var userId = await ResolveEffectiveUserIdForReadAsync(viewAsHostId);
         if (!userId.HasValue) return null;
         return await _walletRepository.GetByIdAndUserIdAsync(id, userId.Value);
     }

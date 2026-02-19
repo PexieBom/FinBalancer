@@ -7,7 +7,8 @@ using FinBalancer.Api.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddControllers();
+builder.Services.AddControllers()
+    .AddJsonOptions(opts => opts.JsonSerializerOptions.Converters.Add(new System.Text.Json.Serialization.JsonStringEnumConverter()));
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddHttpContextAccessor();
@@ -36,6 +37,8 @@ if (useMockData)
     builder.Services.AddScoped<ISubscriptionRepository, JsonSubscriptionRepository>();
     builder.Services.AddScoped<ISubscriptionPlanRepository, JsonSubscriptionPlanRepository>();
     builder.Services.AddScoped<IWalletBudgetRepository, JsonWalletBudgetRepository>();
+    builder.Services.AddScoped<IAccountLinkRepository, JsonAccountLinkRepository>();
+    builder.Services.AddScoped<IInAppNotificationRepository, JsonInAppNotificationRepository>();
 }
 else
 {
@@ -60,6 +63,8 @@ builder.Services.AddScoped<IAuthService, MockAuthService>();
 builder.Services.AddScoped<ISubscriptionValidationService, SubscriptionValidationService>();
 builder.Services.AddScoped<SubscriptionService>();
 builder.Services.AddScoped<BudgetService>();
+builder.Services.AddScoped<AccountLinkService>();
+builder.Services.AddScoped<InAppNotificationService>();
 
 builder.Services.AddCors(options =>
 {

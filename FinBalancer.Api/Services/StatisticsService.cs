@@ -7,20 +7,33 @@ public class StatisticsService
     private readonly ITransactionRepository _transactionRepository;
     private readonly ICategoryRepository _categoryRepository;
     private readonly ICurrentUserService _currentUser;
+    private readonly AccountLinkService _accountLinkService;
 
     public StatisticsService(
         ITransactionRepository transactionRepository,
         ICategoryRepository categoryRepository,
-        ICurrentUserService currentUser)
+        ICurrentUserService currentUser,
+        AccountLinkService accountLinkService)
     {
         _transactionRepository = transactionRepository;
         _categoryRepository = categoryRepository;
         _currentUser = currentUser;
+        _accountLinkService = accountLinkService;
     }
 
-    public async Task<SpendingByCategoryDto?> GetSpendingByCategoryAsync(Guid? walletId = null, DateTime? dateFrom = null, DateTime? dateTo = null)
+    private async Task<Guid?> ResolveEffectiveUserIdForReadAsync(Guid? viewAsHostId)
     {
-        var userId = _currentUser.UserId;
+        var current = _currentUser.UserId;
+        if (!current.HasValue) return null;
+        if (!viewAsHostId.HasValue) return current;
+        if (viewAsHostId.Value == current.Value) return current;
+        var canView = await _accountLinkService.CanGuestViewHostAsync(current.Value, viewAsHostId.Value);
+        return canView ? viewAsHostId : null;
+    }
+
+    public async Task<SpendingByCategoryDto?> GetSpendingByCategoryAsync(Guid? walletId = null, DateTime? dateFrom = null, DateTime? dateTo = null, Guid? viewAsHostId = null)
+    {
+        var userId = await ResolveEffectiveUserIdForReadAsync(viewAsHostId);
         if (!userId.HasValue) return null;
 
         var transactions = await _transactionRepository.GetAllByUserIdAsync(userId.Value);
@@ -51,9 +64,9 @@ public class StatisticsService
         return new SpendingByCategoryDto(byCategory.Sum(x => x.Total), byCategory);
     }
 
-    public async Task<IncomeExpenseSummaryDto?> GetIncomeExpenseSummaryAsync(Guid? walletId = null, DateTime? dateFrom = null, DateTime? dateTo = null)
+    public async Task<IncomeExpenseSummaryDto?> GetIncomeExpenseSummaryAsync(Guid? walletId = null, DateTime? dateFrom = null, DateTime? dateTo = null, Guid? viewAsHostId = null)
     {
-        var userId = _currentUser.UserId;
+        var userId = await ResolveEffectiveUserIdForReadAsync(viewAsHostId);
         if (!userId.HasValue) return null;
 
         var transactions = await _transactionRepository.GetAllByUserIdAsync(userId.Value);

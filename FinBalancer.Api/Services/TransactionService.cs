@@ -8,22 +8,36 @@ public class TransactionService
     private readonly ITransactionRepository _transactionRepository;
     private readonly IWalletRepository _walletRepository;
     private readonly ICurrentUserService _currentUser;
+    private readonly AccountLinkService _accountLinkService;
 
     public TransactionService(
         ITransactionRepository transactionRepository,
         IWalletRepository walletRepository,
-        ICurrentUserService currentUser)
+        ICurrentUserService currentUser,
+        AccountLinkService accountLinkService)
     {
         _transactionRepository = transactionRepository;
         _walletRepository = walletRepository;
         _currentUser = currentUser;
+        _accountLinkService = accountLinkService;
     }
 
-    public async Task<List<Transaction>> GetTransactionsAsync()
+    /// <param name="viewAsHostId">Ako je setiran, trenutni korisnik mora biti guest tog hosta da vidi njegove podatke.</param>
+    public async Task<List<Transaction>> GetTransactionsAsync(Guid? viewAsHostId = null)
     {
-        var userId = _currentUser.UserId;
+        var userId = await ResolveEffectiveUserIdForReadAsync(viewAsHostId);
         if (!userId.HasValue) return new List<Transaction>();
         return await _transactionRepository.GetAllByUserIdAsync(userId.Value);
+    }
+
+    private async Task<Guid?> ResolveEffectiveUserIdForReadAsync(Guid? viewAsHostId)
+    {
+        var current = _currentUser.UserId;
+        if (!current.HasValue) return null;
+        if (!viewAsHostId.HasValue) return current;
+        if (viewAsHostId.Value == current.Value) return current;
+        var canView = await _accountLinkService.CanGuestViewHostAsync(current.Value, viewAsHostId.Value);
+        return canView ? viewAsHostId : null;
     }
 
     public async Task<Transaction?> AddTransactionAsync(Transaction transaction)

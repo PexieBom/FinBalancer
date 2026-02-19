@@ -7,23 +7,38 @@ public class ProjectService
 {
     private readonly IProjectRepository _projectRepository;
     private readonly ICurrentUserService _currentUser;
+    private readonly AccountLinkService _accountLinkService;
 
-    public ProjectService(IProjectRepository projectRepository, ICurrentUserService currentUser)
+    public ProjectService(
+        IProjectRepository projectRepository,
+        ICurrentUserService currentUser,
+        AccountLinkService accountLinkService)
     {
         _projectRepository = projectRepository;
         _currentUser = currentUser;
+        _accountLinkService = accountLinkService;
     }
 
-    public async Task<List<Project>> GetAllAsync()
+    private async Task<Guid?> ResolveEffectiveUserIdForReadAsync(Guid? viewAsHostId)
     {
-        var userId = _currentUser.UserId;
+        var current = _currentUser.UserId;
+        if (!current.HasValue) return null;
+        if (!viewAsHostId.HasValue) return current;
+        if (viewAsHostId.Value == current.Value) return current;
+        var canView = await _accountLinkService.CanGuestViewHostAsync(current.Value, viewAsHostId.Value);
+        return canView ? viewAsHostId : null;
+    }
+
+    public async Task<List<Project>> GetAllAsync(Guid? viewAsHostId = null)
+    {
+        var userId = await ResolveEffectiveUserIdForReadAsync(viewAsHostId);
         if (!userId.HasValue) return new List<Project>();
         return await _projectRepository.GetAllByUserIdAsync(userId.Value);
     }
 
-    public async Task<Project?> GetByIdAsync(Guid id)
+    public async Task<Project?> GetByIdAsync(Guid id, Guid? viewAsHostId = null)
     {
-        var userId = _currentUser.UserId;
+        var userId = await ResolveEffectiveUserIdForReadAsync(viewAsHostId);
         if (!userId.HasValue) return null;
         return await _projectRepository.GetByIdAndUserIdAsync(id, userId.Value);
     }

@@ -8,6 +8,7 @@ import '../providers/locale_provider.dart';
 import '../models/transaction.dart';
 import '../models/category.dart' as app_models;
 import '../utils/currency_formatter.dart';
+import '../widgets/main_bottom_nav.dart';
 import '../l10n/app_localizations.dart';
 
 class AddTransactionScreen extends StatefulWidget {
@@ -24,14 +25,12 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
   final _amountController = TextEditingController();
   final _noteController = TextEditingController();
   final _tagController = TextEditingController();
-  final _projectController = TextEditingController();
 
   bool _isIncome = false;
   final List<String> _tags = [];
   String? _selectedSubcategoryId;
   String? _selectedCategoryId;
   String? _selectedWalletId;
-  String? _selectedProjectId;
   bool _isYearlyExpense = false;
   bool _isLoading = false;
   String? _error;
@@ -47,12 +46,8 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
       _selectedCategoryId = editing.categoryId;
       _selectedSubcategoryId = editing.subcategoryId;
       _selectedWalletId = editing.walletId;
-      _selectedProjectId = editing.projectId;
       _tags.addAll(editing.tags);
       _isYearlyExpense = editing.isYearlyExpense;
-      if (editing.project != null && editing.project!.isNotEmpty) {
-        _projectController.text = editing.project!;
-      }
     }
     WidgetsBinding.instance.addPostFrameCallback((_) {
       // Ne pozivamo loadAll - resetirao bi displayedTransactionCount i scroll na dashboardu.
@@ -68,7 +63,6 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
     _amountController.dispose();
     _noteController.dispose();
     _tagController.dispose();
-    _projectController.dispose();
     super.dispose();
   }
 
@@ -95,8 +89,8 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
         dateCreated: editing?.dateCreated ?? DateTime.now(),
         tags: List.from(_tags),
         subcategoryId: _selectedSubcategoryId,
-        project: _projectController.text.trim().isEmpty ? null : _projectController.text.trim(),
-        projectId: _selectedProjectId,
+        project: null,
+        projectId: null,
         isYearlyExpense: _isYearlyExpense,
       );
       if (editing != null) {
@@ -323,30 +317,6 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
                           ),
                         ],
                         const SizedBox(height: 16),
-                        Consumer<DataProvider>(
-                          builder: (context, prov, _) {
-                            final projects = prov.projects;
-                            return DropdownButtonFormField<String?>(
-                              value: _selectedProjectId,
-                              decoration: InputDecoration(
-                                labelText: AppLocalizations.of(context)!.projectOptional,
-                                hintText: AppLocalizations.of(context)!.none,
-                              ),
-                              items: [
-                                DropdownMenuItem(value: null, child: Text(AppLocalizations.of(context)!.none)),
-                                ...projects.map((p) => DropdownMenuItem(value: p.id, child: Text(p.name))),
-                              ],
-                              onChanged: (v) => setState(() => _selectedProjectId = v),
-                            );
-                          },
-                        ),
-                        const SizedBox(height: 16),
-                        TextButton.icon(
-                          onPressed: () => Navigator.pushNamed(context, '/projects').then((_) => provider.loadAll(locale: context.read<LocaleProvider>().localeCode)),
-                          icon: const Icon(Icons.add),
-                          label: Text(AppLocalizations.of(context)!.manageProjects),
-                        ),
-                        const SizedBox(height: 16),
                         _TagsInput(
                           tagsOptional: AppLocalizations.of(context)!.tagsOptional,
                           tagHint: AppLocalizations.of(context)!.tagHint,
@@ -410,6 +380,7 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
           );
         },
       ),
+      bottomNavigationBar: const MainBottomNav(activeIndex: 1),
     );
   }
 

@@ -26,8 +26,12 @@ class DataProvider extends ChangeNotifier {
   String? _filterWalletId;
   bool _isLoading = false;
   String? _error;
+  /// Kad je setiran, prikazuju se podaci tog hosta (guest pregled).
+  String? _viewAsHostId;
 
   List<Transaction> get transactions => _transactions;
+  String? get viewAsHostId => _viewAsHostId;
+  bool get isViewingAsGuest => _viewAsHostId != null && _viewAsHostId!.isNotEmpty;
   List<Wallet> get wallets => _wallets;
   List<app_models.TransactionCategory> get categories => _categories;
   List<Goal> get goals => _goals;
@@ -46,6 +50,12 @@ class DataProvider extends ChangeNotifier {
     _filterProject = project;
     _filterWalletId = walletId;
     resetDisplayedTransactionCount();
+    notifyListeners();
+  }
+
+  void setViewAsHostId(String? hostId) {
+    if (_viewAsHostId == hostId) return;
+    _viewAsHostId = hostId;
     notifyListeners();
   }
 
@@ -141,12 +151,11 @@ class DataProvider extends ChangeNotifier {
       _isLoading = false;
       notifyListeners();
 
-      // Phase 2: Rest in parallel (budgets, goals, achievements, projects)
+      // Phase 2: Rest in parallel (budgets, goals, achievements)
       await Future.wait([
         loadBudgets(),
         loadGoals(),
         loadAchievements(),
-        loadProjects(),
       ]);
     } catch (e) {
       _isLoading = false;
@@ -161,6 +170,7 @@ class DataProvider extends ChangeNotifier {
         tag: _filterTag,
         project: _filterProject,
         walletId: _filterWalletId,
+        viewAsHostId: _viewAsHostId,
       );
       if (resetDisplayedCount) resetDisplayedTransactionCount();
       notifyListeners();
@@ -185,7 +195,7 @@ class DataProvider extends ChangeNotifier {
 
   Future<void> loadGoals() async {
     try {
-      _goals = await _api.getGoals();
+      _goals = await _api.getGoals(viewAsHostId: _viewAsHostId);
       notifyListeners();
     } catch (e) {
       rethrow;
@@ -212,7 +222,7 @@ class DataProvider extends ChangeNotifier {
 
   Future<void> loadWallets() async {
     try {
-      _wallets = await _api.getWallets();
+      _wallets = await _api.getWallets(viewAsHostId: _viewAsHostId);
       notifyListeners();
     } catch (e) {
       _error = e.toString();
@@ -232,7 +242,7 @@ class DataProvider extends ChangeNotifier {
 
   Future<void> loadProjects() async {
     try {
-      _projects = await _api.getProjects();
+      _projects = await _api.getProjects(viewAsHostId: _viewAsHostId);
       notifyListeners();
     } catch (e) {
       rethrow;
@@ -241,7 +251,7 @@ class DataProvider extends ChangeNotifier {
 
   Future<void> loadBudgets() async {
     try {
-      _budgetSummaries = await _api.getBudgetsCurrent();
+      _budgetSummaries = await _api.getBudgetsCurrent(viewAsHostId: _viewAsHostId);
       notifyListeners();
     } catch (e) {
       _budgetSummaries = [];
@@ -252,9 +262,9 @@ class DataProvider extends ChangeNotifier {
   Future<BudgetCurrent?> getWalletBudget(String walletId) async {
     try {
       if (walletId == ApiService.globalBudgetId) {
-        return await _api.getGlobalBudgetCurrent();
+        return await _api.getGlobalBudgetCurrent(viewAsHostId: _viewAsHostId);
       }
-      return await _api.getWalletBudgetCurrent(walletId);
+      return await _api.getWalletBudgetCurrent(walletId, viewAsHostId: _viewAsHostId);
     } catch (_) {
       return null;
     }
@@ -434,6 +444,7 @@ class DataProvider extends ChangeNotifier {
     _filterTag = null;
     _filterProject = null;
     _filterWalletId = null;
+    _viewAsHostId = null;
     _displayedTransactionCount = _initialDisplayCount;
     _error = null;
     _isLoading = false;

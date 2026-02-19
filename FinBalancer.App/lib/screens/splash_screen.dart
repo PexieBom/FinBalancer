@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 import '../theme/app_theme.dart';
+import '../providers/app_provider.dart';
 
 class SplashScreen extends StatefulWidget {
   final VoidCallback onFinish;
@@ -31,7 +33,16 @@ class _SplashScreenState extends State<SplashScreen>
       CurvedAnimation(parent: _controller, curve: Curves.elasticOut),
     );
     _controller.forward();
-    Future.delayed(const Duration(milliseconds: 2200), widget.onFinish);
+    _waitAndFinish();
+  }
+
+  Future<void> _waitAndFinish() async {
+    final app = context.read<AppProvider>();
+    await Future.wait([
+      Future.delayed(const Duration(milliseconds: 1500)),
+      app.sessionCheckComplete,
+    ]);
+    if (mounted) widget.onFinish();
   }
 
   @override

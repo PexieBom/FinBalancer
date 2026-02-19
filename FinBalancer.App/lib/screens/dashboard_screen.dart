@@ -14,11 +14,15 @@ import '../providers/data_provider.dart';
 import '../providers/app_provider.dart';
 import '../providers/subscription_provider.dart';
 import '../providers/dashboard_settings_provider.dart';
+import '../providers/linked_account_provider.dart';
+import '../providers/notifications_provider.dart';
 import '../models/wallet_budget.dart';
 import '../models/category.dart' as app_models;
 import '../models/achievement.dart';
 import '../widgets/balance_card.dart';
 import '../widgets/transaction_tile.dart';
+import '../widgets/main_bottom_nav.dart';
+import '../widgets/notifications_icon.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -39,6 +43,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
       context.read<SubscriptionProvider>().loadStatus(
             context.read<AppProvider>().user?.id,
           );
+      context.read<LinkedAccountProvider>().loadLinks();
+      context.read<NotificationsProvider>().loadUnreadCount();
     });
   }
 
@@ -91,26 +97,28 @@ class _DashboardScreenState extends State<DashboardScreen> {
       builder: (ctx) => SafeArea(
         child: Consumer<DashboardSettingsProvider>(
           builder: (ctx2, settings, _) {
-            return Padding(
-              padding: const EdgeInsets.all(24),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  Text(l10n.customizeDashboard, style: Theme.of(ctx2).textTheme.titleLarge),
-                  const SizedBox(height: 20),
-                  _CustomizeSwitch(label: l10n.showPlan, value: settings.showPlan, onChanged: settings.setShowPlan),
-                  _CustomizeSwitch(label: l10n.showGoals, value: settings.showGoals, onChanged: settings.setShowGoals),
-                  _CustomizeSwitch(label: l10n.showAchievements, value: settings.showAchievements, onChanged: settings.setShowAchievements),
-                  _CustomizeSwitch(label: l10n.showBudget, value: settings.showBudget, onChanged: settings.setShowBudget),
-                  _CustomizeSwitch(label: l10n.showStatistics, value: settings.showStatistics, onChanged: settings.setShowStatistics),
-                  _CustomizeSwitch(label: l10n.showExpensesChart, value: settings.showExpensesChart, onChanged: settings.setShowExpensesChart),
-                  const SizedBox(height: 16),
-                  TextButton(
-                    onPressed: () => Navigator.pop(ctx),
-                    child: Text(l10n.cancel),
-                  ),
-                ],
+            return SingleChildScrollView(
+              child: Padding(
+                padding: const EdgeInsets.all(24),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Text(l10n.customizeDashboard, style: Theme.of(ctx2).textTheme.titleLarge),
+                    const SizedBox(height: 20),
+                    _CustomizeSwitch(label: l10n.showPlan, value: settings.showPlan, onChanged: settings.setShowPlan),
+                    _CustomizeSwitch(label: l10n.showGoals, value: settings.showGoals, onChanged: settings.setShowGoals),
+                    _CustomizeSwitch(label: l10n.showAchievements, value: settings.showAchievements, onChanged: settings.setShowAchievements),
+                    _CustomizeSwitch(label: l10n.showBudget, value: settings.showBudget, onChanged: settings.setShowBudget),
+                    _CustomizeSwitch(label: l10n.showStatistics, value: settings.showStatistics, onChanged: settings.setShowStatistics),
+                    _CustomizeSwitch(label: l10n.showExpensesChart, value: settings.showExpensesChart, onChanged: settings.setShowExpensesChart),
+                    const SizedBox(height: 16),
+                    TextButton(
+                      onPressed: () => Navigator.pop(ctx),
+                      child: Text(l10n.cancel),
+                    ),
+                  ],
+                ),
               ),
             );
           },
@@ -125,6 +133,46 @@ class _DashboardScreenState extends State<DashboardScreen> {
     if (await canLaunchUrl(uri)) {
       await launchUrl(uri, mode: LaunchMode.externalApplication);
     }
+  }
+
+  Widget _buildAccountSwitcher(BuildContext context, DataProvider dataProvider, String localeCode) {
+    return Consumer<LinkedAccountProvider>(
+      builder: (context, linkProvider, _) {
+        if (linkProvider.linkedHosts.isEmpty) return const SizedBox.shrink();
+        final theme = Theme.of(context);
+        final isMyAccount = dataProvider.viewAsHostId == null || dataProvider.viewAsHostId!.isEmpty;
+        return Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          child: SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(
+              children: [
+                FilterChip(
+                  label: Text(Localizations.localeOf(context).languageCode == 'hr' ? 'Moj račun' : 'My account'),
+                  selected: isMyAccount,
+                  onSelected: (_) {
+                    dataProvider.setViewAsHostId(null);
+                    dataProvider.loadAll(locale: localeCode);
+                  },
+                ),
+                const SizedBox(width: 8),
+                ...linkProvider.linkedHosts.map((host) => Padding(
+                  padding: const EdgeInsets.only(right: 8),
+                  child: FilterChip(
+                    label: Text(host.displayName),
+                    selected: dataProvider.viewAsHostId == host.hostUserId,
+                    onSelected: (_) {
+                      dataProvider.setViewAsHostId(host.hostUserId);
+                      dataProvider.loadAll(locale: localeCode);
+                    },
+                  ),
+                )),
+              ],
+            ),
+          ),
+        );
+      },
+    );
   }
 
   app_models.TransactionCategory? _getCategory(DataProvider provider, String id) {
@@ -259,12 +307,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
     final name = walletName ?? provider.dashboardBudgetWalletName ?? l10n.allWallets;
     final b = budget ?? provider.dashboardBudget;
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 20),
       child: InkWell(
-        onTap: () => Navigator.pushNamed(context, '/wallets').then((_) => provider.loadAll()),
+        onTap: () => Navigator.pushNamed(context, '/wallets', arguments: 1).then((_) => provider.loadAll()),
         borderRadius: BorderRadius.circular(20),
         child: Container(
-          width: MediaQuery.of(context).size.width - 56,
           padding: const EdgeInsets.all(20),
           decoration: BoxDecoration(
             color: Theme.of(context).cardTheme.color,
@@ -471,6 +518,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               ),
             ),
           ),
+          const NotificationsIcon(),
           IconButton(
             icon: const Icon(Icons.refresh),
             onPressed: () {
@@ -487,7 +535,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
               final dp = context.read<DataProvider>();
               final locale = context.read<LocaleProvider>().localeCode;
               if (v == 'categories') Navigator.pushNamed(context, '/categories').then((_) => dp.loadAll(locale: locale));
-              if (v == 'projects') Navigator.pushNamed(context, '/projects').then((_) => dp.loadAll(locale: locale));
               if (v == 'achievements') Navigator.pushNamed(context, '/achievements-list').then((_) => dp.loadAll(locale: locale));
               if (v == 'export') _showExportMenu(context);
               if (v == 'settings') Navigator.pushNamed(context, '/settings');
@@ -500,7 +547,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
               final iconColor = Theme.of(context).colorScheme.onSurface;
               return [
                 PopupMenuItem(value: 'categories', child: Row(children: [Icon(Icons.category, size: 22, color: iconColor), const SizedBox(width: 12), Text(l10n.categories)])),
-                PopupMenuItem(value: 'projects', child: Row(children: [Icon(Icons.folder_special, size: 22, color: iconColor), const SizedBox(width: 12), Text(l10n.projects)])),
                 PopupMenuItem(value: 'achievements', child: Row(children: [Icon(Icons.emoji_events, size: 22, color: iconColor), const SizedBox(width: 12), Text(l10n.achievements)])),
                 PopupMenuItem(value: 'export', child: Row(children: [Icon(Icons.upload_file, size: 22, color: iconColor), const SizedBox(width: 12), Text(l10n.exportData)])),
                 PopupMenuItem(value: 'premium', child: Row(children: [Icon(Icons.star, size: 22, color: isPremium ? Colors.amber : iconColor), const SizedBox(width: 12), Text(l10n.premiumFeatures)])),
@@ -576,6 +622,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const SizedBox(height: 8),
+                  _buildAccountSwitcher(context, provider, localeProvider.localeCode),
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 20),
                     child: Text(
@@ -904,7 +951,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
           );
         },
       ),
-      bottomNavigationBar: _buildBottomNav(context),
+      bottomNavigationBar: const MainBottomNav(activeIndex: 0),
     );
   }
 
@@ -986,63 +1033,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  Widget _buildBottomNav(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
-    return Container(
-      decoration: BoxDecoration(
-        color: Theme.of(context).cardTheme.color,
-        boxShadow: [
-          BoxShadow(
-            color: Theme.of(context).brightness == Brightness.dark
-                ? Colors.black54
-                : Colors.black.withOpacity(0.05),
-            blurRadius: 20,
-            offset: const Offset(0, -4),
-          ),
-        ],
-      ),
-      child: SafeArea(
-        top: false,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 4),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Expanded(child: _NavItem(icon: Icons.dashboard, label: l10n.home, isActive: true)),
-              Expanded(child: _NavItem(
-                icon: Icons.add_circle_outline,
-                label: l10n.add,
-                onTap: () => Navigator.pushNamed(context, '/add-transaction')
-                    .then((_) => context.read<DataProvider>().loadAll(locale: context.read<LocaleProvider>().localeCode)),
-              )),
-              Expanded(child: _NavItem(
-                icon: Icons.bar_chart,
-                label: l10n.stats,
-                onTap: () => Navigator.pushNamed(context, '/statistics'),
-              )),
-              Expanded(child: _NavItem(
-                icon: Icons.flag,
-                label: l10n.goals,
-                onTap: () => Navigator.pushNamed(context, '/goals')
-                    .then((_) => context.read<DataProvider>().loadAll(locale: context.read<LocaleProvider>().localeCode)),
-              )),
-              Expanded(child: _NavItem(
-                icon: Icons.psychology,
-                label: l10n.decisionEngine,
-                onTap: () => Navigator.pushNamed(context, '/decision-engine'),
-              )),
-              Expanded(child: _NavItem(
-                icon: Icons.account_balance_wallet,
-                label: l10n.walletsBudgets,
-                onTap: () => Navigator.pushNamed(context, '/wallets')
-                    .then((_) => context.read<DataProvider>().loadAll(locale: context.read<LocaleProvider>().localeCode)),
-              )),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
 }
 
 class _AchievementsRow extends StatelessWidget {
@@ -1186,50 +1176,3 @@ class _CustomizeSwitch extends StatelessWidget {
   }
 }
 
-class _NavItem extends StatelessWidget {
-  final IconData icon;
-  final String label;
-  final bool isActive;
-  final VoidCallback? onTap;
-
-  const _NavItem({
-    required this.icon,
-    required this.label,
-    this.isActive = false,
-    this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(12),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 2),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              icon,
-              color: isActive ? AppTheme.accent(context) : Theme.of(context).colorScheme.onSurfaceVariant,
-              size: 20,
-            ),
-            const SizedBox(height: 1),
-            Text(
-              label,
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: isActive ? AppTheme.accent(context) : Theme.of(context).colorScheme.onSurfaceVariant,
-                    fontWeight: isActive ? FontWeight.w600 : FontWeight.normal,
-                    fontSize: 9,
-                  ),
-              overflow: TextOverflow.ellipsis,
-              maxLines: 1,
-              textAlign: TextAlign.center,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}

@@ -8,20 +8,33 @@ public class BudgetService
     private readonly IWalletBudgetRepository _budgetRepo;
     private readonly ITransactionRepository _transactionRepo;
     private readonly ICurrentUserService _currentUser;
+    private readonly AccountLinkService _accountLinkService;
 
     public BudgetService(
         IWalletBudgetRepository budgetRepo,
         ITransactionRepository transactionRepo,
-        ICurrentUserService currentUser)
+        ICurrentUserService currentUser,
+        AccountLinkService accountLinkService)
     {
         _budgetRepo = budgetRepo;
         _transactionRepo = transactionRepo;
         _currentUser = currentUser;
+        _accountLinkService = accountLinkService;
     }
 
-    public async Task<BudgetCurrentDto?> GetCurrentAsync(Guid walletId)
+    private async Task<Guid?> ResolveEffectiveUserIdForReadAsync(Guid? viewAsHostId)
     {
-        var userId = _currentUser.UserId;
+        var current = _currentUser.UserId;
+        if (!current.HasValue) return null;
+        if (!viewAsHostId.HasValue) return current;
+        if (viewAsHostId.Value == current.Value) return current;
+        var canView = await _accountLinkService.CanGuestViewHostAsync(current.Value, viewAsHostId.Value);
+        return canView ? viewAsHostId : null;
+    }
+
+    public async Task<BudgetCurrentDto?> GetCurrentAsync(Guid walletId, Guid? viewAsHostId = null)
+    {
+        var userId = await ResolveEffectiveUserIdForReadAsync(viewAsHostId);
         if (!userId.HasValue) return null;
 
         var budget = await _budgetRepo.GetByWalletIdAndUserIdAsync(walletId, userId.Value);
@@ -72,9 +85,9 @@ public class BudgetService
         return await _budgetRepo.DeleteByWalletIdAsync(walletId);
     }
 
-    public async Task<List<BudgetSummaryDto>> GetAllCurrentAsync()
+    public async Task<List<BudgetSummaryDto>> GetAllCurrentAsync(Guid? viewAsHostId = null)
     {
-        var userId = _currentUser.UserId;
+        var userId = await ResolveEffectiveUserIdForReadAsync(viewAsHostId);
         if (!userId.HasValue) return new List<BudgetSummaryDto>();
 
         var budgets = await _budgetRepo.GetAllByUserIdAsync(userId.Value);

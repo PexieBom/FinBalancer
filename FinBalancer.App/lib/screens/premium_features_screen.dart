@@ -115,7 +115,7 @@ class _PremiumFeaturesScreenState extends State<PremiumFeaturesScreen> {
                     'Advanced statistics & analytics',
                     'Unlimited goals',
                     'Export to PDF, JSON',
-                    'Projects & budgeting',
+                    'Budgeting',
                     'Budget alerts',
                     'Priority support',
                   ],

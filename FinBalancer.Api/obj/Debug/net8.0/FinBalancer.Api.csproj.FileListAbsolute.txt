@@ -46,3 +46,4 @@ C:\Users\tpe\Desktop\side\FinBalancer\FinBalancer.Api\bin\Debug\net8.0\Data\cust
 C:\Users\tpe\Desktop\side\FinBalancer\FinBalancer.Api\bin\Debug\net8.0\Data\subscription_plans.json
 C:\Users\tpe\Desktop\side\FinBalancer\FinBalancer.Api\bin\Debug\net8.0\Data\wallet_budgets.json
 C:\Users\tpe\Desktop\side\FinBalancer\FinBalancer.Api\bin\Debug\net8.0\Data\subscriptions.json
+C:\Users\tpe\Desktop\side\FinBalancer\FinBalancer.Api\bin\Debug\net8.0\Data\account_links.json

@@ -11,6 +11,8 @@ import '../models/subcategory.dart';
 import '../models/project.dart';
 import '../models/subscription.dart';
 import '../models/wallet_budget.dart';
+import '../models/account_link.dart';
+import '../models/in_app_notification.dart';
 
 class ApiService {
   static const String _baseUrl = 'http://localhost:5292/api';
@@ -25,7 +27,7 @@ class ApiService {
     return m;
   }
 
-  Future<List<Transaction>> getTransactions({String? tag, String? project, String? walletId, String? categoryId, DateTime? dateFrom, DateTime? dateTo}) async {
+  Future<List<Transaction>> getTransactions({String? tag, String? project, String? walletId, String? categoryId, DateTime? dateFrom, DateTime? dateTo, String? viewAsHostId}) async {
     var url = '$_baseUrl/transactions';
     final params = <String>[];
     if (tag != null) params.add('tag=$tag');
@@ -34,6 +36,7 @@ class ApiService {
     if (categoryId != null && categoryId.isNotEmpty) params.add('categoryId=$categoryId');
     if (dateFrom != null) params.add('dateFrom=${dateFrom.toIso8601String()}');
     if (dateTo != null) params.add('dateTo=${dateTo.toIso8601String()}');
+    if (viewAsHostId != null && viewAsHostId.isNotEmpty) params.add('viewAsHostId=$viewAsHostId');
     if (params.isNotEmpty) url += '?${params.join('&')}';
     final response = await _client.get(Uri.parse(url), headers: _headers);
     if (response.statusCode == 200) {
@@ -74,8 +77,10 @@ class ApiService {
     }
   }
 
-  Future<List<Wallet>> getWallets() async {
-    final response = await _client.get(Uri.parse('$_baseUrl/wallets'), headers: _headers);
+  Future<List<Wallet>> getWallets({String? viewAsHostId}) async {
+    var url = '$_baseUrl/wallets';
+    if (viewAsHostId != null && viewAsHostId.isNotEmpty) url += '?viewAsHostId=$viewAsHostId';
+    final response = await _client.get(Uri.parse(url), headers: _headers);
     if (response.statusCode == 200) {
       final List<dynamic> data = json.decode(response.body);
       return data.map((e) => Wallet.fromJson(e as Map<String, dynamic>)).toList();
@@ -95,12 +100,13 @@ class ApiService {
     throw Exception('Failed to add wallet: ${response.statusCode} - ${response.body}');
   }
 
-  Future<Map<String, dynamic>> getSpendingByCategory({String? walletId, DateTime? dateFrom, DateTime? dateTo}) async {
+  Future<Map<String, dynamic>> getSpendingByCategory({String? walletId, DateTime? dateFrom, DateTime? dateTo, String? viewAsHostId}) async {
     var url = '$_baseUrl/statistics/spending-by-category';
     final params = <String>[];
     if (walletId != null) params.add('walletId=$walletId');
     if (dateFrom != null) params.add('dateFrom=${dateFrom.toIso8601String()}');
     if (dateTo != null) params.add('dateTo=${dateTo.toIso8601String()}');
+    if (viewAsHostId != null && viewAsHostId.isNotEmpty) params.add('viewAsHostId=$viewAsHostId');
     if (params.isNotEmpty) url += '?${params.join('&')}';
     final response = await _client.get(Uri.parse(url), headers: _headers);
     if (response.statusCode == 200) {
@@ -109,12 +115,13 @@ class ApiService {
     throw Exception('Failed to load statistics: ${response.statusCode}');
   }
 
-  Future<Map<String, dynamic>> getIncomeExpenseSummary({String? walletId, DateTime? dateFrom, DateTime? dateTo}) async {
+  Future<Map<String, dynamic>> getIncomeExpenseSummary({String? walletId, DateTime? dateFrom, DateTime? dateTo, String? viewAsHostId}) async {
     var url = '$_baseUrl/statistics/income-expense-summary';
     final params = <String>[];
     if (walletId != null) params.add('walletId=$walletId');
     if (dateFrom != null) params.add('dateFrom=${dateFrom.toIso8601String()}');
     if (dateTo != null) params.add('dateTo=${dateTo.toIso8601String()}');
+    if (viewAsHostId != null && viewAsHostId.isNotEmpty) params.add('viewAsHostId=$viewAsHostId');
     if (params.isNotEmpty) url += '?${params.join('&')}';
     final response = await _client.get(Uri.parse(url), headers: _headers);
     if (response.statusCode == 200) {
@@ -146,8 +153,10 @@ class ApiService {
     throw Exception('Failed to add subcategory: ${response.statusCode}');
   }
 
-  Future<List<Goal>> getGoals() async {
-    final response = await _client.get(Uri.parse('$_baseUrl/goals'), headers: _headers);
+  Future<List<Goal>> getGoals({String? viewAsHostId}) async {
+    var url = '$_baseUrl/goals';
+    if (viewAsHostId != null && viewAsHostId.isNotEmpty) url += '?viewAsHostId=$viewAsHostId';
+    final response = await _client.get(Uri.parse(url), headers: _headers);
     if (response.statusCode == 200) {
       final List<dynamic> data = json.decode(response.body);
       return data.map((e) => Goal.fromJson(e as Map<String, dynamic>)).toList();
@@ -194,9 +203,12 @@ class ApiService {
     throw Exception('Failed to load achievements: ${response.statusCode}');
   }
 
-  Future<Map<String, dynamic>> getBudgetPrediction({String? walletId}) async {
+  Future<Map<String, dynamic>> getBudgetPrediction({String? walletId, String? viewAsHostId}) async {
     var url = '$_baseUrl/statistics/budget-prediction';
-    if (walletId != null) url += '?walletId=$walletId';
+    final params = <String>[];
+    if (walletId != null) params.add('walletId=$walletId');
+    if (viewAsHostId != null && viewAsHostId.isNotEmpty) params.add('viewAsHostId=$viewAsHostId');
+    if (params.isNotEmpty) url += '?${params.join('&')}';
     final response = await _client.get(Uri.parse(url), headers: _headers);
     if (response.statusCode == 200) {
       return json.decode(response.body) as Map<String, dynamic>;
@@ -204,9 +216,12 @@ class ApiService {
     throw Exception('Failed to load budget prediction: ${response.statusCode}');
   }
 
-  Future<List<dynamic>> getBudgetAlerts({String? walletId}) async {
+  Future<List<dynamic>> getBudgetAlerts({String? walletId, String? viewAsHostId}) async {
     var url = '$_baseUrl/statistics/budget-alerts';
-    if (walletId != null) url += '?walletId=$walletId';
+    final params = <String>[];
+    if (walletId != null) params.add('walletId=$walletId');
+    if (viewAsHostId != null && viewAsHostId.isNotEmpty) params.add('viewAsHostId=$viewAsHostId');
+    if (params.isNotEmpty) url += '?${params.join('&')}';
     final response = await _client.get(Uri.parse(url), headers: _headers);
     if (response.statusCode == 200) {
       return json.decode(response.body) as List<dynamic>;
@@ -214,11 +229,12 @@ class ApiService {
     throw Exception('Failed to load budget alerts: ${response.statusCode}');
   }
 
-  Future<Map<String, dynamic>> getCashflowTrend({String? walletId, int months = 6, DateTime? dateFrom, DateTime? dateTo}) async {
+  Future<Map<String, dynamic>> getCashflowTrend({String? walletId, int months = 6, DateTime? dateFrom, DateTime? dateTo, String? viewAsHostId}) async {
     var url = '$_baseUrl/statistics/cashflow-trend?months=$months';
     if (walletId != null) url += '&walletId=$walletId';
     if (dateFrom != null) url += '&dateFrom=${dateFrom.toIso8601String()}';
     if (dateTo != null) url += '&dateTo=${dateTo.toIso8601String()}';
+    if (viewAsHostId != null && viewAsHostId.isNotEmpty) url += '&viewAsHostId=$viewAsHostId';
     final response = await _client.get(Uri.parse(url), headers: _headers);
     if (response.statusCode == 200) {
       return json.decode(response.body) as Map<String, dynamic>;
@@ -312,8 +328,10 @@ class ApiService {
     }
   }
 
-  Future<List<Project>> getProjects() async {
-    final response = await _client.get(Uri.parse('$_baseUrl/projects'), headers: _headers);
+  Future<List<Project>> getProjects({String? viewAsHostId}) async {
+    var url = '$_baseUrl/projects';
+    if (viewAsHostId != null && viewAsHostId.isNotEmpty) url += '?viewAsHostId=$viewAsHostId';
+    final response = await _client.get(Uri.parse(url), headers: _headers);
     if (response.statusCode == 200) {
       final List<dynamic> data = json.decode(response.body);
       return data.map((e) => Project.fromJson(e as Map<String, dynamic>)).toList();
@@ -410,11 +428,10 @@ class ApiService {
     return null;
   }
 
-  Future<BudgetCurrent?> getWalletBudgetCurrent(String walletId) async {
-    final response = await _client.get(
-      Uri.parse('$_baseUrl/wallets/$walletId/budget/current'),
-      headers: _headers,
-    );
+  Future<BudgetCurrent?> getWalletBudgetCurrent(String walletId, {String? viewAsHostId}) async {
+    var url = '$_baseUrl/wallets/$walletId/budget/current';
+    if (viewAsHostId != null && viewAsHostId.isNotEmpty) url += '?viewAsHostId=$viewAsHostId';
+    final response = await _client.get(Uri.parse(url), headers: _headers);
     if (response.statusCode == 200) {
       return BudgetCurrent.fromJson(
         json.decode(response.body) as Map<String, dynamic>,
@@ -462,8 +479,10 @@ class ApiService {
     }
   }
 
-  Future<List<BudgetSummary>> getBudgetsCurrent() async {
-    final response = await _client.get(Uri.parse('$_baseUrl/budgets/current'), headers: _headers);
+  Future<List<BudgetSummary>> getBudgetsCurrent({String? viewAsHostId}) async {
+    var url = '$_baseUrl/budgets/current';
+    if (viewAsHostId != null && viewAsHostId.isNotEmpty) url += '?viewAsHostId=$viewAsHostId';
+    final response = await _client.get(Uri.parse(url), headers: _headers);
     if (response.statusCode == 200) {
       final List<dynamic> data = json.decode(response.body);
       return data
@@ -475,8 +494,10 @@ class ApiService {
 
   static const String globalBudgetId = '00000000-0000-0000-0000-000000000000';
 
-  Future<BudgetCurrent?> getGlobalBudgetCurrent() async {
-    final response = await _client.get(Uri.parse('$_baseUrl/budgets/global/current'), headers: _headers);
+  Future<BudgetCurrent?> getGlobalBudgetCurrent({String? viewAsHostId}) async {
+    var url = '$_baseUrl/budgets/global/current';
+    if (viewAsHostId != null && viewAsHostId.isNotEmpty) url += '?viewAsHostId=$viewAsHostId';
+    final response = await _client.get(Uri.parse(url), headers: _headers);
     if (response.statusCode == 200) {
       return BudgetCurrent.fromJson(
         json.decode(response.body) as Map<String, dynamic>,
@@ -519,4 +540,116 @@ class ApiService {
       throw Exception('Failed to delete global budget: ${response.statusCode}');
     }
   }
+
+  // --- Povezani računi (host/guest) ---
+
+  Future<List<AccountLinkItem>> getAccountLinks() async {
+    final response = await _client.get(Uri.parse('$_baseUrl/accountlinks'), headers: _headers);
+    if (response.statusCode == 200) {
+      final List<dynamic> data = json.decode(response.body);
+      return data.map((e) => AccountLinkItem.fromJson(e as Map<String, dynamic>)).toList();
+    }
+    throw Exception('Failed to load account links: ${response.statusCode}');
+  }
+
+  Future<List<LinkedHost>> getLinkedHosts() async {
+    final response = await _client.get(Uri.parse('$_baseUrl/accountlinks/linked-hosts'), headers: _headers);
+    if (response.statusCode == 200) {
+      final List<dynamic> data = json.decode(response.body);
+      return data.map((e) => LinkedHost.fromJson(e as Map<String, dynamic>)).toList();
+    }
+    throw Exception('Failed to load linked hosts: ${response.statusCode}');
+  }
+
+  /// Host poziva gosta po emailu. Vraća errorCode ako ne uspije.
+  Future<InviteResult> inviteAccountLink(String guestEmail) async {
+    final response = await _client.post(
+      Uri.parse('$_baseUrl/accountlinks/invite'),
+      headers: _headers,
+      body: json.encode({'guestEmail': guestEmail.trim()}),
+    );
+    if (response.statusCode >= 200 && response.statusCode < 300) {
+      final map = json.decode(response.body) as Map<String, dynamic>;
+      return InviteResult(success: true, guestDisplayName: map['guestDisplayName'] as String?);
+    }
+    if (response.statusCode == 404) return InviteResult(success: false, errorCode: 'GuestNotFound');
+    try {
+      final map = json.decode(response.body) as Map<String, dynamic>;
+      return InviteResult(success: false, errorCode: map['errorCode'] as String?);
+    } catch (_) {
+      return InviteResult(success: false, errorCode: 'Unknown');
+    }
+  }
+
+  Future<void> acceptAccountLink(String linkId) async {
+    final response = await _client.post(
+      Uri.parse('$_baseUrl/accountlinks/$linkId/accept'),
+      headers: _headers,
+    );
+    if (response.statusCode != 200 && response.statusCode != 204) {
+      throw Exception('Failed to accept invite: ${response.statusCode}');
+    }
+  }
+
+  Future<void> revokeAccountLink(String linkId) async {
+    final response = await _client.post(
+      Uri.parse('$_baseUrl/accountlinks/$linkId/revoke'),
+      headers: _headers,
+    );
+    if (response.statusCode != 200 && response.statusCode != 204) {
+      throw Exception('Failed to revoke link: ${response.statusCode}');
+    }
+  }
+
+  // --- Obavijesti ---
+
+  Future<List<InAppNotification>> getNotifications({int limit = 50}) async {
+    final response = await _client.get(
+      Uri.parse('$_baseUrl/notifications?limit=$limit'),
+      headers: _headers,
+    );
+    if (response.statusCode == 200) {
+      final List<dynamic> data = json.decode(response.body);
+      return data.map((e) => InAppNotification.fromJson(e as Map<String, dynamic>)).toList();
+    }
+    throw Exception('Failed to load notifications: ${response.statusCode}');
+  }
+
+  Future<int> getNotificationsUnreadCount() async {
+    final response = await _client.get(
+      Uri.parse('$_baseUrl/notifications/unread-count'),
+      headers: _headers,
+    );
+    if (response.statusCode == 200) {
+      return json.decode(response.body) as int;
+    }
+    return 0;
+  }
+
+  Future<void> markNotificationAsRead(String id) async {
+    final response = await _client.post(
+      Uri.parse('$_baseUrl/notifications/$id/read'),
+      headers: _headers,
+    );
+    if (response.statusCode != 200 && response.statusCode != 204) {
+      throw Exception('Failed to mark as read: ${response.statusCode}');
+    }
+  }
+
+  Future<void> markAllNotificationsAsRead() async {
+    final response = await _client.post(
+      Uri.parse('$_baseUrl/notifications/read-all'),
+      headers: _headers,
+    );
+    if (response.statusCode != 200 && response.statusCode != 204) {
+      throw Exception('Failed to mark all as read: ${response.statusCode}');
+    }
+  }
+}
+
+class InviteResult {
+  final bool success;
+  final String? guestDisplayName;
+  final String? errorCode;
+  InviteResult({required this.success, this.guestDisplayName, this.errorCode});
 }

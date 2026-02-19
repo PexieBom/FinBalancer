@@ -26,14 +26,18 @@ class AppProvider extends ChangeNotifier {
   String? get token => _token;
   User? get user => _user;
 
+  /// Završava kad je provjera spremljenog sessiona gotova.
+  Future<void> get sessionCheckComplete => _sessionCheckFuture;
+  late Future<void> _sessionCheckFuture;
+
   AppProvider() {
-    _checkLoginStatus();
+    _sessionCheckFuture = _checkLoginStatus();
   }
 
   Future<void> _checkLoginStatus() async {
     final prefs = await SharedPreferences.getInstance();
     _token = prefs.getString(_tokenKey);
-    _isLoggedIn = _token != null;
+    _isLoggedIn = _token != null && _token!.trim().isNotEmpty;
     if (_isLoggedIn && _token != null) {
       ApiService.authToken = _token;
       final email = prefs.getString(_userKey);

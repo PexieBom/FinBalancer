@@ -3,6 +3,7 @@ import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
 import '../theme/app_theme.dart';
+import '../widgets/main_bottom_nav.dart';
 import '../providers/data_provider.dart';
 import '../providers/locale_provider.dart';
 import '../services/api_service.dart';
@@ -215,6 +216,7 @@ class _DecisionEngineScreenState extends State<DecisionEngineScreen> {
           );
         },
       ),
+      bottomNavigationBar: const MainBottomNav(activeIndex: 3),
     );
   }
 }

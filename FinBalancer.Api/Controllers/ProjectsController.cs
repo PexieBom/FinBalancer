@@ -9,23 +9,44 @@ namespace FinBalancer.Api.Controllers;
 public class ProjectsController : ControllerBase
 {
     private readonly ProjectService _projectService;
+    private readonly AccountLinkService _accountLinkService;
+    private readonly ICurrentUserService _currentUser;
 
-    public ProjectsController(ProjectService projectService)
+    public ProjectsController(
+        ProjectService projectService,
+        AccountLinkService accountLinkService,
+        ICurrentUserService currentUser)
     {
         _projectService = projectService;
+        _accountLinkService = accountLinkService;
+        _currentUser = currentUser;
     }
 
     [HttpGet]
-    public async Task<ActionResult<List<Project>>> Get()
+    public async Task<ActionResult<List<Project>>> Get([FromQuery] Guid? viewAsHostId)
     {
-        var projects = await _projectService.GetAllAsync();
+        if (viewAsHostId.HasValue)
+        {
+            var userId = _currentUser.UserId;
+            if (!userId.HasValue) return Unauthorized();
+            if (!await _accountLinkService.CanGuestViewHostAsync(userId.Value, viewAsHostId.Value))
+                return Forbid();
+        }
+        var projects = await _projectService.GetAllAsync(viewAsHostId);
         return Ok(projects.OrderBy(p => p.Name));
     }
 
     [HttpGet("{id:guid}")]
-    public async Task<ActionResult<Project>> GetById(Guid id)
+    public async Task<ActionResult<Project>> GetById(Guid id, [FromQuery] Guid? viewAsHostId)
     {
-        var project = await _projectService.GetByIdAsync(id);
+        if (viewAsHostId.HasValue)
+        {
+            var userId = _currentUser.UserId;
+            if (!userId.HasValue) return Unauthorized();
+            if (!await _accountLinkService.CanGuestViewHostAsync(userId.Value, viewAsHostId.Value))
+                return Forbid();
+        }
+        var project = await _projectService.GetByIdAsync(id, viewAsHostId);
         if (project == null) return NotFound();
         return Ok(project);
     }

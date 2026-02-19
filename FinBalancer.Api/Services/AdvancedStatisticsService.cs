@@ -7,20 +7,33 @@ public class AdvancedStatisticsService
     private readonly ITransactionRepository _transactionRepository;
     private readonly ICategoryRepository _categoryRepository;
     private readonly ICurrentUserService _currentUser;
+    private readonly AccountLinkService _accountLinkService;
 
     public AdvancedStatisticsService(
         ITransactionRepository transactionRepository,
         ICategoryRepository categoryRepository,
-        ICurrentUserService currentUser)
+        ICurrentUserService currentUser,
+        AccountLinkService accountLinkService)
     {
         _transactionRepository = transactionRepository;
         _categoryRepository = categoryRepository;
         _currentUser = currentUser;
+        _accountLinkService = accountLinkService;
     }
 
-    public async Task<BudgetPredictionDto?> GetBudgetPredictionAsync(Guid? walletId = null)
+    private async Task<Guid?> ResolveEffectiveUserIdForReadAsync(Guid? viewAsHostId)
     {
-        var userId = _currentUser.UserId;
+        var current = _currentUser.UserId;
+        if (!current.HasValue) return null;
+        if (!viewAsHostId.HasValue) return current;
+        if (viewAsHostId.Value == current.Value) return current;
+        var canView = await _accountLinkService.CanGuestViewHostAsync(current.Value, viewAsHostId.Value);
+        return canView ? viewAsHostId : null;
+    }
+
+    public async Task<BudgetPredictionDto?> GetBudgetPredictionAsync(Guid? walletId = null, Guid? viewAsHostId = null)
+    {
+        var userId = await ResolveEffectiveUserIdForReadAsync(viewAsHostId);
         if (!userId.HasValue) return null;
 
         var transactions = await _transactionRepository.GetAllByUserIdAsync(userId.Value);
@@ -54,9 +67,9 @@ public class AdvancedStatisticsService
         return new BudgetPredictionDto(byCategory, byCategory.Sum(c => c.PredictedNextMonth));
     }
 
-    public async Task<List<BudgetAlertDto>?> GetBudgetAlertsAsync(Guid? walletId = null)
+    public async Task<List<BudgetAlertDto>?> GetBudgetAlertsAsync(Guid? walletId = null, Guid? viewAsHostId = null)
     {
-        var userId = _currentUser.UserId;
+        var userId = await ResolveEffectiveUserIdForReadAsync(viewAsHostId);
         if (!userId.HasValue) return null;
 
         var transactions = await _transactionRepository.GetAllByUserIdAsync(userId.Value);
@@ -100,9 +113,9 @@ public class AdvancedStatisticsService
         return alerts;
     }
 
-    public async Task<TrendDataDto?> GetCashflowTrendAsync(Guid? walletId = null, int months = 6, DateTime? dateFrom = null, DateTime? dateTo = null)
+    public async Task<TrendDataDto?> GetCashflowTrendAsync(Guid? walletId = null, int months = 6, DateTime? dateFrom = null, DateTime? dateTo = null, Guid? viewAsHostId = null)
     {
-        var userId = _currentUser.UserId;
+        var userId = await ResolveEffectiveUserIdForReadAsync(viewAsHostId);
         if (!userId.HasValue) return null;
 
         var transactions = await _transactionRepository.GetAllByUserIdAsync(userId.Value);

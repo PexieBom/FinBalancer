@@ -9,10 +9,17 @@ namespace FinBalancer.Api.Controllers;
 public class TransactionsController : ControllerBase
 {
     private readonly TransactionService _transactionService;
+    private readonly AccountLinkService _accountLinkService;
+    private readonly ICurrentUserService _currentUser;
 
-    public TransactionsController(TransactionService transactionService)
+    public TransactionsController(
+        TransactionService transactionService,
+        AccountLinkService accountLinkService,
+        ICurrentUserService currentUser)
     {
         _transactionService = transactionService;
+        _accountLinkService = accountLinkService;
+        _currentUser = currentUser;
     }
 
     [HttpGet]
@@ -22,9 +29,17 @@ public class TransactionsController : ControllerBase
         [FromQuery] Guid? walletId,
         [FromQuery] Guid? categoryId,
         [FromQuery] DateTime? dateFrom,
-        [FromQuery] DateTime? dateTo)
+        [FromQuery] DateTime? dateTo,
+        [FromQuery] Guid? viewAsHostId)
     {
-        var transactions = await _transactionService.GetTransactionsAsync();
+        if (viewAsHostId.HasValue)
+        {
+            var userId = _currentUser.UserId;
+            if (!userId.HasValue) return Unauthorized();
+            if (!await _accountLinkService.CanGuestViewHostAsync(userId.Value, viewAsHostId.Value))
+                return Forbid();
+        }
+        var transactions = await _transactionService.GetTransactionsAsync(viewAsHostId);
 
         if (!string.IsNullOrEmpty(tag))
             transactions = transactions.Where(t => t.Tags?.Contains(tag) == true).ToList();

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../theme/app_theme.dart';
+import '../providers/notifications_provider.dart';
+import '../widgets/notifications_icon.dart';
 import '../providers/locale_provider.dart';
 import '../providers/data_provider.dart';
 import '../providers/app_lock_provider.dart';
@@ -68,6 +70,7 @@ class SettingsScreen extends StatelessWidget {
           icon: const Icon(Icons.arrow_back),
           onPressed: () => Navigator.pop(context),
         ),
+        actions: const [NotificationsIcon()],
       ),
       body: Consumer<LocaleProvider>(
         builder: (context, provider, _) {
@@ -115,6 +118,10 @@ class SettingsScreen extends StatelessWidget {
                     ],
                   ),
                 ),
+                _SectionHeader(title: _linkedAccountsTitle(context)),
+                const SizedBox(height: 8),
+                _buildLinkedAccountsTile(context),
+                const SizedBox(height: 24),
                 if (lock.isMobile) ...[
                   _SectionHeader(title: _appLockTitle(context)),
                   const SizedBox(height: 8),
@@ -182,6 +189,30 @@ class SettingsScreen extends StatelessWidget {
         },
       ),
     ),
+    );
+  }
+
+  Widget _buildLinkedAccountsTile(BuildContext context) {
+    final theme = Theme.of(context);
+    return Container(
+      decoration: BoxDecoration(
+        color: theme.cardTheme.color,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: theme.brightness == Brightness.dark ? Colors.black54 : AppTheme.cardShadow,
+            blurRadius: 12,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: ListTile(
+        leading: Icon(Icons.people_outline, color: theme.colorScheme.primary),
+        title: Text(_linkedAccountsTitle(context)),
+        subtitle: Text(_linkedAccountsSubtitle(context)),
+        trailing: const Icon(Icons.chevron_right),
+        onTap: () => Navigator.pushNamed(context, '/linked-accounts'),
+      ),
     );
   }
 
@@ -365,6 +396,22 @@ String _pinDisabledText(BuildContext context) {
     case 'hr': return 'Zaključavanje onemogućeno';
     case 'de': return 'Sperre deaktiviert';
     default: return 'Lock disabled';
+  }
+}
+
+String _linkedAccountsTitle(BuildContext context) {
+  switch (Localizations.localeOf(context).languageCode) {
+    case 'hr': return 'Povezani računi';
+    case 'de': return 'Verbundene Konten';
+    default: return 'Linked accounts';
+  }
+}
+
+String _linkedAccountsSubtitle(BuildContext context) {
+  switch (Localizations.localeOf(context).languageCode) {
+    case 'hr': return 'Pozovi druge da vide tvoje podatke';
+    case 'de': return 'Andere einladen, deine Daten zu sehen';
+    default: return 'Invite others to view your data';
   }
 }
 

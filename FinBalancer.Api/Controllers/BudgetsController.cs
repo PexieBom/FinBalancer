@@ -8,23 +8,44 @@ namespace FinBalancer.Api.Controllers;
 public class BudgetsController : ControllerBase
 {
     private readonly BudgetService _budgetService;
+    private readonly AccountLinkService _accountLinkService;
+    private readonly ICurrentUserService _currentUser;
 
-    public BudgetsController(BudgetService budgetService)
+    public BudgetsController(
+        BudgetService budgetService,
+        AccountLinkService accountLinkService,
+        ICurrentUserService currentUser)
     {
         _budgetService = budgetService;
+        _accountLinkService = accountLinkService;
+        _currentUser = currentUser;
     }
 
     [HttpGet("current")]
-    public async Task<ActionResult<List<BudgetSummaryDto>>> GetCurrent()
+    public async Task<ActionResult<List<BudgetSummaryDto>>> GetCurrent([FromQuery] Guid? viewAsHostId)
     {
-        var result = await _budgetService.GetAllCurrentAsync();
+        if (viewAsHostId.HasValue)
+        {
+            var userId = _currentUser.UserId;
+            if (!userId.HasValue) return Unauthorized();
+            if (!await _accountLinkService.CanGuestViewHostAsync(userId.Value, viewAsHostId.Value))
+                return Forbid();
+        }
+        var result = await _budgetService.GetAllCurrentAsync(viewAsHostId);
         return Ok(result);
     }
 
     [HttpGet("global/current")]
-    public async Task<ActionResult<BudgetCurrentDto>> GetGlobalCurrent()
+    public async Task<ActionResult<BudgetCurrentDto>> GetGlobalCurrent([FromQuery] Guid? viewAsHostId)
     {
-        var result = await _budgetService.GetCurrentAsync(Guid.Empty);
+        if (viewAsHostId.HasValue)
+        {
+            var userId = _currentUser.UserId;
+            if (!userId.HasValue) return Unauthorized();
+            if (!await _accountLinkService.CanGuestViewHostAsync(userId.Value, viewAsHostId.Value))
+                return Forbid();
+        }
+        var result = await _budgetService.GetCurrentAsync(Guid.Empty, viewAsHostId);
         if (result == null) return NotFound();
         return Ok(result);
     }

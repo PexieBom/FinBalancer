@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import '../theme/app_theme.dart';
+import '../widgets/main_bottom_nav.dart';
 import '../services/api_service.dart';
 import '../models/goal.dart';
 import '../providers/locale_provider.dart';
@@ -271,6 +272,7 @@ class _GoalsScreenState extends State<GoalsScreen> {
                           },
                         ),
                 ),
+      bottomNavigationBar: const MainBottomNav(activeIndex: -1),
     );
   }
 
