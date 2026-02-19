@@ -1,0 +1,24 @@
+[
+  {
+    "id": "c7902959-75da-4145-8f03-81abcefc499c",
+    "name": "Premium Monthly",
+    "productId": "finbalancer_premium_monthly",
+    "appleProductId": "finbalancer_premium_monthly",
+    "googleProductId": "finbalancer_premium_monthly",
+    "duration": "monthly",
+    "price": 4.99,
+    "currency": "EUR",
+    "isActive": true
+  },
+  {
+    "id": "0b21934d-19a5-480e-b0e5-be8321510a64",
+    "name": "Premium Yearly",
+    "productId": "finbalancer_premium_yearly",
+    "appleProductId": "finbalancer_premium_yearly",
+    "googleProductId": "finbalancer_premium_yearly",
+    "duration": "yearly",
+    "price": 39.99,
+    "currency": "EUR",
+    "isActive": true
+  }
+]

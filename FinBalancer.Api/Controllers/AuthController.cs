@@ -29,8 +29,10 @@ public class AuthController : ControllerBase
     }
 
     [HttpPost("login")]
-    public async Task<ActionResult<AuthResult>> Login([FromBody] LoginRequest request)
+    public async Task<ActionResult<AuthResult>> Login([FromBody] LoginRequest? request)
     {
+        if (request == null)
+            return BadRequest("Invalid request body");
         if (string.IsNullOrWhiteSpace(request.Email) || string.IsNullOrWhiteSpace(request.Password))
             return BadRequest("Email and password required");
 

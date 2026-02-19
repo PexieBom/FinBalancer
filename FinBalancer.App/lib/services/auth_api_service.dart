@@ -2,10 +2,11 @@ import 'dart:convert';
 
 import 'package:http/http.dart' as http;
 
+import '../config/app_config.dart';
 import '../models/auth_result.dart';
 
 class AuthApiService {
-  static const String _baseUrl = 'http://localhost:5292/api/auth';
+  static String get _baseUrl => '${AppConfig.apiBaseUrl}/auth';
 
   final http.Client _client = http.Client();
 

@@ -10,6 +10,7 @@ public class MockAuthService : IAuthService
     private readonly IUserRepository _userRepository;
     private readonly INotificationRequestRepository _notificationRepository;
     private readonly IRefreshTokenRepository _refreshTokenRepository;
+    private readonly IAccessTokenRepository _accessTokenRepository;
     private static readonly Dictionary<string, Guid> MockTokens = new();
     private static readonly TimeSpan AccessTokenLifetime = TimeSpan.FromHours(24);
     private static readonly TimeSpan RefreshTokenLifetime = TimeSpan.FromDays(365);
@@ -17,11 +18,13 @@ public class MockAuthService : IAuthService
     public MockAuthService(
         IUserRepository userRepository,
         INotificationRequestRepository notificationRepository,
-        IRefreshTokenRepository refreshTokenRepository)
+        IRefreshTokenRepository refreshTokenRepository,
+        IAccessTokenRepository accessTokenRepository)
     {
         _userRepository = userRepository;
         _notificationRepository = notificationRepository;
         _refreshTokenRepository = refreshTokenRepository;
+        _accessTokenRepository = accessTokenRepository;
     }
 
     public async Task<AuthResult> RegisterAsync(string email, string password, string displayName)
@@ -191,6 +194,9 @@ public class MockAuthService : IAuthService
             return await _userRepository.GetByIdAsync(userId);
         if (token == "local_mock")
             return await _userRepository.GetFirstOrDefaultAsync();
+        var dbUserId = await _accessTokenRepository.GetUserIdByTokenAsync(token);
+        if (dbUserId.HasValue)
+            return await _userRepository.GetByIdAsync(dbUserId.Value);
         return null;
     }
 
@@ -198,6 +204,9 @@ public class MockAuthService : IAuthService
     {
         var accessToken = "mock_" + Convert.ToBase64String(Guid.NewGuid().ToByteArray()).Replace("+", "-").Replace("/", "_").TrimEnd('=');
         MockTokens[accessToken] = userId;
+
+        var expiresAt = DateTime.UtcNow.Add(AccessTokenLifetime);
+        await _accessTokenRepository.AddAsync(accessToken, userId, expiresAt);
 
         var refreshToken = Convert.ToBase64String(RandomNumberGenerator.GetBytes(48)).Replace("+", "-").Replace("/", "_").TrimEnd('=');
         await _refreshTokenRepository.AddAsync(new RefreshTokenStore

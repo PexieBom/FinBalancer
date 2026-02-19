@@ -1,28 +1,31 @@
-using FinBalancer.Api.Infrastructure;
 using FinBalancer.Api.Models;
+using FinBalancer.Api.Repositories;
 
 namespace FinBalancer.Api.Services;
 
 public class UserPreferencesService
 {
-    private const string FileName = "user_preferences.json";
-    private readonly JsonStorageService _storage;
+    private readonly IUserPreferencesRepository _repository;
+    private readonly ICurrentUserService _currentUser;
 
-    public UserPreferencesService(JsonStorageService storage)
+    public UserPreferencesService(IUserPreferencesRepository repository, ICurrentUserService currentUser)
     {
-        _storage = storage;
+        _repository = repository;
+        _currentUser = currentUser;
     }
 
     public async Task<UserPreferences> GetAsync()
     {
-        var prefs = await _storage.ReadObjectAsync<UserPreferences>(FileName);
+        var prefs = await _repository.GetByUserIdAsync(_currentUser.UserId);
         return prefs ?? new UserPreferences();
     }
 
     public async Task<UserPreferences> UpdateAsync(string locale, string currency, string theme = "system")
     {
         var prefs = new UserPreferences { Locale = locale, Currency = currency, Theme = theme };
-        await _storage.WriteObjectAsync(FileName, prefs);
-        return prefs;
+        var userId = _currentUser.UserId;
+        if (userId == null)
+            return prefs; // Nije ulogiran – vraćamo predložene vrijednosti bez spremanja
+        return await _repository.UpsertAsync(userId.Value, prefs);
     }
 }

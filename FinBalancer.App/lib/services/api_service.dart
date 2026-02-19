@@ -13,9 +13,10 @@ import '../models/subscription.dart';
 import '../models/wallet_budget.dart';
 import '../models/account_link.dart';
 import '../models/in_app_notification.dart';
+import '../config/app_config.dart';
 
 class ApiService {
-  static const String _baseUrl = 'http://localhost:5292/api';
+  static String get _baseUrl => AppConfig.apiBaseUrl;
   static String? _authToken;
   static set authToken(String? v) => _authToken = v;
 

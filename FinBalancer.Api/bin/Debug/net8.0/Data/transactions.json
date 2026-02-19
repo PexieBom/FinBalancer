@@ -1114,5 +1114,20 @@
     "projectId": null,
     "dateCreated": "2026-02-18T12:45:27.5566852Z",
     "isYearlyExpense": false
+  },
+  {
+    "id": "d01b9696-c8dc-4ef5-bae7-e7ac9721276a",
+    "userId": "bd2265c8-fc6d-4c8c-beaa-cb37ea4eefa2",
+    "amount": 2,
+    "type": "expense",
+    "categoryId": "e9a32c4f-8abe-4ada-aa81-327b164d8c9a",
+    "subcategoryId": null,
+    "walletId": "e6bc4221-b7ed-490b-9057-8110d61da5d5",
+    "note": null,
+    "tags": [],
+    "project": null,
+    "projectId": null,
+    "dateCreated": "2026-02-19T20:24:51.0462441Z",
+    "isYearlyExpense": false
   }
 ]

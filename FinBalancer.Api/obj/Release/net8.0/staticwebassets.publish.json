@@ -1,0 +1,11 @@
+{
+  "Version": 1,
+  "Hash": "dqfK3Q2FOlSIWV1rpkmN/Q7KEQ1LaAF0pyVd8reO/vw=",
+  "Source": "FinBalancer.Api",
+  "BasePath": "_content/FinBalancer.Api",
+  "Mode": "Default",
+  "ManifestType": "Publish",
+  "ReferencedProjectsConfiguration": [],
+  "DiscoveryPatterns": [],
+  "Assets": []
+}

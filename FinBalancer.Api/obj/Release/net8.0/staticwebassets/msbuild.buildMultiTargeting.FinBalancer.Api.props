@@ -1,0 +1,3 @@
+﻿<Project>
+  <Import Project="..\build\FinBalancer.Api.props" />
+</Project>
