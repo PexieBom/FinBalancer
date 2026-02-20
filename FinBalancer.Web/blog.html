@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Blog - FinBalancer</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="header">
+    <div class="container header-inner">
+      <a href="index.html" class="logo">
+        <span class="logo-icon">&#9672;</span>
+        <span>FinBalancer</span>
+      </a>
+      <nav class="nav">
+        <a href="index.html#features">Features</a>
+        <a href="index.html#pricing">Pricing</a>
+        <a href="index.html#how-it-works">How it works</a>
+        <a href="index.html#blog">Blog</a>
+        <a href="https://app.finbalancer.com" class="btn btn-outline">Login</a>
+        <a href="https://app.finbalancer.com" class="btn btn-primary">Open App</a>
+      </nav>
+      <button class="menu-toggle" aria-label="Menu" onclick="toggleMenu()">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+    <nav class="nav-mobile" id="navMobile">
+      <a href="index.html#features" onclick="closeMenu()">Features</a>
+      <a href="index.html#pricing" onclick="closeMenu()">Pricing</a>
+      <a href="index.html#how-it-works" onclick="closeMenu()">How it works</a>
+      <a href="blog.html" onclick="closeMenu()">Blog</a>
+      <a href="https://app.finbalancer.com">Login</a>
+      <a href="https://app.finbalancer.com" class="btn-primary">Open App</a>
+    </nav>
+  </header>
+
+  <main class="blog-page">
+    <section class="blog-hero">
+      <div class="container">
+        <h1>Blog & Tips</h1>
+        <p>Money tips, budgeting advice, and product updates.</p>
+      </div>
+    </section>
+
+    <section class="blog-list">
+      <div class="container">
+        <div id="blogGrid" class="blog-grid"></div>
+        <div id="blogPagination" class="blog-pagination"></div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="container footer-inner">
+      <div class="footer-brand">
+        <span class="logo-icon">&#9672;</span>
+        <span>FinBalancer</span>
+      </div>
+      <div class="footer-links">
+        <a href="https://app.finbalancer.com">App</a>
+        <a href="index.html#features">Features</a>
+        <a href="index.html#pricing">Pricing</a>
+        <a href="blog.html">Blog</a>
+      </div>
+      <p class="footer-copy">&#169; 2025 FinBalancer. All rights reserved.</p>
+    </div>
+  </footer>
+
+  <script src="blog-data.js"></script>
+  <script>
+    const BLOG_PER_PAGE = 6;
+    let allPosts = window.BLOG_POSTS ? [...window.BLOG_POSTS] : [];
+
+    function loadBlog() {
+      allPosts.sort(function(a, b) { return new Date(b.date) - new Date(a.date); });
+      renderPage(1);
+    }
+
+    function renderPage(page) {
+      var start = (page - 1) * BLOG_PER_PAGE;
+      var posts = allPosts.slice(start, start + BLOG_PER_PAGE);
+      var totalPages = Math.ceil(allPosts.length / BLOG_PER_PAGE);
+
+      var grid = document.getElementById('blogGrid');
+      grid.innerHTML = posts.map(function(p) {
+        var date = new Date(p.date).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+        return '<article class="blog-card"><a href="post.html?id=' + p.id + '"><img src="' + p.image + '" alt="' + p.title + '"><div class="blog-card-body"><time>' + date + '</time><h3>' + p.title + '</h3><p>' + p.excerpt + '</p></div></a></article>';
+      }).join('');
+
+      var pagination = document.getElementById('blogPagination');
+      var html = '';
+      if (totalPages > 1) {
+        html = '<div class="pagination">';
+        if (page > 1) html += '<a href="#" class="pagination-btn" onclick="renderPage(' + (page - 1) + '); return false;">Previous</a> ';
+        html += '<span class="pagination-info">Page ' + page + ' of ' + totalPages + '</span> ';
+        if (page < totalPages) html += ' <a href="#" class="pagination-btn" onclick="renderPage(' + (page + 1) + '); return false;">Next</a>';
+        html += '</div>';
+      }
+      pagination.innerHTML = html;
+    }
+
+    function toggleMenu() {
+      document.getElementById('navMobile').classList.toggle('open');
+    }
+    function closeMenu() {
+      document.getElementById('navMobile').classList.remove('open');
+    }
+
+    loadBlog();
+  </script>
+</body>
+</html>

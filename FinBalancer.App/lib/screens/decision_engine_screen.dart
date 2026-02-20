@@ -3,7 +3,7 @@ import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
 import '../theme/app_theme.dart';
-import '../widgets/main_bottom_nav.dart';
+import '../widgets/adaptive_scaffold.dart';
 import '../providers/data_provider.dart';
 import '../providers/locale_provider.dart';
 import '../services/api_service.dart';
@@ -84,7 +84,8 @@ class _DecisionEngineScreenState extends State<DecisionEngineScreen> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    return Scaffold(
+    return AdaptiveScaffold(
+      activeNavIndex: 3,
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
         backgroundColor: Theme.of(context).appBarTheme.backgroundColor,
@@ -216,7 +217,6 @@ class _DecisionEngineScreenState extends State<DecisionEngineScreen> {
           );
         },
       ),
-      bottomNavigationBar: const MainBottomNav(activeIndex: 3),
     );
   }
 }

@@ -6,6 +6,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>FinBalancer</title>
   <link rel="manifest" href="manifest.json">
+  <!-- Google Sign-In za web: zamijeni placeholder s OAuth 2.0 Web client ID iz Google Cloud Console.
+       https://console.cloud.google.com/apis/credentials → Create Credentials → OAuth client ID → Web application.
+       Dodaj Authorized JavaScript origins: http://localhost, https://tvoj-domen.com -->
+  <meta name="google-signin-client_id" content="REPLACE_WITH_GOOGLE_CLIENT_ID.apps.googleusercontent.com">
 </head>
 <body>
   <script src="flutter_bootstrap.js" async></script>

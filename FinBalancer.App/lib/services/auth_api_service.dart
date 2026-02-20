@@ -20,7 +20,7 @@ class AuthApiService {
         'displayName': displayName,
       }),
     );
-    return AuthResult.fromJson(json.decode(response.body) as Map<String, dynamic>);
+    return _parseAuthResponse(response);
   }
 
   Future<AuthResult> login(String email, String password) async {
@@ -29,7 +29,7 @@ class AuthApiService {
       headers: {'Content-Type': 'application/json'},
       body: json.encode({'email': email, 'password': password}),
     );
-    return AuthResult.fromJson(json.decode(response.body) as Map<String, dynamic>);
+    return _parseAuthResponse(response);
   }
 
   Future<AuthResult> loginWithGoogle(String googleId, String email, String? displayName) async {
@@ -42,7 +42,7 @@ class AuthApiService {
         'displayName': displayName,
       }),
     );
-    return AuthResult.fromJson(json.decode(response.body) as Map<String, dynamic>);
+    return _parseAuthResponse(response);
   }
 
   Future<AuthResult> loginWithApple(String appleId, String? email, String? displayName) async {
@@ -55,7 +55,36 @@ class AuthApiService {
         'displayName': displayName,
       }),
     );
-    return AuthResult.fromJson(json.decode(response.body) as Map<String, dynamic>);
+    return _parseAuthResponse(response);
+  }
+
+  AuthResult _parseAuthResponse(http.Response response) {
+    if (response.statusCode >= 200 && response.statusCode < 300) {
+      try {
+        final decoded = json.decode(response.body);
+        if (decoded is Map<String, dynamic>) {
+          return AuthResult.fromJson(decoded);
+        }
+      } catch (_) {}
+    }
+    String? errMsg;
+    try {
+      final decoded = json.decode(response.body);
+      if (decoded is Map && decoded['error'] != null) {
+        errMsg = decoded['error'].toString();
+      } else if (decoded is Map && decoded['title'] != null) {
+        errMsg = decoded['title'].toString();
+      }
+    } catch (_) {
+      final body = response.body.trim();
+      if (body.isNotEmpty && body.length < 300 && !body.startsWith('<!')) {
+        errMsg = body;
+      }
+    }
+    return AuthResult(
+      success: false,
+      error: errMsg ?? 'Request failed (${response.statusCode})',
+    );
   }
 
   Future<AuthResult> requestPasswordReset(String email, {bool dev = false}) async {
@@ -65,7 +94,7 @@ class AuthApiService {
       headers: {'Content-Type': 'application/json'},
       body: json.encode({'email': email}),
     );
-    return AuthResult.fromJson(json.decode(response.body) as Map<String, dynamic>);
+    return _parseAuthResponse(response);
   }
 
   Future<AuthResult> resetPassword(String token, String newPassword) async {
@@ -74,6 +103,6 @@ class AuthApiService {
       headers: {'Content-Type': 'application/json'},
       body: json.encode({'token': token, 'newPassword': newPassword}),
     );
-    return AuthResult.fromJson(json.decode(response.body) as Map<String, dynamic>);
+    return _parseAuthResponse(response);
   }
 }

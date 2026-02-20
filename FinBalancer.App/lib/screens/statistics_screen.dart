@@ -7,7 +7,7 @@ import 'package:provider/provider.dart';
 
 import '../theme/app_theme.dart';
 import '../providers/notifications_provider.dart';
-import '../widgets/main_bottom_nav.dart';
+import '../widgets/adaptive_scaffold.dart';
 import '../widgets/notifications_icon.dart';
 import '../services/api_service.dart';
 import '../providers/subscription_provider.dart';
@@ -73,7 +73,8 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return AdaptiveScaffold(
+      activeNavIndex: 2,
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
         backgroundColor: Theme.of(context).appBarTheme.backgroundColor,
@@ -157,7 +158,6 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
                 );
         },
       ),
-      bottomNavigationBar: const MainBottomNav(activeIndex: 2),
     );
   }
 

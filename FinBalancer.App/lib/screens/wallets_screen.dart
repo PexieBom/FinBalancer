@@ -8,7 +8,7 @@ import '../models/wallet.dart';
 import '../models/wallet_budget.dart';
 import '../l10n/app_localizations.dart';
 import '../services/api_service.dart';
-import '../widgets/main_bottom_nav.dart';
+import '../widgets/adaptive_scaffold.dart';
 import '../providers/subscription_provider.dart';
 
 class WalletsScreen extends StatefulWidget {
@@ -145,7 +145,8 @@ class _WalletsScreenState extends State<WalletsScreen> with SingleTickerProvider
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    return Scaffold(
+    return AdaptiveScaffold(
+      activeNavIndex: 4,
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
         backgroundColor: Theme.of(context).appBarTheme.backgroundColor,
@@ -197,7 +198,6 @@ class _WalletsScreenState extends State<WalletsScreen> with SingleTickerProvider
           const _BudgetsTab(),
         ],
       ),
-      bottomNavigationBar: const MainBottomNav(activeIndex: 4),
     );
   }
 }

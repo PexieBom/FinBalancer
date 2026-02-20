@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FinBalancer – Personal Finance & Budget App</title>
+  <meta name="description" content="Track expenses, set budgets, reach goals. FinBalancer helps you get your finances in balance – simple, visual, stress-free.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="header">
+    <div class="container header-inner">
+      <a href="index.html" class="logo">
+        <span class="logo-icon">◈</span>
+        <span>FinBalancer</span>
+      </a>
+      <nav class="nav">
+        <a href="index.html#features">Features</a>
+        <a href="index.html#pricing">Pricing</a>
+        <a href="index.html#how-it-works">How it works</a>
+        <a href="index.html#blog">Blog</a>
+        <a href="index.html#testimonials">Reviews</a>
+        <a href="https://app.finbalancer.com" class="btn btn-outline">Login</a>
+        <a href="https://app.finbalancer.com" class="btn btn-primary btn-white-text">Open App</a>
+      </nav>
+      <button class="menu-toggle" aria-label="Menu" onclick="toggleMenu()">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+    <nav class="nav-mobile" id="navMobile">
+      <a href="index.html#features" onclick="closeMenu()">Features</a>
+      <a href="index.html#pricing" onclick="closeMenu()">Pricing</a>
+      <a href="index.html#how-it-works" onclick="closeMenu()">How it works</a>
+      <a href="index.html#blog" onclick="closeMenu()">Blog</a>
+      <a href="index.html#testimonials" onclick="closeMenu()">Reviews</a>
+      <a href="https://app.finbalancer.com">Login</a>
+      <a href="https://app.finbalancer.com" class="btn btn-primary btn-white-text">Open App</a>
+    </nav>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="container hero-inner">
+        <div class="hero-text">
+          <h1>The app that <strong>gets your finances in balance</strong></h1>
+          <p class="hero-sub">Track expenses, set smart budgets, and reach your goals. All in one place, on any device.</p>
+          <div class="hero-downloads">
+            <a href="https://apps.apple.com/app/finbalancer" class="store-btn store-btn-apple" target="_blank" rel="noopener">
+              <svg class="store-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/></svg>
+              <span class="store-label">Download on the<br><strong>App Store</strong></span>
+            </a>
+            <a href="https://play.google.com/store/apps/details?id=com.finbalancer.app" class="store-btn store-btn-google" target="_blank" rel="noopener">
+              <svg class="store-icon" viewBox="0 0 24 24"><path fill="currentColor" d="M3,20.5V3.5C3,2.91 3.34,2.39 3.84,2.15L13.69,12L3.84,21.85C3.34,21.6 3,21.09 3,20.5M16.81,15.12L6.05,21.34L14.54,12.85L16.81,15.12M20.16,10.81C20.5,11.08 20.75,11.5 20.75,12C20.75,12.5 20.5,12.92 20.16,13.19L17.89,12L20.16,10.81M6.05,2.66L16.81,8.88L14.54,11.15L6.05,2.66Z"/></svg>
+              <span class="store-label">Get it on<br><strong>Google Play</strong></span>
+            </a>
+            <a href="https://app.finbalancer.com" class="store-btn store-btn-web">
+              <svg class="store-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+              <span class="store-label">Use on<br><strong>Web</strong></span>
+            </a>
+          </div>
+          <a href="#how-it-works" class="btn btn-ghost btn-lg hero-secondary">See how it works</a>
+          <div class="hero-badges">
+            <span class="badge">✓ Free to start</span>
+            <span class="badge">✓ Web, iOS & Android</span>
+          </div>
+        </div>
+        <div class="hero-visual">
+          <img src="images/hero-app-mockup.png" alt="FinBalancer app dashboard on smartphone">
+        </div>
+      </div>
+    </section>
+
+    <section class="stats">
+      <div class="container stats-grid">
+        <div class="stat-card">
+          <span class="stat-value">-1,574</span>
+          <span class="stat-label">Total expenses</span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-value">22%</span>
+          <span class="stat-label">Under budget</span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-value">12</span>
+          <span class="stat-label">Transactions</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="steps" id="how-it-works">
+      <div class="container">
+        <h2>How to get your <strong>money into shape</strong>?</h2>
+        <div class="steps-grid">
+          <article class="step">
+            <span class="step-num">1</span>
+            <h3>Track your cash flow</h3>
+            <ul>
+              <li>Add transactions manually or via linked accounts</li>
+              <li>Manage multiple wallets – cash, cards, savings</li>
+              <li>See all your money in one place</li>
+            </ul>
+          </article>
+          <article class="step">
+            <span class="step-num">2</span>
+            <h3>Understand your habits</h3>
+            <ul>
+              <li>Beautiful charts – no complicated spreadsheets</li>
+              <li>See where your money goes by category</li>
+              <li>Monthly overview and trends at a glance</li>
+            </ul>
+          </article>
+          <article class="step">
+            <span class="step-num">3</span>
+            <h3>Make spending stress-free</h3>
+            <ul>
+              <li>Set budgets per category or wallet</li>
+              <li>Daily allowance so you stay on track</li>
+              <li>Savings goals for dreams – car, vacation, education</li>
+            </ul>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="features" id="features">
+      <div class="container">
+        <h2>Features <strong>our users love</strong></h2>
+        <div class="features-grid">
+          <div class="feature-card">
+            <div class="feature-icon">👛</div>
+            <h4>Multiple wallets</h4>
+            <p>Track cash, cards, savings – each with its own balance and budget.</p>
+          </div>
+          <div class="feature-card">
+            <div class="feature-icon">📊</div>
+            <h4>Smart budgets</h4>
+            <p>Set limits per category. Know how much you can spend today.</p>
+          </div>
+          <div class="feature-card">
+            <div class="feature-icon">🎯</div>
+            <h4>Savings goals</h4>
+            <p>Save for a car, vacation, or university – track progress over time.</p>
+          </div>
+          <div class="feature-card">
+            <div class="feature-icon">🔗</div>
+            <h4>Linked accounts</h4>
+            <p>Share finances with family – couples, roommates, joint budgets.</p>
+          </div>
+          <div class="feature-card">
+            <div class="feature-icon">📱</div>
+            <h4>Cross-platform</h4>
+            <p>Web, iOS, Android. Sync and access your data anywhere.</p>
+          </div>
+          <div class="feature-card">
+            <div class="feature-icon">🔒</div>
+            <h4>Secure & private</h4>
+            <p>Your data stays yours. Optional app lock for extra security.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="pricing" id="pricing">
+      <div class="container">
+        <h2>Simple, <strong>transparent pricing</strong></h2>
+        <p class="pricing-intro">Start free. Upgrade when you need more.</p>
+        <div class="pricing-cards">
+          <div class="pricing-card">
+            <h3>Free</h3>
+            <div class="price"><span class="price-amount">$0</span><span class="price-period">/forever</span></div>
+            <p class="price-desc">Everything you need to get started</p>
+            <a href="https://app.finbalancer.com" class="btn btn-outline btn-block">Get started</a>
+            <ul class="price-features">
+              <li>Dashboard with balance overview</li>
+              <li>Basic transactions (add, edit, delete)</li>
+              <li>Up to 3 wallets</li>
+              <li>Up to 5 categories</li>
+              <li>Basic statistics</li>
+              <li>Goals (up to 2)</li>
+              <li>Export to CSV</li>
+            </ul>
+          </div>
+          <div class="pricing-card">
+            <h3>Premium Monthly</h3>
+            <div class="price"><span class="price-amount">$3.99</span><span class="price-period">/month</span></div>
+            <p class="price-desc">Full power for serious savers</p>
+            <a href="https://app.finbalancer.com" class="btn btn-primary btn-block">Upgrade</a>
+            <ul class="price-features">
+              <li><strong>Everything in Free, plus:</strong></li>
+              <li>Unlimited wallets</li>
+              <li>Unlimited categories</li>
+              <li>Custom categories with icons</li>
+              <li>Advanced statistics & analytics</li>
+              <li>Unlimited goals</li>
+              <li>Export to PDF, JSON</li>
+              <li>Budgeting & budget alerts</li>
+              <li>Priority support</li>
+            </ul>
+          </div>
+          <div class="pricing-card pricing-card-featured">
+            <span class="badge-save">Save 27%</span>
+            <h3>Premium Yearly</h3>
+            <div class="price"><span class="price-amount">$34.99</span><span class="price-period">/year</span></div>
+            <p class="price-desc">$2.92/month · Best value</p>
+            <a href="https://app.finbalancer.com" class="btn btn-primary btn-block">Upgrade</a>
+            <ul class="price-features">
+              <li><strong>Everything in Premium Monthly</strong></li>
+              <li>Unlimited wallets</li>
+              <li>Unlimited categories & custom icons</li>
+              <li>Advanced statistics & analytics</li>
+              <li>Unlimited goals</li>
+              <li>Export to PDF, JSON</li>
+              <li>Budgeting & budget alerts</li>
+              <li>Priority support</li>
+            </ul>
+          </div>
+        </div>
+        <div class="pricing-compare">
+          <h3>Compare plans</h3>
+          <table class="compare-table">
+            <thead>
+              <tr>
+                <th>Feature</th>
+                <th>Free</th>
+                <th>Premium</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td>Wallets</td><td>Up to 3</td><td>Unlimited</td></tr>
+              <tr><td>Categories</td><td>Up to 5</td><td>Unlimited + custom</td></tr>
+              <tr><td>Goals</td><td>Up to 2</td><td>Unlimited</td></tr>
+              <tr><td>Statistics</td><td>Basic</td><td>Advanced analytics</td></tr>
+              <tr><td>Budgeting</td><td>—</td><td>✓</td></tr>
+              <tr><td>Budget alerts</td><td>—</td><td>✓</td></tr>
+              <tr><td>Export</td><td>CSV</td><td>CSV, PDF, JSON</td></tr>
+              <tr><td>Support</td><td>Community</td><td>Priority</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <section class="testimonials" id="testimonials">
+      <div class="container">
+        <h2>Why people <strong>use FinBalancer</strong></h2>
+        <div class="testimonials-grid">
+          <blockquote class="testimonial">
+            <p>Simple and intuitive. I finally understand where my money goes every month.</p>
+            <cite>— Ana</cite>
+          </blockquote>
+          <blockquote class="testimonial">
+            <p>Cross-platform is a game changer. I use it on my phone and laptop.</p>
+            <cite>— Marko</cite>
+          </blockquote>
+          <blockquote class="testimonial">
+            <p>The budgets keep me from overspending. Daily allowance idea is brilliant.</p>
+            <cite>— Petra</cite>
+          </blockquote>
+        </div>
+      </div>
+    </section>
+
+    <section class="blog-preview" id="blog">
+      <div class="container">
+        <h2>From the <strong>blog</strong></h2>
+        <p class="blog-preview-intro">Tips, advice, and updates.</p>
+        <div id="blogLatest" class="blog-grid"></div>
+        <div class="blog-preview-cta">
+          <a href="blog.html" class="btn btn-outline">View all posts</a>
+        </div>
+      </div>
+    </section>
+
+    <section class="cta">
+      <div class="container">
+        <h2>Ready to balance your finances?</h2>
+        <p>Start for free. No credit card required.</p>
+        <div class="cta-downloads">
+          <a href="https://apps.apple.com/app/finbalancer" class="store-btn store-btn-apple store-btn-light" target="_blank" rel="noopener">
+            <svg class="store-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/></svg>
+            <span class="store-label">App Store</span>
+          </a>
+          <a href="https://play.google.com/store/apps/details?id=com.finbalancer.app" class="store-btn store-btn-google store-btn-light" target="_blank" rel="noopener">
+            <svg class="store-icon" viewBox="0 0 24 24"><path fill="currentColor" d="M3,20.5V3.5C3,2.91 3.34,2.39 3.84,2.15L13.69,12L3.84,21.85C3.34,21.6 3,21.09 3,20.5M16.81,15.12L6.05,21.34L14.54,12.85L16.81,15.12M20.16,10.81C20.5,11.08 20.75,11.5 20.75,12C20.75,12.5 20.5,12.92 20.16,13.19L17.89,12L20.16,10.81M6.05,2.66L16.81,8.88L14.54,11.15L6.05,2.66Z"/></svg>
+            <span class="store-label">Google Play</span>
+          </a>
+          <a href="https://app.finbalancer.com" class="btn btn-primary btn-lg btn-white-text">Open App</a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="container footer-inner">
+      <div class="footer-brand">
+        <span class="logo-icon">◈</span>
+        <span>FinBalancer</span>
+      </div>
+      <div class="footer-links">
+        <a href="https://app.finbalancer.com">App</a>
+        <a href="index.html#features">Features</a>
+        <a href="#pricing">Pricing</a>
+        <a href="#how-it-works">How it works</a>
+        <a href="blog.html">Blog</a>
+      </div>
+      <p class="footer-copy">© 2025 FinBalancer. All rights reserved.</p>
+    </div>
+  </footer>
+
+  <script src="blog-data.js"></script>
+  <script>
+    (function() {
+      var posts = window.BLOG_POSTS || [];
+      posts.sort(function(a, b) { return new Date(b.date) - new Date(a.date); });
+      var latest = posts.slice(0, 3);
+      var html = latest.map(function(p) {
+        var date = new Date(p.date).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+        return '<article class="blog-card"><a href="post.html?id=' + encodeURIComponent(p.id) + '"><img src="' + p.image + '" alt="' + p.title.replace(/"/g, '&quot;') + '"><div class="blog-card-body"><time>' + date + '</time><h3>' + p.title + '</h3><p>' + p.excerpt + '</p></div></a></article>';
+      }).join('');
+      var el = document.getElementById('blogLatest');
+      if (el) el.innerHTML = html;
+    })();
+    function toggleMenu() {
+      document.getElementById('navMobile').classList.toggle('open');
+    }
+    function closeMenu() {
+      document.getElementById('navMobile').classList.remove('open');
+    }
+  </script>
+</body>
+</html>

@@ -8,7 +8,7 @@ import '../providers/locale_provider.dart';
 import '../models/transaction.dart';
 import '../models/category.dart' as app_models;
 import '../utils/currency_formatter.dart';
-import '../widgets/main_bottom_nav.dart';
+import '../widgets/adaptive_scaffold.dart';
 import '../l10n/app_localizations.dart';
 
 class AddTransactionScreen extends StatefulWidget {
@@ -109,7 +109,8 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return AdaptiveScaffold(
+      activeNavIndex: 1,
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
         backgroundColor: Theme.of(context).appBarTheme.backgroundColor,
@@ -380,7 +381,6 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
           );
         },
       ),
-      bottomNavigationBar: const MainBottomNav(activeIndex: 1),
     );
   }
 

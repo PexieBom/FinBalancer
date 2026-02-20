@@ -3,8 +3,10 @@ import 'package:provider/provider.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:sign_in_with_apple/sign_in_with_apple.dart' as apple;
 
+import '../config/app_config.dart';
 import '../theme/app_theme.dart';
 import '../providers/app_provider.dart';
+import '../utils/responsive.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -19,6 +21,15 @@ class _LoginScreenState extends State<LoginScreen> {
   final _passwordController = TextEditingController();
   bool _isLoading = false;
   String? _error;
+  bool _appleSignInAvailable = false;
+
+  @override
+  void initState() {
+    super.initState();
+    apple.SignInWithApple.isAvailable().then((v) {
+      if (mounted) setState(() => _appleSignInAvailable = v);
+    });
+  }
 
   @override
   void dispose() {
@@ -43,7 +54,10 @@ class _LoginScreenState extends State<LoginScreen> {
   Future<void> _handleGoogleSignIn() async {
     setState(() { _isLoading = true; _error = null; });
     try {
-      final googleSignIn = GoogleSignIn(scopes: ['email']);
+      final googleSignIn = GoogleSignIn(
+        scopes: ['email'],
+        clientId: AppConfig.googleWebClientId,
+      );
       await googleSignIn.signOut(); // Clear previous account so user can switch
       final account = await googleSignIn.signIn();
       if (account == null) {
@@ -112,11 +126,13 @@ class _LoginScreenState extends State<LoginScreen> {
     return Scaffold(
       backgroundColor: Colors.white,
       body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(24),
-          child: Form(
-            key: _formKey,
-            child: Column(
+        child: webAdaptiveContent(
+          context,
+          SingleChildScrollView(
+            padding: const EdgeInsets.all(24),
+            child: Form(
+              key: _formKey,
+              child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 const SizedBox(height: 40),
@@ -184,26 +200,29 @@ class _LoginScreenState extends State<LoginScreen> {
                     style: OutlinedButton.styleFrom(side: BorderSide(color: Colors.grey.shade400)),
                   ),
                 ),
-                const SizedBox(height: 12),
-                SizedBox(
-                  height: 56,
-                  child: OutlinedButton.icon(
-                    onPressed: _isLoading ? null : _handleAppleSignIn,
-                    icon: Icon(Icons.apple, size: 24, color: Colors.grey.shade800),
-                    label: const Text('Continue with Apple'),
-                    style: OutlinedButton.styleFrom(
-                      side: BorderSide(color: Colors.grey.shade400),
-                      backgroundColor: Colors.black,
-                      foregroundColor: Colors.white,
+                if (_appleSignInAvailable) ...[
+                  const SizedBox(height: 12),
+                  SizedBox(
+                    height: 56,
+                    child: OutlinedButton.icon(
+                      onPressed: _isLoading ? null : _handleAppleSignIn,
+                      icon: Icon(Icons.apple, size: 24, color: Colors.grey.shade800),
+                      label: const Text('Continue with Apple'),
+                      style: OutlinedButton.styleFrom(
+                        side: BorderSide(color: Colors.grey.shade400),
+                        backgroundColor: Colors.black,
+                        foregroundColor: Colors.white,
+                      ),
                     ),
                   ),
-                ),
+                ],
                 const SizedBox(height: 24),
                 TextButton(
                   onPressed: _isLoading ? null : _handleLocalLogin,
                   child: Text('Skip - Local mode (no API)', style: TextStyle(color: Colors.grey.shade600)),
                 ),
               ],
+            ),
             ),
           ),
         ),

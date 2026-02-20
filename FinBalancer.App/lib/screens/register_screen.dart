@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:google_sign_in/google_sign_in.dart';
+import 'package:sign_in_with_apple/sign_in_with_apple.dart' as apple;
 
+import '../config/app_config.dart';
 import '../theme/app_theme.dart';
+import '../utils/responsive.dart';
 import '../providers/app_provider.dart';
 
 class RegisterScreen extends StatefulWidget {
@@ -19,6 +23,15 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final _displayNameController = TextEditingController();
   bool _isLoading = false;
   String? _error;
+  bool _appleSignInAvailable = false;
+
+  @override
+  void initState() {
+    super.initState();
+    apple.SignInWithApple.isAvailable().then((v) {
+      if (mounted) setState(() => _appleSignInAvailable = v);
+    });
+  }
 
   @override
   void dispose() {
@@ -49,6 +62,64 @@ class _RegisterScreenState extends State<RegisterScreen> {
     }
   }
 
+  Future<void> _handleGoogleSignIn() async {
+    setState(() { _isLoading = true; _error = null; });
+    try {
+      final googleSignIn = GoogleSignIn(
+        scopes: ['email'],
+        clientId: AppConfig.googleWebClientId,
+      );
+      await googleSignIn.signOut();
+      final account = await googleSignIn.signIn();
+      if (account == null) {
+        setState(() => _isLoading = false);
+        return;
+      }
+      final googleId = account.id;
+      final email = account.email;
+      if (googleId == null || googleId.isEmpty || email == null || email.isEmpty) {
+        setState(() {
+          _isLoading = false;
+          _error = 'Google account info incomplete. Please grant email permission.';
+        });
+        return;
+      }
+      final err = await context.read<AppProvider>().loginWithGoogle(
+            googleId,
+            email,
+            account.displayName,
+          );
+      if (mounted) {
+        setState(() { _isLoading = false; _error = err; });
+        if (err == null) Navigator.pop(context);
+      }
+    } catch (e) {
+      if (mounted) setState(() { _isLoading = false; _error = e.toString(); });
+    }
+  }
+
+  Future<void> _handleAppleSignIn() async {
+    setState(() { _isLoading = true; _error = null; });
+    try {
+      final credential = await apple.SignInWithApple.getAppleIDCredential(
+        scopes: [apple.AppleIDAuthorizationScopes.email, apple.AppleIDAuthorizationScopes.fullName],
+      );
+      final err = await context.read<AppProvider>().loginWithApple(
+            credential.userIdentifier ?? credential.identityToken ?? '',
+            credential.email,
+            credential.givenName != null
+                ? '${credential.givenName ?? ''} ${credential.familyName ?? ''}'.trim()
+                : null,
+          );
+      if (mounted) {
+        setState(() { _isLoading = false; _error = err; });
+        if (err == null) Navigator.pop(context);
+      }
+    } catch (e) {
+      if (mounted) setState(() { _isLoading = false; _error = e.toString(); });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -62,8 +133,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
         ),
       ),
       body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(24),
+        child: webAdaptiveContent(
+          context,
+          SingleChildScrollView(
+            padding: const EdgeInsets.all(24),
           child: Form(
             key: _formKey,
             child: Column(
@@ -116,6 +189,38 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         : const Text('Create Account'),
                   ),
                 ),
+                const SizedBox(height: 24),
+                Row(children: [
+                  Expanded(child: Divider(color: Colors.grey.shade400)),
+                  Padding(padding: const EdgeInsets.symmetric(horizontal: 16), child: Text('or', style: TextStyle(color: Colors.grey.shade600))),
+                  Expanded(child: Divider(color: Colors.grey.shade400)),
+                ]),
+                const SizedBox(height: 24),
+                SizedBox(
+                  height: 56,
+                  child: OutlinedButton.icon(
+                    onPressed: _isLoading ? null : _handleGoogleSignIn,
+                    icon: Icon(Icons.g_mobiledata, size: 28, color: Colors.grey.shade700),
+                    label: const Text('Continue with Google'),
+                    style: OutlinedButton.styleFrom(side: BorderSide(color: Colors.grey.shade400)),
+                  ),
+                ),
+                if (_appleSignInAvailable) ...[
+                  const SizedBox(height: 12),
+                  SizedBox(
+                    height: 56,
+                    child: OutlinedButton.icon(
+                      onPressed: _isLoading ? null : _handleAppleSignIn,
+                      icon: Icon(Icons.apple, size: 24, color: Colors.grey.shade800),
+                      label: const Text('Continue with Apple'),
+                      style: OutlinedButton.styleFrom(
+                        side: BorderSide(color: Colors.grey.shade400),
+                        backgroundColor: Colors.black,
+                        foregroundColor: Colors.white,
+                      ),
+                    ),
+                  ),
+                ],
                 const SizedBox(height: 16),
                 TextButton(
                   onPressed: () => Navigator.pop(context),
@@ -124,6 +229,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
               ],
             ),
           ),
+        ),
         ),
       ),
     );

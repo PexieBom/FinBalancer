@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../theme/app_theme.dart';
-import '../widgets/main_bottom_nav.dart';
+import '../widgets/adaptive_scaffold.dart';
 import '../providers/data_provider.dart';
 import '../providers/locale_provider.dart';
 import '../models/category.dart' as app_models;
@@ -50,7 +50,8 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return AdaptiveScaffold(
+      activeNavIndex: -1,
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
         backgroundColor: Theme.of(context).appBarTheme.backgroundColor,
@@ -123,7 +124,6 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
           );
         },
       ),
-      bottomNavigationBar: const MainBottomNav(activeIndex: -1),
     );
   }
 

@@ -21,7 +21,7 @@ import '../models/category.dart' as app_models;
 import '../models/achievement.dart';
 import '../widgets/balance_card.dart';
 import '../widgets/transaction_tile.dart';
-import '../widgets/main_bottom_nav.dart';
+import '../widgets/adaptive_scaffold.dart';
 import '../widgets/notifications_icon.dart';
 
 class DashboardScreen extends StatefulWidget {
@@ -462,7 +462,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return AdaptiveScaffold(
+      activeNavIndex: 0,
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
         backgroundColor: Theme.of(context).appBarTheme.backgroundColor,
@@ -951,7 +952,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
           );
         },
       ),
-      bottomNavigationBar: const MainBottomNav(activeIndex: 0),
     );
   }
 
