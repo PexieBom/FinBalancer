@@ -95,7 +95,7 @@ class _PremiumFeaturesScreenState extends State<PremiumFeaturesScreen> {
                   features: const [
                     'Dashboard with balance overview',
                     'Basic transactions (add, edit, delete)',
-                    'Up to 3 wallets',
+                    '1 wallet',
                     'Up to 5 categories',
                     'Basic statistics',
                     'Goals (up to 2)',

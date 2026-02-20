@@ -8,15 +8,20 @@ public class WalletService
     private readonly IWalletRepository _walletRepository;
     private readonly ICurrentUserService _currentUser;
     private readonly AccountLinkService _accountLinkService;
+    private readonly SubscriptionService _subscriptionService;
+
+    private const int FreeWalletLimit = 1;
 
     public WalletService(
         IWalletRepository walletRepository,
         ICurrentUserService currentUser,
-        AccountLinkService accountLinkService)
+        AccountLinkService accountLinkService,
+        SubscriptionService subscriptionService)
     {
         _walletRepository = walletRepository;
         _currentUser = currentUser;
         _accountLinkService = accountLinkService;
+        _subscriptionService = subscriptionService;
     }
 
     public async Task<Guid?> ResolveEffectiveUserIdForReadAsync(Guid? viewAsHostId)
@@ -50,17 +55,21 @@ public class WalletService
         return await _walletRepository.GetByIdAndUserIdAsync(id, userId.Value);
     }
 
-    public async Task<Wallet?> AddWalletAsync(Wallet wallet)
+    public async Task<AddWalletResult> AddWalletAsync(Wallet wallet)
     {
         var userId = _currentUser.UserId;
-        if (!userId.HasValue) return null;
+        if (!userId.HasValue) return AddWalletResult.Unauthorized();
 
+        var status = await _subscriptionService.GetStatusAsync(userId.Value);
         var existing = await _walletRepository.GetAllByUserIdAsync(userId.Value);
+        if (!status.IsPremium && existing.Count >= FreeWalletLimit)
+            return AddWalletResult.WalletLimitExceeded();
+
         wallet.Id = Guid.NewGuid();
         wallet.UserId = userId.Value;
         wallet.IsMain = existing.Count == 0;
         await _walletRepository.AddAsync(wallet);
-        return wallet;
+        return AddWalletResult.Ok(wallet);
     }
 
     public async Task<Wallet?> UpdateWalletAsync(Wallet wallet)
@@ -109,4 +118,15 @@ public class WalletService
         wallet.IsMain = true;
         return wallet;
     }
+}
+
+public class AddWalletResult
+{
+    public bool Success { get; init; }
+    public Wallet? Wallet { get; init; }
+    public string? ErrorCode { get; init; }
+
+    public static AddWalletResult Ok(Wallet w) => new() { Success = true, Wallet = w };
+    public static AddWalletResult Unauthorized() => new() { Success = false, ErrorCode = "Unauthorized" };
+    public static AddWalletResult WalletLimitExceeded() => new() { Success = false, ErrorCode = "WalletLimitExceeded" };
 }

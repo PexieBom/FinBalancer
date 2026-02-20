@@ -7,6 +7,7 @@ const _keyShowAchievements = 'dashboard_show_achievements';
 const _keyShowBudget = 'dashboard_show_budget';
 const _keyShowStatistics = 'dashboard_show_statistics';
 const _keyShowExpensesChart = 'dashboard_show_expenses_chart';
+const _keyShowLinkedAccounts = 'dashboard_show_linked_accounts';
 
 class DashboardSettingsProvider extends ChangeNotifier {
   bool _showPlan = true;
@@ -15,6 +16,7 @@ class DashboardSettingsProvider extends ChangeNotifier {
   bool _showBudget = true;
   bool _showStatistics = true;
   bool _showExpensesChart = true;
+  bool _showLinkedAccounts = true;
 
   bool get showPlan => _showPlan;
   bool get showGoals => _showGoals;
@@ -22,6 +24,7 @@ class DashboardSettingsProvider extends ChangeNotifier {
   bool get showBudget => _showBudget;
   bool get showStatistics => _showStatistics;
   bool get showExpensesChart => _showExpensesChart;
+  bool get showLinkedAccounts => _showLinkedAccounts;
 
   DashboardSettingsProvider() {
     _load();
@@ -35,6 +38,7 @@ class DashboardSettingsProvider extends ChangeNotifier {
     _showBudget = prefs.getBool(_keyShowBudget) ?? true;
     _showStatistics = prefs.getBool(_keyShowStatistics) ?? true;
     _showExpensesChart = prefs.getBool(_keyShowExpensesChart) ?? true;
+    _showLinkedAccounts = prefs.getBool(_keyShowLinkedAccounts) ?? true;
     notifyListeners();
   }
 
@@ -71,6 +75,12 @@ class DashboardSettingsProvider extends ChangeNotifier {
   Future<void> setShowExpensesChart(bool v) async {
     _showExpensesChart = v;
     await SharedPreferences.getInstance().then((p) => p.setBool(_keyShowExpensesChart, v));
+    notifyListeners();
+  }
+
+  Future<void> setShowLinkedAccounts(bool v) async {
+    _showLinkedAccounts = v;
+    await SharedPreferences.getInstance().then((p) => p.setBool(_keyShowLinkedAccounts, v));
     notifyListeners();
   }
 }

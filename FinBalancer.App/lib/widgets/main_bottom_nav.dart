@@ -46,8 +46,11 @@ class MainBottomNav extends StatelessWidget {
                 icon: Icons.add_circle_outline,
                 label: l10n.add,
                 isActive: activeIndex == 1,
-                onTap: () => Navigator.pushNamed(context, '/add-transaction')
-                    .then((_) => context.read<DataProvider>().loadAll(locale: context.read<LocaleProvider>().localeCode)),
+                onTap: () {
+                  if (ModalRoute.of(context)?.settings.name == '/add-transaction') return;
+                  Navigator.pushNamed(context, '/add-transaction')
+                      .then((_) => context.read<DataProvider>().loadAll(locale: context.read<LocaleProvider>().localeCode));
+                },
               ),
               _NavItem(
                 icon: Icons.bar_chart,
@@ -56,17 +59,26 @@ class MainBottomNav extends StatelessWidget {
                 onTap: () => _navigate(context, '/statistics'),
               ),
               _NavItem(
+                icon: Icons.flag,
+                label: l10n.goals,
+                isActive: activeIndex == 3,
+                onTap: () => _navigate(context, '/goals'),
+              ),
+              _NavItem(
                 icon: Icons.psychology,
                 label: l10n.decisionEngine,
-                isActive: activeIndex == 3,
+                isActive: activeIndex == 4,
                 onTap: () => _navigate(context, '/decision-engine'),
               ),
               _NavItem(
                 icon: Icons.account_balance_wallet,
                 label: l10n.walletsBudgets,
-                isActive: activeIndex == 4,
-                onTap: () => Navigator.pushNamed(context, '/wallets')
-                    .then((_) => context.read<DataProvider>().loadAll(locale: context.read<LocaleProvider>().localeCode)),
+                isActive: activeIndex == 5,
+                onTap: () {
+                  if (ModalRoute.of(context)?.settings.name == '/wallets') return;
+                  Navigator.pushNamed(context, '/wallets')
+                      .then((_) => context.read<DataProvider>().loadAll(locale: context.read<LocaleProvider>().localeCode));
+                },
               ),
             ],
           ),
@@ -76,8 +88,11 @@ class MainBottomNav extends StatelessWidget {
   }
 
   void _navigate(BuildContext context, String route) {
+    final currentRoute = ModalRoute.of(context)?.settings.name;
     if (route == '/dashboard') {
       Navigator.pushNamedAndRemoveUntil(context, '/dashboard', (_) => false);
+    } else if (currentRoute == route) {
+      return;
     } else {
       Navigator.pushNamed(context, route);
     }

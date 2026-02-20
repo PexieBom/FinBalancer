@@ -87,14 +87,6 @@ class _SplashScreenState extends State<SplashScreen>
                     ),
                     const SizedBox(height: 24),
                     Text(
-                      'FinBalancer',
-                      style: Theme.of(context).textTheme.headlineLarge?.copyWith(
-                            color: AppTheme.primaryColor,
-                            fontWeight: FontWeight.bold,
-                          ),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
                       'Your Personal Finance',
                       style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                             color: Colors.grey.shade600,

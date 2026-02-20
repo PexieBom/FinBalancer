@@ -30,6 +30,14 @@ public class TransactionService
         return await _transactionRepository.GetAllByUserIdAsync(userId.Value);
     }
 
+    /// <summary>Paginated transactions with filters. Used for dashboard list.</summary>
+    public async Task<List<Transaction>> GetTransactionsPagedAsync(Guid? viewAsHostId, DateTime? dateFrom, DateTime? dateTo, Guid? walletId, string? tag, string? project, Guid? categoryId, int limit, int offset)
+    {
+        var userId = await ResolveEffectiveUserIdForReadAsync(viewAsHostId);
+        if (!userId.HasValue) return new List<Transaction>();
+        return await _transactionRepository.GetByUserIdPagedAsync(userId.Value, dateFrom, dateTo, walletId, tag, project, categoryId, limit, offset);
+    }
+
     private async Task<Guid?> ResolveEffectiveUserIdForReadAsync(Guid? viewAsHostId)
     {
         var current = _currentUser.UserId;

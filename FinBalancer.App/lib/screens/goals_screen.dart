@@ -128,6 +128,20 @@ class _GoalsScreenState extends State<GoalsScreen> {
         type: 'savings',
       ));
       if (mounted) _loadGoals();
+    } on ApiLimitException catch (_) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(Localizations.localeOf(context).languageCode == 'hr'
+                ? 'Besplatna verzija dozvoljava max 2 cilja. Nadogradi na Premium za neograničeno.'
+                : 'Free plan allows max 2 goals. Upgrade to Premium for unlimited.'),
+            action: SnackBarAction(
+              label: 'Premium',
+              onPressed: () => Navigator.pushNamed(context, '/premium-features'),
+            ),
+          ),
+        );
+      }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -200,7 +214,7 @@ class _GoalsScreenState extends State<GoalsScreen> {
     final currencyFormat = currencyNumberFormat(localeProvider);
     final l10n = AppLocalizations.of(context)!;
     return AdaptiveScaffold(
-      activeNavIndex: -1,
+      activeNavIndex: 3,
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
         backgroundColor: Theme.of(context).appBarTheme.backgroundColor,

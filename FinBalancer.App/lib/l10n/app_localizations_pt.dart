@@ -388,7 +388,13 @@ class AppLocalizationsPt extends AppLocalizations {
   String get period => 'Period';
 
   @override
+  String get filter => 'Filter';
+
+  @override
   String get last1Month => 'Last 1 month';
+
+  @override
+  String get thisMonth => 'This month';
 
   @override
   String get last3Months => 'Last 3 months';
@@ -401,6 +407,9 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get thisYear => 'This year';
+
+  @override
+  String get allTime => 'All time';
 
   @override
   String get customRange => 'Custom range';
@@ -509,6 +518,12 @@ class AppLocalizationsPt extends AppLocalizations {
   String get allowancePerDay => 'Allowance/day';
 
   @override
+  String get tracking => 'Tracking';
+
+  @override
+  String get trackingAll => 'all';
+
+  @override
   String get onTrack => 'On track';
 
   @override
@@ -576,4 +591,7 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get showExpensesChart => 'Expenses chart';
+
+  @override
+  String get showLinkedAccounts => 'Linked accounts';
 }

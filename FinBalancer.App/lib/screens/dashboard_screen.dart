@@ -107,6 +107,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     Text(l10n.customizeDashboard, style: Theme.of(ctx2).textTheme.titleLarge),
                     const SizedBox(height: 20),
                     _CustomizeSwitch(label: l10n.showPlan, value: settings.showPlan, onChanged: settings.setShowPlan),
+                    _CustomizeSwitch(label: l10n.showLinkedAccounts, value: settings.showLinkedAccounts, onChanged: settings.setShowLinkedAccounts),
                     _CustomizeSwitch(label: l10n.showGoals, value: settings.showGoals, onChanged: settings.setShowGoals),
                     _CustomizeSwitch(label: l10n.showAchievements, value: settings.showAchievements, onChanged: settings.setShowAchievements),
                     _CustomizeSwitch(label: l10n.showBudget, value: settings.showBudget, onChanged: settings.setShowBudget),
@@ -172,6 +173,52 @@ class _DashboardScreenState extends State<DashboardScreen> {
           ),
         );
       },
+    );
+  }
+
+  Widget _buildLinkedAccountsEntry(BuildContext context) {
+    final isHr = Localizations.localeOf(context).languageCode == 'hr';
+    final label = isHr ? 'Povezani računi' : 'Linked accounts';
+    final subtitle = isHr ? 'Pozovi druge ili pregledaj povezane račune' : 'Invite others or manage linked accounts';
+    final theme = Theme.of(context);
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20),
+      child: Material(
+        color: theme.cardTheme.color,
+        borderRadius: BorderRadius.circular(12),
+        child: InkWell(
+          onTap: () => Navigator.pushNamed(context, '/linked-accounts'),
+          borderRadius: BorderRadius.circular(12),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            child: Row(
+              children: [
+                Icon(Icons.people_outline, color: theme.colorScheme.primary, size: 24),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        label,
+                        style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600),
+                      ),
+                      Text(
+                        subtitle,
+                        style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
+                  ),
+                ),
+                Icon(Icons.chevron_right, color: theme.colorScheme.onSurfaceVariant),
+              ],
+            ),
+          ),
+        ),
+      ),
     );
   }
 
@@ -303,9 +350,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
     AppLocalizations l10n, {
     String? walletName,
     BudgetCurrent? budget,
+    String? categoryName,
   }) {
+    final list = provider.dashboardBudgets;
     final name = walletName ?? provider.dashboardBudgetWalletName ?? l10n.allWallets;
     final b = budget ?? provider.dashboardBudget;
+    final cat = categoryName ?? (list.isNotEmpty ? list.first.categoryName : null);
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20),
       child: InkWell(
@@ -356,13 +406,15 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     Icon(Icons.arrow_forward_ios, size: 16, color: Theme.of(context).colorScheme.onSurfaceVariant),
                   ],
                 )
-              : _buildBudgetCardContent(context, b, name, fmt, l10n),
+              : _buildBudgetCardContent(context, b, name, fmt, l10n, categoryName: cat),
         ),
       ),
     );
   }
 
-  Widget _buildBudgetCardContent(BuildContext context, BudgetCurrent budget, String walletName, intl.NumberFormat fmt, AppLocalizations l10n) {
+  Widget _buildBudgetCardContent(BuildContext context, BudgetCurrent budget, String walletName, intl.NumberFormat fmt, AppLocalizations l10n, {String? categoryName}) {
+    final periodText = '${intl.DateFormat('dd.MM.yyyy').format(budget.periodStart)} – ${intl.DateFormat('dd.MM.yyyy').format(budget.periodEnd)}';
+    final trackingText = '${l10n.tracking}: ${categoryName ?? l10n.trackingAll}';
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -386,6 +438,33 @@ class _DashboardScreenState extends State<DashboardScreen> {
             _PaceChip(paceStatus: budget.paceStatus, l10n: l10n),
           ],
         ),
+        const SizedBox(height: 12),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          decoration: BoxDecoration(
+            color: Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.6),
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                periodText,
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      fontWeight: FontWeight.w600,
+                      color: Theme.of(context).colorScheme.onSurface,
+                    ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                trackingText,
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
+              ),
+            ],
+          ),
+        ),
         const SizedBox(height: 16),
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -400,13 +479,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
           ],
         ),
         const SizedBox(height: 8),
-        Text(
-          '${l10n.period}: ${intl.DateFormat('dd.MM.yyyy').format(budget.periodStart)} – ${intl.DateFormat('dd.MM.yyyy').format(budget.periodEnd)}',
-          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
-              ),
-        ),
-        const SizedBox(height: 4),
         Text(
           '${l10n.allowancePerDay}: ${fmt.format(budget.allowancePerDay)}',
           style: Theme.of(context).textTheme.bodySmall?.copyWith(
@@ -445,16 +517,16 @@ class _DashboardScreenState extends State<DashboardScreen> {
     }
     if (budgets.length == 1) {
       final name = budgets.first.walletName == 'All Wallets' ? l10n.allWallets : budgets.first.walletName;
-      return _buildBudgetCard(context, provider, fmt, l10n, walletName: name, budget: budgets.first.budget);
+      return _buildBudgetCard(context, provider, fmt, l10n, walletName: name, budget: budgets.first.budget, categoryName: budgets.first.categoryName);
     }
     return SizedBox(
-      height: 220,
+      height: 260,
       child: PageView.builder(
         itemCount: budgets.length,
         itemBuilder: (_, i) {
           final item = budgets[i];
           final name = item.walletName == 'All Wallets' ? l10n.allWallets : item.walletName;
-          return _buildBudgetCard(context, provider, fmt, l10n, walletName: name, budget: item.budget);
+          return _buildBudgetCard(context, provider, fmt, l10n, walletName: name, budget: item.budget, categoryName: item.categoryName);
         },
       ),
     );
@@ -476,6 +548,44 @@ class _DashboardScreenState extends State<DashboardScreen> {
               ),
         ),
         actions: [
+          Consumer<DataProvider>(
+            builder: (context, dp, _) {
+              final l10n = AppLocalizations.of(context)!;
+              return Center(
+                child: Padding(
+                  padding: const EdgeInsets.only(right: 8),
+                  child: InkWell(
+                    onTap: () => Navigator.pushNamed(context, '/period-filter'),
+                    borderRadius: BorderRadius.circular(20),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                      decoration: BoxDecoration(
+                        color: Theme.of(context).colorScheme.surfaceContainerHighest,
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(Icons.date_range, size: 18, color: Theme.of(context).colorScheme.onSurface),
+                          const SizedBox(width: 6),
+                          ConstrainedBox(
+                            constraints: const BoxConstraints(maxWidth: 120),
+                            child: Text(
+                              l10n.filter,
+                              style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              );
+            },
+          ),
           Consumer<SubscriptionProvider>(
             builder: (context, sub, _) => sub.isPremium
                 ? Center(
@@ -624,16 +734,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 children: [
                   const SizedBox(height: 8),
                   _buildAccountSwitcher(context, provider, localeProvider.localeCode),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20),
-                    child: Text(
-                      'FinBalancer',
-                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                            color: Theme.of(context).colorScheme.onSurfaceVariant,
-                            fontWeight: FontWeight.w500,
-                          ),
-                    ),
-                  ),
                   const SizedBox(height: 16),
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -724,6 +824,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   const SizedBox(height: 16),
                   if (dashSettings.showPlan) _buildPlanCard(context, localeProvider),
                   if (dashSettings.showPlan) const SizedBox(height: 24),
+                  if (dashSettings.showLinkedAccounts) _buildLinkedAccountsEntry(context),
+                  if (dashSettings.showLinkedAccounts) const SizedBox(height: 24),
                   if (dashSettings.showBudget) _buildBudgetSection(context, provider, fmt, l10n),
                   if (dashSettings.showBudget) const SizedBox(height: 24),
                   if (dashSettings.showGoals)
@@ -939,7 +1041,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         padding: const EdgeInsets.all(16),
                         child: Center(
                           child: OutlinedButton(
-                            onPressed: () => provider.loadMoreDisplayedTransactions(),
+                            onPressed: () => provider.loadMoreTransactions(),
                             child: Text(l10n.loadMore),
                           ),
                         ),

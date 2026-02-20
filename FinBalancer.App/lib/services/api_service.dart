@@ -28,7 +28,17 @@ class ApiService {
     return m;
   }
 
-  Future<List<Transaction>> getTransactions({String? tag, String? project, String? walletId, String? categoryId, DateTime? dateFrom, DateTime? dateTo, String? viewAsHostId}) async {
+  Future<List<Transaction>> getTransactions({
+    String? tag,
+    String? project,
+    String? walletId,
+    String? categoryId,
+    DateTime? dateFrom,
+    DateTime? dateTo,
+    String? viewAsHostId,
+    int? limit,
+    int? offset,
+  }) async {
     var url = '$_baseUrl/transactions';
     final params = <String>[];
     if (tag != null) params.add('tag=$tag');
@@ -38,13 +48,28 @@ class ApiService {
     if (dateFrom != null) params.add('dateFrom=${dateFrom.toIso8601String()}');
     if (dateTo != null) params.add('dateTo=${dateTo.toIso8601String()}');
     if (viewAsHostId != null && viewAsHostId.isNotEmpty) params.add('viewAsHostId=$viewAsHostId');
+    if (limit != null && limit > 0) params.add('limit=$limit');
+    if (offset != null && offset > 0) params.add('offset=$offset');
     if (params.isNotEmpty) url += '?${params.join('&')}';
     final response = await _client.get(Uri.parse(url), headers: _headers);
     if (response.statusCode == 200) {
       final List<dynamic> data = json.decode(response.body);
       return data.map((e) => Transaction.fromJson(e as Map<String, dynamic>)).toList();
     }
-    throw Exception('Failed to load transactions: ${response.statusCode}');
+    String errMsg = 'Failed to load transactions: ${response.statusCode}';
+    try {
+      final errJson = json.decode(response.body);
+      if (errJson is Map && errJson.containsKey('message')) {
+        errMsg += ' - ${errJson['message']}';
+      } else if (errJson is Map && errJson.containsKey('error')) {
+        errMsg += ' - ${errJson['error']}: ${errJson['message'] ?? ''}';
+      } else {
+        errMsg += ' - ${response.body.length > 200 ? response.body.substring(0, 200) : response.body}';
+      }
+    } catch (_) {
+      errMsg += ' - ${response.body.length > 200 ? response.body.substring(0, 200) : response.body}';
+    }
+    throw Exception(errMsg);
   }
 
   Future<Transaction> addTransaction(Transaction transaction) async {
@@ -97,6 +122,15 @@ class ApiService {
     );
     if (response.statusCode >= 200 && response.statusCode < 300) {
       return Wallet.fromJson(json.decode(response.body) as Map<String, dynamic>);
+    }
+    if (response.statusCode == 400) {
+      try {
+        final body = json.decode(response.body) as Map<String, dynamic>;
+        final code = body['errorCode'] as String?;
+        if (code == 'WalletLimitExceeded') throw ApiLimitException('WalletLimitExceeded');
+      } catch (e) {
+        if (e is ApiLimitException) rethrow;
+      }
     }
     throw Exception('Failed to add wallet: ${response.statusCode} - ${response.body}');
   }
@@ -173,6 +207,15 @@ class ApiService {
     );
     if (response.statusCode >= 200 && response.statusCode < 300) {
       return Goal.fromJson(json.decode(response.body) as Map<String, dynamic>);
+    }
+    if (response.statusCode == 400) {
+      try {
+        final body = json.decode(response.body) as Map<String, dynamic>;
+        final code = body['errorCode'] as String?;
+        if (code == 'GoalLimitExceeded') throw ApiLimitException('GoalLimitExceeded');
+      } catch (e) {
+        if (e is ApiLimitException) rethrow;
+      }
     }
     throw Exception('Failed to add goal: ${response.statusCode}');
   }
@@ -542,6 +585,98 @@ class ApiService {
     }
   }
 
+  /// Creates a new budget. Free: 1 max. Premium: unlimited.
+  Future<BudgetCurrent> createBudget({
+    String? walletId,
+    required double budgetAmount,
+    int periodStartDay = 1,
+    DateTime? periodStartDate,
+    DateTime? periodEndDate,
+    String? categoryId,
+    String? viewAsHostId,
+  }) async {
+    final body = <String, dynamic>{
+      'budgetAmount': budgetAmount,
+      'periodStartDay': periodStartDay,
+    };
+    if (walletId != null && walletId.isNotEmpty) body['walletId'] = walletId;
+    if (periodStartDate != null) body['periodStartDate'] = periodStartDate.toIso8601String();
+    if (periodEndDate != null) body['periodEndDate'] = periodEndDate.toIso8601String();
+    if (categoryId != null && categoryId.isNotEmpty) body['categoryId'] = categoryId;
+    var url = '$_baseUrl/budgets';
+    if (viewAsHostId != null && viewAsHostId.isNotEmpty) url += '?viewAsHostId=$viewAsHostId';
+    final response = await _client.post(Uri.parse(url), headers: _headers, body: json.encode(body));
+    if (response.statusCode >= 200 && response.statusCode < 300) {
+      return BudgetCurrent.fromJson(json.decode(response.body) as Map<String, dynamic>);
+    }
+    if (response.statusCode == 400) {
+      try {
+        final j = json.decode(response.body) as Map<String, dynamic>;
+        if (j['errorCode'] == 'BudgetLimitExceeded') throw ApiLimitException('BudgetLimitExceeded');
+      } catch (e) {
+        if (e is ApiLimitException) rethrow;
+      }
+    }
+    throw Exception('Failed to create budget: ${response.statusCode}');
+  }
+
+  Future<BudgetCurrent?> getBudgetCurrentById(String budgetId, {String? viewAsHostId}) async {
+    var url = '$_baseUrl/budgets/$budgetId/current';
+    if (viewAsHostId != null && viewAsHostId.isNotEmpty) url += '?viewAsHostId=$viewAsHostId';
+    final response = await _client.get(Uri.parse(url), headers: _headers);
+    if (response.statusCode == 200) {
+      return BudgetCurrent.fromJson(json.decode(response.body) as Map<String, dynamic>);
+    }
+    if (response.statusCode == 404) return null;
+    throw Exception('Failed to load budget: ${response.statusCode}');
+  }
+
+  Future<BudgetCurrent> updateBudget(
+    String budgetId, {
+    required double budgetAmount,
+    int periodStartDay = 1,
+    DateTime? periodStartDate,
+    DateTime? periodEndDate,
+    String? categoryId,
+  }) async {
+    final body = <String, dynamic>{
+      'budgetAmount': budgetAmount,
+      'periodStartDay': periodStartDay,
+    };
+    if (periodStartDate != null) body['periodStartDate'] = periodStartDate.toIso8601String();
+    if (periodEndDate != null) body['periodEndDate'] = periodEndDate.toIso8601String();
+    if (categoryId != null && categoryId.isNotEmpty) body['categoryId'] = categoryId;
+    final response = await _client.put(
+      Uri.parse('$_baseUrl/budgets/$budgetId'),
+      headers: _headers,
+      body: json.encode(body),
+    );
+    if (response.statusCode >= 200 && response.statusCode < 300) {
+      return BudgetCurrent.fromJson(json.decode(response.body) as Map<String, dynamic>);
+    }
+    throw Exception('Failed to update budget: ${response.statusCode}');
+  }
+
+  Future<void> deleteBudget(String budgetId) async {
+    final response = await _client.delete(
+      Uri.parse('$_baseUrl/budgets/$budgetId'),
+      headers: _headers,
+    );
+    if (response.statusCode != 200 && response.statusCode != 204) {
+      throw Exception('Failed to delete budget: ${response.statusCode}');
+    }
+  }
+
+  Future<void> setBudgetMain(String budgetId) async {
+    final response = await _client.post(
+      Uri.parse('$_baseUrl/budgets/$budgetId/main'),
+      headers: _headers,
+    );
+    if (response.statusCode != 200 && response.statusCode != 204) {
+      throw Exception('Failed to set main budget: ${response.statusCode}');
+    }
+  }
+
   // --- Povezani računi (host/guest) ---
 
   Future<List<AccountLinkItem>> getAccountLinks() async {
@@ -653,4 +788,9 @@ class InviteResult {
   final String? guestDisplayName;
   final String? errorCode;
   InviteResult({required this.success, this.guestDisplayName, this.errorCode});
+}
+
+class ApiLimitException implements Exception {
+  final String errorCode;
+  ApiLimitException(this.errorCode);
 }

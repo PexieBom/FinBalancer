@@ -29,6 +29,7 @@ import 'providers/linked_account_provider.dart';
 import 'providers/notifications_provider.dart';
 import 'screens/app_lock_screen.dart';
 import 'screens/linked_accounts_screen.dart';
+import 'screens/period_filter_screen.dart';
 
 void main() {
   runApp(const FinBalancerApp());
@@ -52,7 +53,7 @@ class FinBalancerApp extends StatelessWidget {
       ],
       child: Consumer<LocaleProvider>(
         builder: (context, localeProvider, _) => MaterialApp(
-          title: 'FinBalancer',
+          title: '',
           debugShowCheckedModeBanner: false,
           theme: AppTheme.lightTheme,
           darkTheme: AppTheme.darkTheme,
@@ -70,6 +71,7 @@ class FinBalancerApp extends StatelessWidget {
           if (settings.name == '/add-transaction') {
             final t = settings.arguments;
             return MaterialPageRoute(
+              settings: settings,
               builder: (_) => AddTransactionScreen(
                 editingTransaction: t is Transaction ? t : null,
               ),
@@ -96,6 +98,7 @@ class FinBalancerApp extends StatelessWidget {
           '/decision-engine': (context) => const DecisionEngineScreen(),
           '/app-lock': (context) => const AppLockScreen(),
           '/linked-accounts': (context) => const LinkedAccountsScreen(),
+          '/period-filter': (context) => const PeriodFilterScreen(),
         },
         ),
       ),

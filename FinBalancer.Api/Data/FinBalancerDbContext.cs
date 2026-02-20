@@ -32,6 +32,7 @@ public class FinBalancerDbContext : DbContext
     public DbSet<UserSubscriptionEntity> UserSubscriptions => Set<UserSubscriptionEntity>();
     public DbSet<UserPreferenceEntity> UserPreferences => Set<UserPreferenceEntity>();
     public DbSet<UnlockedAchievementEntity> UnlockedAchievements => Set<UnlockedAchievementEntity>();
+    public DbSet<SchemaVersionEntity> SchemaVersions => Set<SchemaVersionEntity>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -148,6 +149,12 @@ public class FinBalancerDbContext : DbContext
         {
             e.ToTable("unlocked_achievements");
             e.HasKey(x => x.Id);
+        });
+
+        modelBuilder.Entity<SchemaVersionEntity>(e =>
+        {
+            e.ToTable("schema_version");
+            e.HasKey(x => x.Version);
         });
     }
 }

@@ -10,6 +10,7 @@ public class WalletBudgetEntity
     public DateTime? PeriodStartDate { get; set; }
     public DateTime? PeriodEndDate { get; set; }
     public Guid? CategoryId { get; set; }
+    public bool IsMain { get; set; }
     public DateTime CreatedAt { get; set; }
     public DateTime UpdatedAt { get; set; }
 }

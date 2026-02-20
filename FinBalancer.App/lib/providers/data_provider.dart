@@ -13,6 +13,8 @@ import '../services/api_service.dart';
 class DataProvider extends ChangeNotifier {
   final ApiService _api = ApiService();
 
+  static const int _pageSize = 50;
+
   List<Transaction> _transactions = [];
   List<Wallet> _wallets = [];
   List<app_models.TransactionCategory> _categories = [];
@@ -24,6 +26,14 @@ class DataProvider extends ChangeNotifier {
   String? _filterTag;
   String? _filterProject;
   String? _filterWalletId;
+  DateTime? _filterDateFrom;
+  DateTime? _filterDateTo;
+  /// '1m'|'3m'|'6m'|'12m'|'month'|'year'|'custom'|'all' - za označavanje odabranog perioda u UI.
+  String _selectedPeriodId = 'month';
+  double _periodIncome = 0;
+  double _periodExpense = 0;
+  bool _hasMoreTransactions = true;
+  bool _isLoadingMore = false;
   bool _isLoading = false;
   String? _error;
   /// Kad je setiran, prikazuju se podaci tog hosta (guest pregled).
@@ -42,14 +52,63 @@ class DataProvider extends ChangeNotifier {
   String? get filterTag => _filterTag;
   String? get filterProject => _filterProject;
   String? get filterWalletId => _filterWalletId;
+  DateTime? get filterDateFrom => _filterDateFrom;
+  DateTime? get filterDateTo => _filterDateTo;
+  String get selectedPeriodId => _selectedPeriodId;
   bool get isLoading => _isLoading;
+  bool get isLoadingMore => _isLoadingMore;
   String? get error => _error;
+  bool get hasMoreTransactions => _hasMoreTransactions;
 
-  void setFilter({String? tag, String? project, String? walletId}) {
+  void setFilter({String? tag, String? project, String? walletId, DateTime? dateFrom, DateTime? dateTo}) {
     _filterTag = tag;
     _filterProject = project;
     _filterWalletId = walletId;
-    resetDisplayedTransactionCount();
+    _filterDateFrom = dateFrom;
+    _filterDateTo = dateTo;
+    notifyListeners();
+  }
+
+  /// Postavlja period na zadnjih N mjeseci (npr. 3 = zadnja 3 mjeseca).
+  void setPeriodMonths(int months) {
+    _selectedPeriodId = '${months}m';
+    final now = DateTime.now();
+    _filterDateTo = DateTime(now.year, now.month, now.day, 23, 59, 59);
+    _filterDateFrom = DateTime(now.year, now.month - months, now.day, 0, 0, 0);
+    notifyListeners();
+  }
+
+  /// Postavlja period na početak ovog mjeseca do danas.
+  void setCurrentMonth() {
+    _selectedPeriodId = 'month';
+    final now = DateTime.now();
+    _filterDateFrom = DateTime(now.year, now.month, 1, 0, 0, 0);
+    _filterDateTo = DateTime(now.year, now.month, now.day, 23, 59, 59);
+    notifyListeners();
+  }
+
+  /// Postavlja period na početak ove godine do danas.
+  void setPeriodThisYear() {
+    _selectedPeriodId = 'year';
+    final now = DateTime.now();
+    _filterDateFrom = DateTime(now.year, 1, 1, 0, 0, 0);
+    _filterDateTo = DateTime(now.year, now.month, now.day, 23, 59, 59);
+    notifyListeners();
+  }
+
+  /// Uklanja filter perioda (prikazuje sve transakcije).
+  void clearPeriodFilter() {
+    _selectedPeriodId = 'all';
+    _filterDateFrom = null;
+    _filterDateTo = null;
+    notifyListeners();
+  }
+
+  /// Postavlja prilagođeni raspon datuma (od–do).
+  void setCustomPeriod(DateTime dateFrom, DateTime dateTo) {
+    _selectedPeriodId = 'custom';
+    _filterDateFrom = DateTime(dateFrom.year, dateFrom.month, dateFrom.day, 0, 0, 0);
+    _filterDateTo = DateTime(dateTo.year, dateTo.month, dateTo.day, 23, 59, 59);
     notifyListeners();
   }
 
@@ -68,58 +127,49 @@ class DataProvider extends ChangeNotifier {
   double get totalBalance =>
       _wallets.fold(0, (sum, w) => sum + w.balance);
 
-  double get totalIncome => _transactions
-      .where((t) => t.type == 'income')
-      .fold(0, (sum, t) => sum + t.amount);
+  double get totalIncome => _periodIncome;
+  double get totalExpense => _periodExpense;
 
-  double get totalExpense => _transactions
-      .where((t) => t.type == 'expense')
-      .fold(0, (sum, t) => sum + t.amount);
+  List<Transaction> get recentTransactions => _transactions;
 
-  static const int _initialDisplayCount = 20;
-  static const int _loadMoreCount = 20;
-  int _displayedTransactionCount = _initialDisplayCount;
-
-  List<Transaction> get recentTransactions =>
-      _transactions.take(_displayedTransactionCount).toList();
-
-  bool get hasMoreTransactions => _displayedTransactionCount < _transactions.length;
-
-  void loadMoreDisplayedTransactions() {
-    if (_displayedTransactionCount < _transactions.length) {
-      _displayedTransactionCount = (_displayedTransactionCount + _loadMoreCount)
-          .clamp(0, _transactions.length);
+  /// Učitava sljedećih 50 transakcija iz baze.
+  Future<void> loadMoreTransactions() async {
+    if (_isLoadingMore || !_hasMoreTransactions) return;
+    _isLoadingMore = true;
+    notifyListeners();
+    try {
+      final next = await _api.getTransactions(
+        tag: _filterTag,
+        project: _filterProject,
+        walletId: _filterWalletId,
+        dateFrom: _filterDateFrom,
+        dateTo: _filterDateTo,
+        viewAsHostId: _viewAsHostId,
+        limit: _pageSize,
+        offset: _transactions.length,
+      );
+      _transactions.addAll(next);
+      _hasMoreTransactions = next.length >= _pageSize;
+      notifyListeners();
+    } catch (e) {
+      _error = e.toString();
+      rethrow;
+    } finally {
+      _isLoadingMore = false;
       notifyListeners();
     }
   }
 
-  void resetDisplayedTransactionCount() {
-    _displayedTransactionCount = _initialDisplayCount;
-    notifyListeners();
-  }
-
-  /// List of budgets to show on dashboard (for carousel). Only shows budgets that are set.
-  /// Single wallet: that wallet's budget if set. All wallets: global + per-wallet budgets.
-  List<({String walletId, String walletName, BudgetCurrent budget})> get dashboardBudgets {
-    final result = <({String walletId, String walletName, BudgetCurrent budget})>[];
-    if (_filterWalletId != null) {
-      for (final b in _budgetSummaries) {
-        if (b.walletId == _filterWalletId) {
-          final w = _wallets.where((x) => x.id == b.walletId).toList();
-          final name = w.isEmpty ? 'Wallet' : w.first.name;
-          result.add((walletId: b.walletId, walletName: name, budget: b.current));
-        }
-      }
-    } else {
-      for (final b in _budgetSummaries) {
-        if (b.walletId == ApiService.globalBudgetId) {
-          result.add((walletId: b.walletId, walletName: 'All Wallets', budget: b.current));
-        } else {
-          final w = _wallets.where((x) => x.id == b.walletId).toList();
-          final name = w.isEmpty ? 'Wallet' : w.first.name;
-          result.add((walletId: b.walletId, walletName: name, budget: b.current));
-        }
-      }
+  /// List of budgets to show on dashboard. Prikazuje samo glavni budžet (isMain).
+  List<({String walletId, String walletName, BudgetCurrent budget, String? categoryName})> get dashboardBudgets {
+    final result = <({String walletId, String walletName, BudgetCurrent budget, String? categoryName})>[];
+    for (final b in _budgetSummaries) {
+      if (!b.isMain) continue;
+      final w = _wallets.where((x) => x.id == b.walletId).toList();
+      final name = b.walletId == ApiService.globalBudgetId
+          ? 'All Wallets'
+          : (w.isEmpty ? 'Wallet' : w.first.name);
+      result.add((walletId: b.walletId, walletName: name, budget: b.current, categoryName: b.categoryName));
     }
     return result;
   }
@@ -139,6 +189,10 @@ class DataProvider extends ChangeNotifier {
   Future<void> loadAll({String? locale}) async {
     _isLoading = true;
     _error = null;
+    // Default: ovaj mjesec (1. do danas).
+    if (_filterDateFrom == null && _filterDateTo == null) {
+      setCurrentMonth();
+    }
     notifyListeners();
 
     try {
@@ -164,15 +218,29 @@ class DataProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> loadTransactions({bool resetDisplayedCount = true}) async {
+  Future<void> loadTransactions() async {
     try {
       _transactions = await _api.getTransactions(
         tag: _filterTag,
         project: _filterProject,
         walletId: _filterWalletId,
+        dateFrom: _filterDateFrom,
+        dateTo: _filterDateTo,
+        viewAsHostId: _viewAsHostId,
+        limit: _pageSize,
+        offset: 0,
+      );
+      _hasMoreTransactions = _transactions.length >= _pageSize;
+
+      final summary = await _api.getIncomeExpenseSummary(
+        walletId: _filterWalletId,
+        dateFrom: _filterDateFrom,
+        dateTo: _filterDateTo,
         viewAsHostId: _viewAsHostId,
       );
-      if (resetDisplayedCount) resetDisplayedTransactionCount();
+      _periodIncome = (summary['totalIncome'] as num?)?.toDouble() ?? 0;
+      _periodExpense = (summary['totalExpense'] as num?)?.toDouble() ?? 0;
+
       notifyListeners();
     } catch (e) {
       _error = e.toString();
@@ -180,10 +248,10 @@ class DataProvider extends ChangeNotifier {
     }
   }
 
-  /// Refreshes transactions and related data after add/edit without resetting displayed count.
+  /// Refreshes transactions and related data after add/edit.
   Future<void> refreshAfterTransactionChange() async {
     try {
-      await loadTransactions(resetDisplayedCount: false);
+      await loadTransactions();
       await loadWallets();
       await loadBudgets();
       notifyListeners();
@@ -268,6 +336,71 @@ class DataProvider extends ChangeNotifier {
     } catch (_) {
       return null;
     }
+  }
+
+  Future<BudgetCurrent?> getBudgetById(String budgetId) async {
+    try {
+      return await _api.getBudgetCurrentById(budgetId, viewAsHostId: _viewAsHostId);
+    } catch (_) {
+      return null;
+    }
+  }
+
+  /// Kreira novi budžet (Premium: neograničeno, Free: max 1).
+  Future<BudgetCurrent> createBudget({
+    String? walletId,
+    required double budgetAmount,
+    int periodStartDay = 1,
+    DateTime? periodStartDate,
+    DateTime? periodEndDate,
+    String? categoryId,
+  }) async {
+    final result = await _api.createBudget(
+      walletId: walletId ?? ApiService.globalBudgetId,
+      budgetAmount: budgetAmount,
+      periodStartDay: periodStartDay,
+      periodStartDate: periodStartDate,
+      periodEndDate: periodEndDate,
+      categoryId: categoryId,
+      viewAsHostId: _viewAsHostId,
+    );
+    await loadBudgets();
+    notifyListeners();
+    return result;
+  }
+
+  /// Ažurira postojeći budžet po id.
+  Future<BudgetCurrent> updateBudget(
+    String budgetId, {
+    required double budgetAmount,
+    int periodStartDay = 1,
+    DateTime? periodStartDate,
+    DateTime? periodEndDate,
+    String? categoryId,
+  }) async {
+    final result = await _api.updateBudget(
+      budgetId,
+      budgetAmount: budgetAmount,
+      periodStartDay: periodStartDay,
+      periodStartDate: periodStartDate,
+      periodEndDate: periodEndDate,
+      categoryId: categoryId,
+    );
+    await loadBudgets();
+    notifyListeners();
+    return result;
+  }
+
+  Future<void> deleteBudgetById(String budgetId) async {
+    await _api.deleteBudget(budgetId);
+    await loadBudgets();
+    notifyListeners();
+  }
+
+  Future<void> setBudgetMain(String budgetId) async {
+    await _api.setBudgetMain(budgetId);
+    await loadBudgets();
+    notifyListeners();
   }
 
   Future<BudgetCurrent> createOrUpdateBudget(
@@ -444,10 +577,16 @@ class DataProvider extends ChangeNotifier {
     _filterTag = null;
     _filterProject = null;
     _filterWalletId = null;
+    _filterDateFrom = null;
+    _filterDateTo = null;
+    _selectedPeriodId = 'month';
+    _periodIncome = 0;
+    _periodExpense = 0;
+    _hasMoreTransactions = true;
     _viewAsHostId = null;
-    _displayedTransactionCount = _initialDisplayCount;
     _error = null;
     _isLoading = false;
+    _isLoadingMore = false;
     notifyListeners();
   }
 

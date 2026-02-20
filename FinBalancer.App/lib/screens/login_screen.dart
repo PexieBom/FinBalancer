@@ -138,10 +138,6 @@ class _LoginScreenState extends State<LoginScreen> {
                 const SizedBox(height: 40),
                 Icon(Icons.account_balance_wallet_rounded, size: 80, color: AppTheme.accentColor),
                 const SizedBox(height: 24),
-                Text('FinBalancer', textAlign: TextAlign.center,
-                    style: Theme.of(context).textTheme.headlineLarge?.copyWith(
-                          color: AppTheme.primaryColor, fontWeight: FontWeight.bold)),
-                const SizedBox(height: 8),
                 Text('Sign in to manage your finances', textAlign: TextAlign.center,
                     style: Theme.of(context).textTheme.bodyLarge?.copyWith(color: Colors.grey.shade600)),
                 const SizedBox(height: 32),

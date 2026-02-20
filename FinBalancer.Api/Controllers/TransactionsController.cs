@@ -30,7 +30,9 @@ public class TransactionsController : ControllerBase
         [FromQuery] Guid? categoryId,
         [FromQuery] DateTime? dateFrom,
         [FromQuery] DateTime? dateTo,
-        [FromQuery] Guid? viewAsHostId)
+        [FromQuery] Guid? viewAsHostId,
+        [FromQuery] int limit = 0,
+        [FromQuery] int offset = 0)
     {
         if (viewAsHostId.HasValue)
         {
@@ -39,8 +41,14 @@ public class TransactionsController : ControllerBase
             if (!await _accountLinkService.CanGuestViewHostAsync(userId.Value, viewAsHostId.Value))
                 return Forbid();
         }
-        var transactions = await _transactionService.GetTransactionsAsync(viewAsHostId);
 
+        if (limit > 0)
+        {
+            var paged = await _transactionService.GetTransactionsPagedAsync(viewAsHostId, dateFrom, dateTo, walletId, tag, project, categoryId, limit, offset);
+            return Ok(paged);
+        }
+
+        var transactions = await _transactionService.GetTransactionsAsync(viewAsHostId);
         if (!string.IsNullOrEmpty(tag))
             transactions = transactions.Where(t => t.Tags?.Contains(tag) == true).ToList();
         if (!string.IsNullOrEmpty(project))

@@ -22,9 +22,25 @@ class _LinkedAccountsScreenState extends State<LinkedAccountsScreen> {
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<LinkedAccountProvider>().loadLinks();
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      final provider = context.read<LinkedAccountProvider>();
+      final notifications = await provider.loadLinks();
       context.read<NotificationsProvider>().loadUnreadCount();
+      if (!mounted) return;
+      for (final n in notifications) {
+        final msg = n.accepted
+            ? _notificationAccepted(n.otherName)
+            : _notificationDeclined(n.otherName);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(msg), duration: const Duration(seconds: 4)),
+        );
+        await Future.delayed(const Duration(milliseconds: 400));
+      }
+      if (notifications.isNotEmpty && mounted) {
+        await provider.acknowledgeLinkNotifications(
+          notifications.map((n) => n.linkId).toList(),
+        );
+      }
     });
   }
 
@@ -170,13 +186,38 @@ class _LinkedAccountsScreenState extends State<LinkedAccountsScreen> {
     final theme = Theme.of(context);
     final statusText = _statusText(context, link.status);
     final roleText = link.isCurrentUserHost ? _youInvited(context) : _youInvitedBy(context);
+    final canReinvite = link.status == AccountLinkStatus.revoked && link.isCurrentUserHost && (link.otherEmail ?? '').isNotEmpty;
     return Card(
       margin: const EdgeInsets.only(bottom: 8),
       child: ListTile(
         title: Text(link.otherDisplayName),
         subtitle: Text('${link.otherEmail ?? ''} · $roleText · $statusText'),
-        trailing: link.status == AccountLinkStatus.pending && !link.isCurrentUserHost
-            ? TextButton(
+        trailing: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (canReinvite)
+              TextButton(
+                onPressed: provider.isLoading
+                    ? null
+                    : () async {
+                        final email = link.otherEmail!.trim();
+                        final errorCode = await provider.inviteByEmail(email);
+                        if (!mounted) return;
+                        if (errorCode == null) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text(_inviteSent(context))),
+                          );
+                        } else {
+                          final msg = _errorMessageForCode(context, errorCode);
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text(msg), backgroundColor: theme.colorScheme.error),
+                          );
+                        }
+                      },
+                child: Text(_reinvite(context)),
+              ),
+            if (link.status == AccountLinkStatus.pending && !link.isCurrentUserHost)
+              TextButton(
                 onPressed: () async {
                   final ok = await provider.acceptInvite(link.id);
                   if (mounted) {
@@ -187,19 +228,20 @@ class _LinkedAccountsScreenState extends State<LinkedAccountsScreen> {
                 },
                 child: Text(_accept(context)),
               )
-            : link.status != AccountLinkStatus.revoked
-                ? IconButton(
-                    icon: const Icon(Icons.link_off),
-                    onPressed: () async {
-                      final ok = await provider.revokeLink(link.id);
-                      if (mounted) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text(ok ? _revoked(context) : _failed(context))),
-                        );
-                      }
-                    },
-                  )
-                : null,
+            else if (link.status != AccountLinkStatus.revoked)
+              IconButton(
+                icon: const Icon(Icons.link_off),
+                onPressed: () async {
+                  final ok = await provider.revokeLink(link.id);
+                  if (mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text(ok ? _revoked(context) : _failed(context))),
+                    );
+                  }
+                },
+              ),
+          ],
+        ),
       ),
     );
   }
@@ -324,6 +366,10 @@ class _LinkedAccountsScreenState extends State<LinkedAccountsScreen> {
         return Localizations.localeOf(context).languageCode == 'hr'
             ? 'Pozivnica je već poslana.'
             : 'Invite already sent.';
+      case 'RevokedPreviously':
+        return Localizations.localeOf(context).languageCode == 'hr'
+            ? 'API trenutno ne dopušta ponovno pozivanje. Pokušaj kasnije.'
+            : 'API does not allow re-invite yet. Try again later.';
       case 'CannotInviteSelf':
         return Localizations.localeOf(context).languageCode == 'hr'
             ? 'Ne možeš pozvati sam sebe.'
@@ -331,5 +377,21 @@ class _LinkedAccountsScreenState extends State<LinkedAccountsScreen> {
       default:
         return code;
     }
+  }
+
+  String _reinvite(BuildContext context) {
+    return Localizations.localeOf(context).languageCode == 'hr' ? 'Ponovno pozovi' : 'Re-invite';
+  }
+
+  String _notificationAccepted(String name) {
+    return Localizations.localeOf(context).languageCode == 'hr'
+        ? '$name je prihvatio/la tvoju pozivnicu.'
+        : '$name accepted your invite.';
+  }
+
+  String _notificationDeclined(String name) {
+    return Localizations.localeOf(context).languageCode == 'hr'
+        ? '$name je odbio/la tvoju pozivnicu.'
+        : '$name declined your invite.';
   }
 }

@@ -1,0 +1,11 @@
+# .NET / API - binaries i publish
+bin/
+obj/
+publish/
+**/bin/
+**/obj/
+**/publish/
+
+# Flutter - build output
+build/
+**/build/

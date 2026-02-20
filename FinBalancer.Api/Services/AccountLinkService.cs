@@ -45,6 +45,7 @@ public class AccountLinkService
             return AccountLinkInviteResult.CannotInviteSelf();
 
         var existing = await _linkRepository.GetByHostAndGuestAsync(hostUserId.Value, guest.Id);
+        AccountLink link;
         if (existing != null)
         {
             if (existing.Status == AccountLinkStatus.Accepted)
@@ -52,19 +53,29 @@ public class AccountLinkService
             if (existing.Status == AccountLinkStatus.Pending)
                 return AccountLinkInviteResult.AlreadyPending();
             if (existing.Status == AccountLinkStatus.Revoked)
+            {
+                existing.Status = AccountLinkStatus.Pending;
+                existing.InvitedAt = DateTime.UtcNow;
+                existing.RespondedAt = null;
+                await _linkRepository.UpdateAsync(existing);
+                link = existing;
+            }
+            else
                 return AccountLinkInviteResult.RevokedPreviously();
         }
-
-        var link = new AccountLink
+        else
         {
-            Id = Guid.NewGuid(),
-            HostUserId = hostUserId.Value,
-            GuestUserId = guest.Id,
-            Status = AccountLinkStatus.Pending,
-            InvitedAt = DateTime.UtcNow,
-            RespondedAt = null
-        };
-        await _linkRepository.AddAsync(link);
+            link = new AccountLink
+            {
+                Id = Guid.NewGuid(),
+                HostUserId = hostUserId.Value,
+                GuestUserId = guest.Id,
+                Status = AccountLinkStatus.Pending,
+                InvitedAt = DateTime.UtcNow,
+                RespondedAt = null
+            };
+            await _linkRepository.AddAsync(link);
+        }
         var hostUser = await _userRepository.GetByIdAsync(hostUserId.Value);
         await _notificationService.NotifyAccountLinkInviteAsync(guest.Id, hostUser?.DisplayName ?? hostUser?.Email ?? "Neko", link.Id);
         return AccountLinkInviteResult.Ok(link, guest.DisplayName);

@@ -92,22 +92,33 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
         ),
         actions: [
           const NotificationsIcon(),
-          TextButton.icon(
-            icon: const Icon(Icons.filter_list, size: 20),
-            label: const Text('Filter'),
-            onPressed: () => _showDateRangePicker(context),
+          Tooltip(
+            message: 'Filter period',
+            child: IconButton(
+              icon: const Icon(Icons.filter_list),
+              onPressed: () => _showDateRangePicker(context),
+            ),
           ),
-          IconButton(
-            icon: const Icon(Icons.date_range),
-            onPressed: () => _showDateRangePicker(context),
+          Tooltip(
+            message: 'Date range',
+            child: IconButton(
+              icon: const Icon(Icons.date_range),
+              onPressed: () => _showDateRangePicker(context),
+            ),
           ),
-          IconButton(
-            icon: const Icon(Icons.download),
-            onPressed: () => _showExportSheet(context),
+          Tooltip(
+            message: 'Export data',
+            child: IconButton(
+              icon: const Icon(Icons.download),
+              onPressed: () => _showExportSheet(context),
+            ),
           ),
-          IconButton(
-            icon: const Icon(Icons.refresh),
-            onPressed: _loadData,
+          Tooltip(
+            message: 'Refresh',
+            child: IconButton(
+              icon: const Icon(Icons.refresh),
+              onPressed: _loadData,
+            ),
           ),
         ],
       ),
@@ -133,10 +144,10 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
                           const SizedBox(height: 24),
                           _buildMonthlyChart(),
                         ],
-                        if (_budgetAlerts.isNotEmpty) ...[
-                          const SizedBox(height: 24),
-                          _buildBudgetAlerts(),
-                        ],
+        if (_budgetAlerts.isNotEmpty) ...[
+          const SizedBox(height: 24),
+          _buildBudgetAlerts(),
+        ],
                         if (_budgetPrediction != null) ...[
                           const SizedBox(height: 24),
                           _buildBudgetPrediction(),
@@ -201,11 +212,13 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
       builder: (ctx) => SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(24),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
               Text('Period', style: Theme.of(context).textTheme.titleLarge),
+              const SizedBox(height: 8),
+              Text('Select time range for statistics', style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant)),
               const SizedBox(height: 16),
               Wrap(
                 spacing: 8,
@@ -384,6 +397,15 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
     final balance = (summary['balance'] as num?)?.toDouble() ?? 0.0;
     final currencyFormat = NumberFormat.currency(locale: 'hr_HR', symbol: '€');
 
+    final savingsRate = income > 0 ? ((income - expense) / income * 100) : 0.0;
+    int expenseTxCount = 0;
+    if (_spendingData != null) {
+      final byCat = _spendingData!['byCategory'] as List<dynamic>? ?? [];
+      for (final c in byCat) {
+        expenseTxCount += (c as Map<String, dynamic>)['count'] as int? ?? 0;
+      }
+    }
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -417,6 +439,34 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
           color: balance >= 0 ? AppTheme.income(context) : AppTheme.expense(context),
           icon: Icons.account_balance_wallet,
         ),
+        if (income > 0 || expenseTxCount > 0) ...[
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              if (income > 0)
+                Expanded(
+                  child: _SummaryCard(
+                    title: 'Savings rate',
+                    amount: savingsRate,
+                    color: savingsRate >= 0 ? AppTheme.income(context) : AppTheme.expense(context),
+                    icon: Icons.savings,
+                    isPercent: true,
+                  ),
+                ),
+              if (income > 0 && expenseTxCount > 0) const SizedBox(width: 12),
+              if (expenseTxCount > 0)
+                Expanded(
+                  child: _SummaryCard(
+                    title: 'Expense transactions',
+                    amount: expenseTxCount.toDouble(),
+                    color: Theme.of(context).colorScheme.primary,
+                    icon: Icons.receipt_long,
+                    isCount: true,
+                  ),
+                ),
+            ],
+          ),
+        ],
       ],
     );
   }
@@ -530,47 +580,65 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
     const monthNames = ['', 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
     final currencyFormat = NumberFormat.currency(locale: 'hr_HR', symbol: '€');
 
-    final netValues = points.map((p) {
+    double maxVal = 0;
+    for (final p in points) {
       final pt = p as Map<String, dynamic>;
-      return (pt['net'] as num?)?.toDouble() ?? 0.0;
-    }).toList();
-    final maxNet = netValues.map((v) => v.abs()).fold(0.0, (a, b) => a > b ? a : b);
-    final minY = maxNet > 0 ? -maxNet * 1.1 : -100.0;
-    final maxY = maxNet > 0 ? maxNet * 1.1 : 100.0;
+      final inc = (pt['income'] as num?)?.toDouble() ?? 0.0;
+      final exp = (pt['expense'] as num?)?.toDouble() ?? 0.0;
+      if (inc > maxVal) maxVal = inc;
+      if (exp > maxVal) maxVal = exp;
+    }
+    final maxY = maxVal > 0 ? maxVal * 1.15 : 100.0;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('Cashflow Trend', style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
+        Text('Income vs Expense by Month', style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
         const SizedBox(height: 8),
-        Text('Income vs expense by month', style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Colors.grey.shade600)),
+        Text('Monthly totals', style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant)),
+        const SizedBox(height: 8),
+        Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            _chartLegend(context, AppTheme.income(context), 'Income'),
+            const SizedBox(width: 16),
+            _chartLegend(context, AppTheme.expense(context), 'Expense'),
+          ],
+        ),
         const SizedBox(height: 16),
         SizedBox(
-          height: 220,
-          child: LineChart(
-            LineChartData(
+          height: 240,
+          child: BarChart(
+            BarChartData(
               maxY: maxY,
-              minY: minY,
-              lineBarsData: [
-                LineChartBarData(
-                  spots: points.asMap().entries.map((e) {
-                    final pt = e.value as Map<String, dynamic>;
-                    final net = (pt['net'] as num?)?.toDouble() ?? 0.0;
-                    return FlSpot(e.key.toDouble(), net);
-                  }).toList(),
-                  isCurved: true,
-                  color: AppTheme.accent(context),
-                  barWidth: 2,
-                  isStrokeCapRound: true,
-                  dotData: FlDotData(show: true),
-                  belowBarData: BarAreaData(show: false),
-                ),
-              ],
+              barGroups: points.asMap().entries.map((e) {
+                final pt = e.value as Map<String, dynamic>;
+                final income = (pt['income'] as num?)?.toDouble() ?? 0.0;
+                final expense = (pt['expense'] as num?)?.toDouble() ?? 0.0;
+                return BarChartGroupData(
+                  x: e.key,
+                  barRods: [
+                    BarChartRodData(
+                      toY: income,
+                      color: AppTheme.income(context),
+                      width: 14,
+                      borderRadius: const BorderRadius.vertical(top: Radius.circular(4)),
+                    ),
+                    BarChartRodData(
+                      toY: expense,
+                      color: AppTheme.expense(context),
+                      width: 14,
+                      borderRadius: const BorderRadius.vertical(top: Radius.circular(4)),
+                    ),
+                  ],
+                  barsSpace: 4,
+                );
+              }).toList(),
               titlesData: FlTitlesData(
                 leftTitles: AxisTitles(
                   sideTitles: SideTitles(
                     showTitles: true,
-                    reservedSize: 42,
+                    reservedSize: 48,
                     getTitlesWidget: (v, meta) => Text(
                       currencyFormat.format(v),
                       style: TextStyle(fontSize: 10, color: Theme.of(context).colorScheme.onSurfaceVariant),
@@ -587,10 +655,9 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
                       if (i < 0 || i >= points.length) return const SizedBox();
                       final pt = points[i] as Map<String, dynamic>;
                       final month = pt['month'] as int? ?? 0;
-                      final year = pt['year'] as int? ?? 0;
                       return Padding(
                         padding: const EdgeInsets.only(top: 8),
-                        child: Text('${monthNames[month]}', style: const TextStyle(fontSize: 10)),
+                        child: Text('${monthNames[month]}', style: TextStyle(fontSize: 10, color: Theme.of(context).colorScheme.onSurfaceVariant)),
                       );
                     },
                     reservedSize: 28,
@@ -599,19 +666,38 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
               ),
               gridData: FlGridData(show: true, drawVerticalLine: false),
               borderData: FlBorderData(show: true, border: Border(bottom: BorderSide(color: Theme.of(context).colorScheme.outline))),
-              lineTouchData: LineTouchData(
-                touchTooltipData: LineTouchTooltipData(
-                  getTooltipColor: (_) => Colors.grey.shade800,
+              barTouchData: BarTouchData(
+                touchTooltipData: BarTouchTooltipData(
+                  getTooltipColor: (_) => Theme.of(context).colorScheme.surfaceContainerHighest,
                   tooltipRoundedRadius: 8,
-                  getTooltipItems: (spots) => spots.map((s) => LineTooltipItem(
-                    'Net: ${currencyFormat.format(s.y)}',
-                    const TextStyle(color: Colors.white, fontSize: 12),
-                  )).toList(),
+                  getTooltipItem: (group, groupIndex, rod, rodIndex) {
+                    final pt = points[group.x] as Map<String, dynamic>;
+                    final income = (pt['income'] as num?)?.toDouble() ?? 0.0;
+                    final expense = (pt['expense'] as num?)?.toDouble() ?? 0.0;
+                    final label = rodIndex == 0 ? 'Income' : 'Expense';
+                    final val = rodIndex == 0 ? income : expense;
+                    return BarTooltipItem(
+                      '$label: ${currencyFormat.format(val)}',
+                      TextStyle(color: rodIndex == 0 ? AppTheme.income(context) : AppTheme.expense(context), fontWeight: FontWeight.w600, fontSize: 12),
+                    );
+                  },
                 ),
               ),
+              alignment: BarChartAlignment.spaceAround,
             ),
           ),
         ),
+      ],
+    );
+  }
+
+  Widget _chartLegend(BuildContext context, Color color, String label) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Container(width: 12, height: 12, decoration: BoxDecoration(color: color, borderRadius: BorderRadius.circular(3))),
+        const SizedBox(width: 6),
+        Text(label, style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant)),
       ],
     );
   }
@@ -655,8 +741,18 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
       children: [
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Spending by Category', style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('Spending by Category', style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
+                  const SizedBox(height: 4),
+                  Text('Tap a category to see transactions', style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant)),
+                ],
+              ),
+            ),
             if (byCategory.length > 6)
               TextButton.icon(
                 icon: Icon(_categoriesExpanded ? Icons.expand_less : Icons.expand_more, size: 20),
@@ -759,6 +855,8 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text('Monthly Overview', style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
+        const SizedBox(height: 4),
+        Text('Income and expense per month', style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant)),
         const SizedBox(height: 16),
         ...byMonth.take(6).map((e) {
           final m = e as Map<String, dynamic>;
@@ -824,12 +922,26 @@ class _SummaryCard extends StatelessWidget {
   final double amount;
   final Color color;
   final IconData icon;
+  final bool isPercent;
+  final bool isCount;
 
-  const _SummaryCard({required this.title, required this.amount, required this.color, required this.icon});
+  const _SummaryCard({
+    required this.title,
+    required this.amount,
+    required this.color,
+    required this.icon,
+    this.isPercent = false,
+    this.isCount = false,
+  });
 
   @override
   Widget build(BuildContext context) {
     final currencyFormat = NumberFormat.currency(locale: 'hr_HR', symbol: '€');
+    final displayText = isPercent
+        ? '${amount.toStringAsFixed(1)}%'
+        : isCount
+            ? amount.toInt().toString()
+            : currencyFormat.format(amount);
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -854,7 +966,7 @@ class _SummaryCard extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 8),
-          Text(currencyFormat.format(amount), style: Theme.of(context).textTheme.titleLarge?.copyWith(color: color, fontWeight: FontWeight.bold)),
+          Text(displayText, style: Theme.of(context).textTheme.titleLarge?.copyWith(color: color, fontWeight: FontWeight.bold)),
         ],
       ),
     );

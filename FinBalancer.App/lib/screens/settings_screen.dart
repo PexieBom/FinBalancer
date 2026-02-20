@@ -68,6 +68,7 @@ class SettingsScreen extends StatelessWidget {
         ),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
+          tooltip: MaterialLocalizations.of(context).backButtonTooltip,
           onPressed: () => Navigator.pop(context),
         ),
         actions: const [NotificationsIcon()],
@@ -79,6 +80,10 @@ class SettingsScreen extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                _SectionHeader(title: _linkedAccountsTitle(context)),
+                const SizedBox(height: 8),
+                _buildLinkedAccountsTile(context),
+                const SizedBox(height: 24),
                 _SectionHeader(title: _themeSectionTitle(context)),
                 const SizedBox(height: 8),
                 Container(
@@ -118,10 +123,6 @@ class SettingsScreen extends StatelessWidget {
                     ],
                   ),
                 ),
-                _SectionHeader(title: _linkedAccountsTitle(context)),
-                const SizedBox(height: 8),
-                _buildLinkedAccountsTile(context),
-                const SizedBox(height: 24),
                 if (lock.isMobile) ...[
                   _SectionHeader(title: _appLockTitle(context)),
                   const SizedBox(height: 8),

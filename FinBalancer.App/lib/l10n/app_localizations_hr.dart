@@ -392,7 +392,13 @@ class AppLocalizationsHr extends AppLocalizations {
   String get period => 'Razdoblje';
 
   @override
+  String get filter => 'Filter';
+
+  @override
   String get last1Month => 'Zadnjih 1 mjesec';
+
+  @override
+  String get thisMonth => 'Ovaj mjesec';
 
   @override
   String get last3Months => 'Zadnjih 3 mjeseca';
@@ -405,6 +411,9 @@ class AppLocalizationsHr extends AppLocalizations {
 
   @override
   String get thisYear => 'Ova godina';
+
+  @override
+  String get allTime => 'Sve';
 
   @override
   String get customRange => 'Prilagođeni raspon';
@@ -513,6 +522,12 @@ class AppLocalizationsHr extends AppLocalizations {
   String get allowancePerDay => 'Dnevno dopušteno';
 
   @override
+  String get tracking => 'Praćenje';
+
+  @override
+  String get trackingAll => 'sve';
+
+  @override
   String get onTrack => 'U planu';
 
   @override
@@ -581,4 +596,7 @@ class AppLocalizationsHr extends AppLocalizations {
 
   @override
   String get showExpensesChart => 'Graf rashoda';
+
+  @override
+  String get showLinkedAccounts => 'Povezani računi';
 }

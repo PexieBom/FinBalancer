@@ -122,11 +122,14 @@
   "manageProjects": "Upravljaj projektima",
   "projects": "Projekti",
   "period": "Razdoblje",
+  "filter": "Filter",
   "last1Month": "Zadnjih 1 mjesec",
+  "thisMonth": "Ovaj mjesec",
   "last3Months": "Zadnjih 3 mjeseca",
   "last6Months": "Zadnjih 6 mjeseci",
   "last12Months": "Zadnjih 12 mjeseci",
   "thisYear": "Ova godina",
+  "allTime": "Sve",
   "customRange": "Prilagođeni raspon",
   "resetToDefault": "Vrati na zadano",
   "noCategoriesYet": "Još nema kategorija",
@@ -163,6 +166,8 @@
   "spent": "Potrošeno",
   "remaining": "Preostalo",
   "allowancePerDay": "Dnevno dopušteno",
+  "tracking": "Praćenje",
+  "trackingAll": "sve",
   "onTrack": "U planu",
   "overPace": "Prekoračeno",
   "underPace": "Ispod plana",
@@ -185,5 +190,6 @@
   "showAchievements": "Postignuća",
   "showBudget": "Budžet",
   "showStatistics": "Statistika",
-  "showExpensesChart": "Graf rashoda"
+  "showExpensesChart": "Graf rashoda",
+  "showLinkedAccounts": "Povezani računi"
 }

@@ -5,21 +5,29 @@ namespace FinBalancer.Api.Services;
 
 public class BudgetService
 {
+    private const int FreeBudgetLimit = 1;
+
     private readonly IWalletBudgetRepository _budgetRepo;
     private readonly ITransactionRepository _transactionRepo;
     private readonly ICurrentUserService _currentUser;
     private readonly AccountLinkService _accountLinkService;
+    private readonly SubscriptionService _subscriptionService;
+    private readonly CategoryService _categoryService;
 
     public BudgetService(
         IWalletBudgetRepository budgetRepo,
         ITransactionRepository transactionRepo,
         ICurrentUserService currentUser,
-        AccountLinkService accountLinkService)
+        AccountLinkService accountLinkService,
+        SubscriptionService subscriptionService,
+        CategoryService categoryService)
     {
         _budgetRepo = budgetRepo;
         _transactionRepo = transactionRepo;
         _currentUser = currentUser;
         _accountLinkService = accountLinkService;
+        _subscriptionService = subscriptionService;
+        _categoryService = categoryService;
     }
 
     private async Task<Guid?> ResolveEffectiveUserIdForReadAsync(Guid? viewAsHostId)
@@ -30,6 +38,18 @@ public class BudgetService
         if (viewAsHostId.Value == current.Value) return current;
         var canView = await _accountLinkService.CanGuestViewHostAsync(current.Value, viewAsHostId.Value);
         return canView ? viewAsHostId : null;
+    }
+
+    /// <summary>Gets current state of a specific budget by id.</summary>
+    public async Task<BudgetCurrentDto?> GetCurrentByBudgetIdAsync(Guid budgetId, Guid? viewAsHostId = null)
+    {
+        var userId = await ResolveEffectiveUserIdForReadAsync(viewAsHostId);
+        if (!userId.HasValue) return null;
+
+        var budget = await _budgetRepo.GetByIdAsync(budgetId);
+        if (budget == null || budget.UserId != userId.Value) return null;
+
+        return await ComputeCurrentAsync(budget.WalletId, budget, userId.Value);
     }
 
     public async Task<BudgetCurrentDto?> GetCurrentAsync(Guid walletId, Guid? viewAsHostId = null)
@@ -43,6 +63,102 @@ public class BudgetService
         return await ComputeCurrentAsync(walletId, budget, userId.Value);
     }
 
+    /// <summary>Creates a new budget. Free: 1 max. Premium: unlimited. Returns (dto, errorCode).</summary>
+    public async Task<(BudgetCurrentDto? Dto, string? ErrorCode)> CreateAsync(Guid walletId, decimal budgetAmount, int periodStartDay = 1, DateTime? periodStartDate = null, DateTime? periodEndDate = null, Guid? categoryId = null)
+    {
+        var userId = _currentUser.UserId;
+        if (!userId.HasValue) return (null, null);
+
+        var status = await _subscriptionService.GetStatusAsync(userId.Value);
+        var existing = await _budgetRepo.GetAllByUserIdAsync(userId.Value);
+        if (!status.IsPremium && existing.Count >= FreeBudgetLimit)
+            return (null, "BudgetLimitExceeded");
+
+        var clamped = Math.Clamp(periodStartDay, 1, 28);
+        var isFirst = existing.Count == 0;
+        var budget = new WalletBudget
+        {
+            WalletId = walletId,
+            UserId = userId.Value,
+            BudgetAmount = budgetAmount,
+            PeriodStartDay = clamped,
+            PeriodStartDate = periodStartDate,
+            PeriodEndDate = periodEndDate,
+            CategoryId = categoryId,
+            IsMain = isFirst,
+        };
+        var created = await _budgetRepo.CreateAsync(budget);
+        var dto = (await ComputeCurrentAsync(created.WalletId, created, userId.Value))!;
+        return (dto, null);
+    }
+
+    /// <summary>Updates an existing budget by id.</summary>
+    public async Task<BudgetCurrentDto?> UpdateAsync(Guid budgetId, decimal budgetAmount, int periodStartDay = 1, DateTime? periodStartDate = null, DateTime? periodEndDate = null, Guid? categoryId = null)
+    {
+        var userId = _currentUser.UserId;
+        if (!userId.HasValue) return null;
+
+        var budget = await _budgetRepo.GetByIdAsync(budgetId);
+        if (budget == null || budget.UserId != userId.Value) return null;
+
+        budget.BudgetAmount = budgetAmount;
+        budget.PeriodStartDay = Math.Clamp(periodStartDay, 1, 28);
+        budget.PeriodStartDate = periodStartDate;
+        budget.PeriodEndDate = periodEndDate;
+        budget.CategoryId = categoryId;
+        await _budgetRepo.UpdateAsync(budget);
+        return (await ComputeCurrentAsync(budget.WalletId, budget, userId.Value))!;
+    }
+
+    /// <summary>Deletes a budget. If it was main, sets another as main.</summary>
+    public async Task<bool> DeleteByIdAsync(Guid budgetId)
+    {
+        var userId = _currentUser.UserId;
+        if (!userId.HasValue) return false;
+
+        var budget = await _budgetRepo.GetByIdAsync(budgetId);
+        if (budget == null || budget.UserId != userId.Value) return false;
+
+        var wasMain = budget.IsMain;
+        var deleted = await _budgetRepo.DeleteByIdAsync(budgetId);
+        if (deleted && wasMain)
+        {
+            var remaining = await _budgetRepo.GetAllByUserIdAsync(userId.Value);
+            if (remaining.Count > 0)
+            {
+                var next = remaining[0];
+                next.IsMain = true;
+                await _budgetRepo.UpdateAsync(next);
+            }
+        }
+        return deleted;
+    }
+
+    /// <summary>Sets a budget as the main one (shown on dashboard).</summary>
+    public async Task<bool> SetMainAsync(Guid budgetId)
+    {
+        var userId = _currentUser.UserId;
+        if (!userId.HasValue) return false;
+
+        var budget = await _budgetRepo.GetByIdAsync(budgetId);
+        if (budget == null || budget.UserId != userId.Value) return false;
+
+        var all = await _budgetRepo.GetAllByUserIdAsync(userId.Value);
+        foreach (var b in all)
+        {
+            if (b.Id == budgetId)
+            {
+                if (!b.IsMain) { b.IsMain = true; await _budgetRepo.UpdateAsync(b); }
+            }
+            else if (b.IsMain)
+            {
+                b.IsMain = false;
+                await _budgetRepo.UpdateAsync(b);
+            }
+        }
+        return true;
+    }
+
     public async Task<BudgetCurrentDto?> CreateOrUpdateAsync(Guid walletId, decimal budgetAmount, int periodStartDay = 1, DateTime? periodStartDate = null, DateTime? periodEndDate = null, Guid? categoryId = null)
     {
         var userId = _currentUser.UserId;
@@ -50,6 +166,7 @@ public class BudgetService
 
         var clamped = Math.Clamp(periodStartDay, 1, 28);
         var budget = await _budgetRepo.GetByWalletIdAndUserIdAsync(walletId, userId.Value);
+        var existingAll = await _budgetRepo.GetAllByUserIdAsync(userId.Value);
         if (budget == null)
         {
             budget = new WalletBudget
@@ -61,6 +178,7 @@ public class BudgetService
                 PeriodStartDate = periodStartDate,
                 PeriodEndDate = periodEndDate,
                 CategoryId = categoryId,
+                IsMain = existingAll.Count == 0,
             };
         }
         else
@@ -91,12 +209,18 @@ public class BudgetService
         if (!userId.HasValue) return new List<BudgetSummaryDto>();
 
         var budgets = await _budgetRepo.GetAllByUserIdAsync(userId.Value);
+        var categories = await _categoryService.GetCategoriesAsync(userId: userId.Value);
         var result = new List<BudgetSummaryDto>();
         foreach (var b in budgets)
         {
             var dto = await ComputeCurrentAsync(b.WalletId, b, userId.Value);
             if (dto != null)
-                result.Add(new BudgetSummaryDto(b.WalletId, dto));
+            {
+                var catName = b.CategoryId.HasValue
+                    ? categories.FirstOrDefault(c => c.Id == b.CategoryId.Value)?.Name ?? "Unknown"
+                    : null;
+                result.Add(new BudgetSummaryDto(b.Id, b.WalletId, b.IsMain, dto, b.CategoryId, catName));
+            }
         }
         return result;
     }
@@ -258,4 +382,4 @@ public record BudgetCurrentDto(
     string Explanation
 );
 
-public record BudgetSummaryDto(Guid WalletId, BudgetCurrentDto Current);
+public record BudgetSummaryDto(Guid Id, Guid WalletId, bool IsMain, BudgetCurrentDto Current, Guid? CategoryId, string? CategoryName);

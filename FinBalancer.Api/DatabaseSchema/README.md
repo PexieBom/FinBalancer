@@ -24,6 +24,10 @@ psql -U postgres -d finbalancer -f 002_seed_categories.sql
 psql -U postgres -d finbalancer -f 003_seed_user_tperisa22.sql
 psql -U postgres -d finbalancer -f 004_seed_missing_data.sql
 psql -U postgres -d finbalancer -f 005_add_access_tokens.sql
+psql -U postgres -d finbalancer -f 006_update_category_translations.sql
+psql -U postgres -d finbalancer -f 007_allow_global_budget.sql
+psql -U postgres -d finbalancer -f 008_multiple_budgets_and_main.sql
+psql -U postgres -d finbalancer -f 009_schema_version_table.sql
 ```
 
 **Napomena:** `003_seed_user_tperisa22.sql` uključuje sve kategorije iz JSON-a i ne treba pokretati `002_seed_categories.sql`.  
@@ -43,6 +47,10 @@ Connection string je već dodan. Za korištenje PostgreSQL umjesto JSON datoteka
 ```
 
 Kada je `UseMockData: false`, API koristi EF Core repozitorije i PostgreSQL.
+
+## Verzija sheme (schema_version)
+
+Tablica `schema_version` bilježi primijenjene migracije. Svaka nova migracija treba dodati `INSERT` za svoj `version`. Trenutna verzija = `MAX(version)` iz tablice.
 
 ## Scaffold (opcija – generira entitete iz baze)
 

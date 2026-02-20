@@ -14,6 +14,8 @@ public class WalletBudget
     public DateTime? PeriodEndDate { get; set; }
     /// <summary>If set, budget tracks only expenses in this category. If null, tracks all expenses.</summary>
     public Guid? CategoryId { get; set; }
+    /// <summary>If true, this budget is shown on dashboard. At most one per user.</summary>
+    public bool IsMain { get; set; }
     public DateTime CreatedAt { get; set; }
     public DateTime UpdatedAt { get; set; }
 }

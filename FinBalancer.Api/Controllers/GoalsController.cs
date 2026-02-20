@@ -40,9 +40,14 @@ public class GoalsController : ControllerBase
     {
         if (string.IsNullOrWhiteSpace(goal.Name))
             return BadRequest("Name required");
-        var created = await _goalService.CreateAsync(goal);
-        if (created == null) return Unauthorized();
-        return CreatedAtAction(nameof(Get), created);
+        var result = await _goalService.CreateAsync(goal);
+        if (!result.Success)
+        {
+            if (result.ErrorCode == "GoalLimitExceeded")
+                return BadRequest(new { errorCode = result.ErrorCode });
+            return Unauthorized();
+        }
+        return CreatedAtAction(nameof(Get), result.Goal);
     }
 
     [HttpPut("{id:guid}/progress")]

@@ -85,7 +85,7 @@ class _DecisionEngineScreenState extends State<DecisionEngineScreen> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     return AdaptiveScaffold(
-      activeNavIndex: 3,
+      activeNavIndex: 4,
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
         backgroundColor: Theme.of(context).appBarTheme.backgroundColor,

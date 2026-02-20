@@ -842,11 +842,23 @@ abstract class AppLocalizations {
   /// **'Period'**
   String get period;
 
+  /// No description provided for @filter.
+  ///
+  /// In en, this message translates to:
+  /// **'Filter'**
+  String get filter;
+
   /// No description provided for @last1Month.
   ///
   /// In en, this message translates to:
   /// **'Last 1 month'**
   String get last1Month;
+
+  /// No description provided for @thisMonth.
+  ///
+  /// In en, this message translates to:
+  /// **'This month'**
+  String get thisMonth;
 
   /// No description provided for @last3Months.
   ///
@@ -871,6 +883,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'This year'**
   String get thisYear;
+
+  /// No description provided for @allTime.
+  ///
+  /// In en, this message translates to:
+  /// **'All time'**
+  String get allTime;
 
   /// No description provided for @customRange.
   ///
@@ -1064,6 +1082,18 @@ abstract class AppLocalizations {
   /// **'Allowance/day'**
   String get allowancePerDay;
 
+  /// No description provided for @tracking.
+  ///
+  /// In en, this message translates to:
+  /// **'Tracking'**
+  String get tracking;
+
+  /// No description provided for @trackingAll.
+  ///
+  /// In en, this message translates to:
+  /// **'all'**
+  String get trackingAll;
+
   /// No description provided for @onTrack.
   ///
   /// In en, this message translates to:
@@ -1201,6 +1231,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Expenses chart'**
   String get showExpensesChart;
+
+  /// No description provided for @showLinkedAccounts.
+  ///
+  /// In en, this message translates to:
+  /// **'Linked accounts'**
+  String get showLinkedAccounts;
 }
 
 class _AppLocalizationsDelegate

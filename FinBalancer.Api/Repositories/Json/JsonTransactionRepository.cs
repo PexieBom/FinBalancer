@@ -25,6 +25,30 @@ public class JsonTransactionRepository : ITransactionRepository
         return items.Where(t => t.UserId == userId).ToList();
     }
 
+    public async Task<List<Transaction>> GetByUserIdPagedAsync(Guid userId, DateTime? dateFrom, DateTime? dateTo, Guid? walletId, string? tag, string? project, Guid? categoryId, int limit, int offset)
+    {
+        var items = await _storage.ReadJsonAsync<Transaction>(FileName);
+        var filtered = items.Where(t => t.UserId == userId).AsEnumerable();
+        if (dateFrom.HasValue)
+            filtered = filtered.Where(t => t.DateCreated.Date >= dateFrom.Value.Date);
+        if (dateTo.HasValue)
+            filtered = filtered.Where(t => t.DateCreated.Date <= dateTo.Value.Date);
+        if (walletId.HasValue)
+            filtered = filtered.Where(t => t.WalletId == walletId.Value);
+        if (!string.IsNullOrEmpty(tag))
+            filtered = filtered.Where(t => t.Tags?.Contains(tag) == true);
+        if (!string.IsNullOrEmpty(project))
+            filtered = filtered.Where(t => t.Project == project);
+        if (categoryId.HasValue)
+            filtered = filtered.Where(t => t.CategoryId == categoryId.Value);
+
+        return filtered
+            .OrderByDescending(t => t.DateCreated)
+            .Skip(offset)
+            .Take(limit)
+            .ToList();
+    }
+
     public async Task<Transaction?> GetByIdAsync(Guid id)
     {
         var items = await _storage.ReadJsonAsync<Transaction>(FileName);

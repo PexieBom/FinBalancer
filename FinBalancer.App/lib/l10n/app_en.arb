@@ -127,11 +127,14 @@
   "manageProjects": "Manage projects",
   "projects": "Projects",
   "period": "Period",
+  "filter": "Filter",
   "last1Month": "Last 1 month",
+  "thisMonth": "This month",
   "last3Months": "Last 3 months",
   "last6Months": "Last 6 months",
   "last12Months": "Last 12 months",
   "thisYear": "This year",
+  "allTime": "All time",
   "customRange": "Custom range",
   "resetToDefault": "Reset to default",
   "noCategoriesYet": "No categories yet",
@@ -168,6 +171,8 @@
   "spent": "Spent",
   "remaining": "Remaining",
   "allowancePerDay": "Allowance/day",
+  "tracking": "Tracking",
+  "trackingAll": "all",
   "onTrack": "On track",
   "overPace": "Over pace",
   "underPace": "Under pace",
@@ -190,5 +195,6 @@
   "showAchievements": "Achievements",
   "showBudget": "Budget",
   "showStatistics": "Statistics",
-  "showExpensesChart": "Expenses chart"
+  "showExpensesChart": "Expenses chart",
+  "showLinkedAccounts": "Linked accounts"
 }

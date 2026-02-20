@@ -1,5 +1,6 @@
 using FinBalancer.Api.Configuration;
 using FinBalancer.Api.Data;
+using FinBalancer.Api.Filters;
 using FinBalancer.Api.Infrastructure;
 using FinBalancer.Api.Middleware;
 using FinBalancer.Api.Repositories;
@@ -8,9 +9,15 @@ using FinBalancer.Api.Repositories.Json;
 using FinBalancer.Api.Services;
 using Microsoft.EntityFrameworkCore;
 
+// Npgsql: tretiraj DateTimeKind.Unspecified kao UTC (za timestamptz)
+AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
+
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddControllers()
+builder.Services.AddControllers(options =>
+{
+    options.Filters.Add<ApiErrorResultFilter>();
+})
     .AddJsonOptions(opts => opts.JsonSerializerOptions.Converters.Add(new System.Text.Json.Serialization.JsonStringEnumConverter()));
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
@@ -112,6 +119,7 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseMiddleware<CurrentUserMiddleware>();
+app.UseMiddleware<RequireAuthMiddleware>();
 
 var version = typeof(Program).Assembly.GetName().Version?.ToString(3) ?? "1.0.0";
 app.MapGet("/", () => Results.Json(new { api = "api.finbalancer.com", version }));

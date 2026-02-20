@@ -81,6 +81,13 @@ class _WalletsScreenState extends State<WalletsScreen> with SingleTickerProvider
         _showAddForm = false;
         _isLoading = false;
       });
+    } on ApiLimitException catch (_) {
+      setState(() {
+        _error = Localizations.localeOf(context).languageCode == 'hr'
+            ? 'Besplatna verzija dozvoljava samo 1 novčanik. Nadogradi na Premium za neograničeno.'
+            : 'Free plan allows only 1 wallet. Upgrade to Premium for unlimited.';
+        _isLoading = false;
+      });
     } catch (e) {
       setState(() {
         _error = e.toString().replaceAll('Exception: ', '');
@@ -146,7 +153,7 @@ class _WalletsScreenState extends State<WalletsScreen> with SingleTickerProvider
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     return AdaptiveScaffold(
-      activeNavIndex: 4,
+      activeNavIndex: 5,
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
         backgroundColor: Theme.of(context).appBarTheme.backgroundColor,
@@ -236,8 +243,9 @@ class _WalletsTab extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    return Consumer<DataProvider>(
-      builder: (context, provider, _) {
+    return Consumer2<DataProvider, SubscriptionProvider>(
+      builder: (context, provider, subProvider, _) {
+        final canAddWallet = subProvider.isPremium || provider.wallets.length < 1;
         return SingleChildScrollView(
             padding: const EdgeInsets.all(20),
             child: Column(
@@ -332,7 +340,7 @@ class _WalletsTab extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 24),
-                ] else
+                ] else if (canAddWallet)
                   SizedBox(
                     height: 56,
                     child: OutlinedButton.icon(
@@ -341,6 +349,20 @@ class _WalletsTab extends StatelessWidget {
                       label: Text(l10n.addWallet),
                       style: OutlinedButton.styleFrom(
                         side: BorderSide(color: AppTheme.accent(context)),
+                      ),
+                    ),
+                  )
+                else
+                  SizedBox(
+                    height: 56,
+                    child: OutlinedButton.icon(
+                      onPressed: () => Navigator.pushNamed(context, '/premium-features'),
+                      icon: const Icon(Icons.star),
+                      label: Text(Localizations.localeOf(context).languageCode == 'hr'
+                          ? 'Nadogradi za više novčanika'
+                          : 'Upgrade for more wallets'),
+                      style: OutlinedButton.styleFrom(
+                        side: BorderSide(color: Colors.amber),
                       ),
                     ),
                   ),
@@ -439,24 +461,23 @@ class _BudgetsTab extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 20),
-                _buildBudgetRow(
-                  context,
-                  provider,
-                  ApiService.globalBudgetId,
-                  l10n.allWallets,
-                  currencyFormat,
-                  l10n,
-                  null,
-                ),
-                ...provider.wallets.map((wallet) => _buildBudgetRow(
-                      context,
-                      provider,
-                      wallet.id,
-                      wallet.name,
-                      currencyFormat,
-                      l10n,
-                      wallet,
-                    )),
+                ...provider.budgetSummaries.map((b) {
+                  final name = b.walletId == ApiService.globalBudgetId
+                      ? l10n.allWallets
+                      : (provider.wallets.where((x) => x.id == b.walletId).isEmpty
+                          ? 'Wallet'
+                          : provider.wallets.firstWhere((x) => x.id == b.walletId).name);
+                  return _BudgetCard(
+                    walletName: name,
+                    budget: b.current,
+                    categoryName: b.categoryName,
+                    isMain: b.isMain,
+                    currencyFormat: currencyFormat,
+                    onEdit: () => _showBudgetEditSheet(context, provider, targetBudget: b),
+                    onDelete: () => _deleteBudget(context, provider, b.id, name, l10n),
+                    onSetMain: b.isMain ? null : () => provider.setBudgetMain(b.id),
+                  );
+                }),
               ],
             ),
           ),
@@ -465,59 +486,27 @@ class _BudgetsTab extends StatelessWidget {
     );
   }
 
-  Widget _buildBudgetRow(
-    BuildContext context,
-    DataProvider provider,
-    String budgetId,
-    String displayName,
-    NumberFormat currencyFormat,
-    AppLocalizations l10n, [
-    Wallet? wallet,
-  ]) {
-    BudgetSummary? summary;
-    for (final b in provider.budgetSummaries) {
-      if (b.walletId == budgetId) {
-        summary = b;
-        break;
-      }
-    }
-    return summary != null
-        ? _BudgetCard(
-            walletName: displayName,
-            budget: summary!.current,
-            currencyFormat: currencyFormat,
-            onEdit: () => _showBudgetEditSheet(context, provider, targetBudgetId: budgetId, targetName: displayName, wallet: wallet),
-            onDelete: () => _deleteBudget(context, provider, budgetId, displayName, l10n),
-          )
-        : _SetBudgetCard(
-            walletName: displayName,
-            onSet: () => _showBudgetEditSheet(context, provider, targetBudgetId: budgetId, targetName: displayName, wallet: wallet),
-            l10n: l10n,
-          );
-  }
-
   Future<void> _showBudgetEditSheet(
     BuildContext context,
     DataProvider provider, {
-    String? targetBudgetId,
-    String? targetName,
-    Wallet? wallet,
+    BudgetSummary? targetBudget,
   }) async {
     final l10n = AppLocalizations.of(context)!;
     final budgetAmountController = TextEditingController();
     final periodStartController = TextEditingController(text: '1');
-    String? selectedWalletId = targetBudgetId ?? (provider.wallets.isNotEmpty ? provider.wallets.first.id : null);
+    String? selectedWalletId = provider.wallets.isNotEmpty ? ApiService.globalBudgetId : null;
     DateTime? selectedPeriodStartDate;
     DateTime? selectedPeriodEndDate;
     String? selectedCategoryId;
     BudgetCurrent? currentBudget;
-    if (targetBudgetId != null) {
+    if (targetBudget != null) {
       try {
-        final current = await provider.getWalletBudget(targetBudgetId);
+        final current = await provider.getBudgetById(targetBudget.id);
         if (current != null) {
           currentBudget = current;
           budgetAmountController.text = current.budgetAmount.toStringAsFixed(0);
           periodStartController.text = current.periodStart.day.toString();
+          selectedWalletId = targetBudget.walletId;
         }
       } catch (_) {}
     }
@@ -542,11 +531,11 @@ class _BudgetsTab extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   Text(
-                    targetBudgetId != null ? l10n.editBudget : l10n.addBudget,
+                    targetBudget != null ? l10n.editBudget : l10n.addBudget,
                     style: Theme.of(ctx2).textTheme.titleLarge,
                   ),
                   const SizedBox(height: 20),
-                  if (targetBudgetId == null)
+                  if (targetBudget == null)
                     DropdownButtonFormField<String>(
                       value: selectedWalletId,
                       decoration: InputDecoration(labelText: l10n.wallet),
@@ -559,9 +548,15 @@ class _BudgetsTab extends StatelessWidget {
                   else
                     ListTile(
                       leading: const Icon(Icons.account_balance_wallet),
-                      title: Text(targetName ?? wallet?.name ?? l10n.allWallets),
+                      title: Text(
+                        targetBudget.walletId == ApiService.globalBudgetId
+                            ? l10n.allWallets
+                            : (provider.wallets.where((x) => x.id == targetBudget.walletId).isEmpty
+                                ? 'Wallet'
+                                : provider.wallets.firstWhere((x) => x.id == targetBudget.walletId).name),
+                      ),
                     ),
-                  if (targetBudgetId != null && currentBudget != null) ...[
+                  if (targetBudget != null && currentBudget != null) ...[
                     const SizedBox(height: 12),
                     Text(
                       '${l10n.period}: ${DateFormat('dd.MM.yyyy').format(currentBudget!.periodStart)} – ${DateFormat('dd.MM.yyyy').format(currentBudget!.periodEnd)}',
@@ -570,7 +565,7 @@ class _BudgetsTab extends StatelessWidget {
                           ),
                     ),
                   ],
-                  if (targetBudgetId != null) const SizedBox(height: 16),
+                  if (targetBudget != null) const SizedBox(height: 16),
                   TextField(
                     controller: budgetAmountController,
                     keyboardType: const TextInputType.numberWithOptions(decimal: true),
@@ -690,22 +685,41 @@ class _BudgetsTab extends StatelessWidget {
                       Expanded(
                         child: ElevatedButton(
                           onPressed: isPremium ? () async {
-                            final wid = selectedWalletId ?? targetBudgetId;
-                            if (wid == null) return;
                             final amount = double.tryParse(budgetAmountController.text.replaceAll(',', '.'));
                             if (amount == null || amount <= 0) return;
                             final startDay = int.tryParse(periodStartController.text) ?? 1;
                             final clamped = startDay.clamp(1, 28);
                             try {
-                              await provider.createOrUpdateBudget(
-                                wid,
-                                budgetAmount: amount,
-                                periodStartDay: clamped,
-                                periodStartDate: selectedPeriodStartDate,
-                                periodEndDate: selectedPeriodEndDate,
-                                categoryId: selectedCategoryId,
-                              );
+                              if (targetBudget != null) {
+                                await provider.updateBudget(
+                                  targetBudget.id,
+                                  budgetAmount: amount,
+                                  periodStartDay: clamped,
+                                  periodStartDate: selectedPeriodStartDate,
+                                  periodEndDate: selectedPeriodEndDate,
+                                  categoryId: selectedCategoryId,
+                                );
+                              } else {
+                                final wid = selectedWalletId ?? ApiService.globalBudgetId;
+                                await provider.createBudget(
+                                  walletId: wid,
+                                  budgetAmount: amount,
+                                  periodStartDay: clamped,
+                                  periodStartDate: selectedPeriodStartDate,
+                                  periodEndDate: selectedPeriodEndDate,
+                                  categoryId: selectedCategoryId,
+                                );
+                              }
                               if (ctx.mounted) Navigator.pop(ctx);
+                            } on ApiLimitException catch (_) {
+                              if (ctx2.mounted) {
+                                ScaffoldMessenger.of(ctx2).showSnackBar(SnackBar(
+                                  content: Text(Localizations.localeOf(ctx2).languageCode == 'hr'
+                                      ? 'Besplatna verzija dozvoljava max 1 budžet. Nadogradi na Premium za neograničeno.'
+                                      : 'Free plan allows max 1 budget. Upgrade to Premium for unlimited.'),
+                                  action: SnackBarAction(label: 'Premium', onPressed: () => Navigator.pushNamed(ctx2, '/premium-features')),
+                                ));
+                              }
                             } catch (e) {
                               if (ctx2.mounted) ScaffoldMessenger.of(ctx2).showSnackBar(SnackBar(content: Text('$e')));
                             }
@@ -731,7 +745,7 @@ class _BudgetsTab extends StatelessWidget {
       context: context,
       builder: (ctx) => AlertDialog(
         title: Text(l10n.deleteBudgetQuestion),
-        content: Text(l10n.removeWalletQuestion(displayName)),
+        content: Text(displayName),
         actions: [
           TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text(l10n.cancel)),
           TextButton(
@@ -742,7 +756,7 @@ class _BudgetsTab extends StatelessWidget {
       ),
     );
     if (ok == true && context.mounted) {
-      await provider.deleteBudget(budgetId);
+      await provider.deleteBudgetById(budgetId);
     }
   }
 }
@@ -750,16 +764,22 @@ class _BudgetsTab extends StatelessWidget {
 class _BudgetCard extends StatelessWidget {
   final String walletName;
   final BudgetCurrent budget;
+  final String? categoryName;
+  final bool isMain;
   final NumberFormat currencyFormat;
   final VoidCallback onEdit;
   final VoidCallback onDelete;
+  final VoidCallback? onSetMain;
 
   const _BudgetCard({
     required this.walletName,
     required this.budget,
+    this.categoryName,
+    required this.isMain,
     required this.currencyFormat,
     required this.onEdit,
     required this.onDelete,
+    this.onSetMain,
   });
 
   @override
@@ -818,13 +838,53 @@ class _BudgetCard extends StatelessWidget {
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
                 ),
               ),
+              if (isMain) ...[
+                Chip(
+                  label: Text('Main', style: TextStyle(fontSize: 11, color: AppTheme.accent(context))),
+                  backgroundColor: AppTheme.accent(context).withOpacity(0.15),
+                ),
+                const SizedBox(width: 8),
+              ],
               Chip(
                 label: Text(paceLabel, style: TextStyle(fontSize: 12, color: paceColor)),
                 backgroundColor: paceColor.withOpacity(0.15),
               ),
+              if (onSetMain != null)
+                IconButton(
+                  icon: const Icon(Icons.star_border),
+                  tooltip: 'Set as main',
+                  onPressed: onSetMain,
+                ),
               IconButton(icon: const Icon(Icons.edit), onPressed: onEdit),
               IconButton(icon: Icon(Icons.delete, color: AppTheme.expense(context)), onPressed: onDelete),
             ],
+          ),
+          const SizedBox(height: 12),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            decoration: BoxDecoration(
+              color: Theme.of(context).colorScheme.surfaceContainerHighest.withOpacity(0.6),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  '${DateFormat('dd.MM.yyyy').format(budget.periodStart)} – ${DateFormat('dd.MM.yyyy').format(budget.periodEnd)}',
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        fontWeight: FontWeight.w600,
+                        color: Theme.of(context).colorScheme.onSurface,
+                      ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  '${l10n.tracking}: ${categoryName ?? l10n.trackingAll}',
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
+                ),
+              ],
+            ),
           ),
           const SizedBox(height: 16),
           Row(
@@ -871,54 +931,6 @@ class _BudgetMetric extends StatelessWidget {
         Text(label, style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant)),
         Text(value, style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold, color: valueColor)),
       ],
-    );
-  }
-}
-
-class _SetBudgetCard extends StatelessWidget {
-  final String walletName;
-  final VoidCallback onSet;
-  final AppLocalizations l10n;
-
-  const _SetBudgetCard({required this.walletName, required this.onSet, required this.l10n});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: Theme.of(context).cardTheme.color,
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: Theme.of(context).brightness == Brightness.dark ? Colors.black54 : AppTheme.cardShadow,
-            blurRadius: 20,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Row(
-        children: [
-          Icon(Icons.account_balance_wallet, color: Theme.of(context).colorScheme.onSurfaceVariant.withOpacity(0.6)),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(walletName, style: Theme.of(context).textTheme.titleMedium),
-                Text(l10n.setBudget, style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant)),
-              ],
-            ),
-          ),
-          TextButton.icon(
-            onPressed: onSet,
-            icon: const Icon(Icons.add, size: 18),
-            label: Text(l10n.setBudget),
-            style: TextButton.styleFrom(foregroundColor: AppTheme.accent(context)),
-          ),
-        ],
-      ),
     );
   }
 }

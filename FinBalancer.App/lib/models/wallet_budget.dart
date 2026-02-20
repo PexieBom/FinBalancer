@@ -40,18 +40,28 @@ class BudgetCurrent {
 }
 
 class BudgetSummary {
+  final String id;
   final String walletId;
+  final bool isMain;
   final BudgetCurrent current;
+  /// Ime kategorije ako je budžet ograničen na kategoriju, null = praćenje svih.
+  final String? categoryName;
 
   const BudgetSummary({
+    required this.id,
     required this.walletId,
+    required this.isMain,
     required this.current,
+    this.categoryName,
   });
 
   factory BudgetSummary.fromJson(Map<String, dynamic> json) {
     return BudgetSummary(
+      id: json['id'] as String,
       walletId: json['walletId'] as String,
+      isMain: json['isMain'] as bool? ?? false,
       current: BudgetCurrent.fromJson(json['current'] as Map<String, dynamic>),
+      categoryName: json['categoryName'] as String?,
     );
   }
 }

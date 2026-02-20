@@ -45,9 +45,14 @@ public class WalletsController : ControllerBase
         if (string.IsNullOrWhiteSpace(wallet.Name))
             return BadRequest("Name is required");
 
-        var created = await _walletService.AddWalletAsync(wallet);
-        if (created == null) return Unauthorized();
-        return CreatedAtAction(nameof(Get), created);
+        var result = await _walletService.AddWalletAsync(wallet);
+        if (!result.Success)
+        {
+            if (result.ErrorCode == "WalletLimitExceeded")
+                return BadRequest(new { errorCode = result.ErrorCode });
+            return Unauthorized();
+        }
+        return CreatedAtAction(nameof(Get), result.Wallet);
     }
 
     [HttpPut("{id:guid}/main")]
@@ -117,4 +122,5 @@ public class WalletsController : ControllerBase
     }
 }
 
-public record CreateBudgetRequest(decimal BudgetAmount, int PeriodStartDay = 1, DateTime? PeriodStartDate = null, DateTime? PeriodEndDate = null, Guid? CategoryId = null);
+public record CreateBudgetRequest(Guid? WalletId, decimal BudgetAmount, int PeriodStartDay = 1, DateTime? PeriodStartDate = null, DateTime? PeriodEndDate = null, Guid? CategoryId = null);
+public record UpdateBudgetRequest(decimal BudgetAmount, int PeriodStartDay = 1, DateTime? PeriodStartDate = null, DateTime? PeriodEndDate = null, Guid? CategoryId = null);

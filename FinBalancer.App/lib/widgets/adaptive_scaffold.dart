@@ -13,7 +13,7 @@ import 'main_bottom_nav.dart';
 class AdaptiveScaffold extends StatelessWidget {
   final PreferredSizeWidget? appBar;
   final Widget body;
-  final int activeNavIndex; // -1 = nema aktivnog, 0=Home, 1=Add, 2=Stats, 3=DecisionEngine, 4=Wallets
+  final int activeNavIndex; // -1 = nema, 0=Home, 1=Add, 2=Stats, 3=Goals, 4=DecisionEngine, 5=Wallets
   final Color? backgroundColor;
 
   const AdaptiveScaffold({
@@ -76,6 +76,11 @@ class AdaptiveScaffold extends StatelessWidget {
           label: Text(l10n.stats),
         ),
         NavigationRailDestination(
+          icon: const Icon(Icons.outlined_flag),
+          selectedIcon: Icon(Icons.flag, color: AppTheme.accent(context)),
+          label: Text(l10n.goals),
+        ),
+        NavigationRailDestination(
           icon: const Icon(Icons.psychology_outlined),
           selectedIcon: Icon(Icons.psychology, color: AppTheme.accent(context)),
           label: Text(l10n.decisionEngine),
@@ -90,22 +95,33 @@ class AdaptiveScaffold extends StatelessWidget {
   }
 
   void _onNavTap(BuildContext context, int index) {
+    final currentRoute = ModalRoute.of(context)?.settings.name;
     switch (index) {
       case 0:
         Navigator.pushNamedAndRemoveUntil(context, '/dashboard', (_) => false);
         break;
       case 1:
+        if (currentRoute == '/add-transaction') return;
         Navigator.pushNamed(context, '/add-transaction').then(
           (_) => context.read<DataProvider>().loadAll(locale: context.read<LocaleProvider>().localeCode),
         );
         break;
       case 2:
+        if (currentRoute == '/statistics') return;
         Navigator.pushNamed(context, '/statistics');
         break;
       case 3:
-        Navigator.pushNamed(context, '/decision-engine');
+        if (currentRoute == '/goals') return;
+        Navigator.pushNamed(context, '/goals').then(
+          (_) => context.read<DataProvider>().loadAll(locale: context.read<LocaleProvider>().localeCode),
+        );
         break;
       case 4:
+        if (currentRoute == '/decision-engine') return;
+        Navigator.pushNamed(context, '/decision-engine');
+        break;
+      case 5:
+        if (currentRoute == '/wallets') return;
         Navigator.pushNamed(context, '/wallets').then(
           (_) => context.read<DataProvider>().loadAll(locale: context.read<LocaleProvider>().localeCode),
         );
