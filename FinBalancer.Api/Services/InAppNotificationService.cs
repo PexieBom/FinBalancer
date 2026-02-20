@@ -7,13 +7,16 @@ public class InAppNotificationService
 {
     private readonly IInAppNotificationRepository _repository;
     private readonly ICurrentUserService _currentUser;
+    private readonly PushNotificationService _pushService;
 
     public InAppNotificationService(
         IInAppNotificationRepository repository,
-        ICurrentUserService currentUser)
+        ICurrentUserService currentUser,
+        PushNotificationService pushService)
     {
         _repository = repository;
         _currentUser = currentUser;
+        _pushService = pushService;
     }
 
     public async Task<List<InAppNotificationDto>> GetForCurrentUserAsync(int limit = 50)
@@ -65,6 +68,7 @@ public class InAppNotificationService
             ActionRoute = "/linked-accounts"
         };
         await _repository.AddAsync(n);
+        _ = _pushService.SendToUserAsync(guestUserId, n.Title, n.Body, n.ActionRoute);
     }
 
     private static InAppNotificationDto Map(InAppNotification n) => new()

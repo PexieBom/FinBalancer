@@ -33,6 +33,10 @@ public class FinBalancerDbContext : DbContext
     public DbSet<UserPreferenceEntity> UserPreferences => Set<UserPreferenceEntity>();
     public DbSet<UnlockedAchievementEntity> UnlockedAchievements => Set<UnlockedAchievementEntity>();
     public DbSet<SchemaVersionEntity> SchemaVersions => Set<SchemaVersionEntity>();
+    public DbSet<SubscriptionPurchaseEntity> SubscriptionPurchases => Set<SubscriptionPurchaseEntity>();
+    public DbSet<UserEntitlementEntity> UserEntitlements => Set<UserEntitlementEntity>();
+    public DbSet<WebhookEventEntity> WebhookEvents => Set<WebhookEventEntity>();
+    public DbSet<DeviceTokenEntity> DeviceTokens => Set<DeviceTokenEntity>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -155,6 +159,36 @@ public class FinBalancerDbContext : DbContext
         {
             e.ToTable("schema_version");
             e.HasKey(x => x.Version);
+        });
+
+        modelBuilder.Entity<SubscriptionPurchaseEntity>(e =>
+        {
+            e.ToTable("subscription_purchases");
+            e.HasKey(x => x.Id);
+            e.HasIndex(x => new { x.UserId, x.Platform, x.ExternalId });
+            e.HasIndex(x => new { x.Platform, x.ExternalId }).IsUnique();
+            e.Property(x => x.RawPayload).HasColumnType("jsonb");
+        });
+
+        modelBuilder.Entity<UserEntitlementEntity>(e =>
+        {
+            e.ToTable("user_entitlements");
+            e.HasKey(x => x.UserId);
+        });
+
+        modelBuilder.Entity<WebhookEventEntity>(e =>
+        {
+            e.ToTable("webhook_events");
+            e.HasKey(x => x.Id);
+            e.HasIndex(x => new { x.Provider, x.EventId }).IsUnique();
+        });
+
+        modelBuilder.Entity<DeviceTokenEntity>(e =>
+        {
+            e.ToTable("device_tokens");
+            e.HasKey(x => x.Id);
+            e.HasIndex(x => x.UserId);
+            e.HasIndex(x => new { x.UserId, x.Token }).IsUnique();
         });
     }
 }

@@ -8,6 +8,7 @@ import '../providers/data_provider.dart';
 import '../providers/app_lock_provider.dart';
 import '../l10n/app_localizations.dart';
 import 'set_pin_sheet.dart';
+import 'change_password_sheet.dart';
 
 // Languages with full ARB translations
 final _supportedLocales = [
@@ -83,6 +84,10 @@ class SettingsScreen extends StatelessWidget {
                 _SectionHeader(title: _linkedAccountsTitle(context)),
                 const SizedBox(height: 8),
                 _buildLinkedAccountsTile(context),
+                const SizedBox(height: 24),
+                _SectionHeader(title: _changePasswordSectionTitle(context)),
+                const SizedBox(height: 8),
+                _buildChangePasswordTile(context),
                 const SizedBox(height: 24),
                 _SectionHeader(title: _themeSectionTitle(context)),
                 const SizedBox(height: 8),
@@ -191,6 +196,51 @@ class SettingsScreen extends StatelessWidget {
       ),
     ),
     );
+  }
+
+  Widget _buildChangePasswordTile(BuildContext context) {
+    final theme = Theme.of(context);
+    return Container(
+      decoration: BoxDecoration(
+        color: theme.cardTheme.color,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: theme.brightness == Brightness.dark ? Colors.black54 : AppTheme.cardShadow,
+            blurRadius: 12,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: ListTile(
+        leading: Icon(Icons.lock_reset, color: theme.colorScheme.primary),
+        title: Text(_changePasswordTileTitle(context)),
+        subtitle: Text(_changePasswordTileSubtitle(context)),
+        trailing: const Icon(Icons.chevron_right),
+        onTap: () => _showChangePasswordSheet(context),
+      ),
+    );
+  }
+
+  Future<void> _showChangePasswordSheet(BuildContext context) async {
+    final result = await showModalBottomSheet<bool>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => Container(
+        decoration: BoxDecoration(
+          color: Theme.of(ctx).scaffoldBackgroundColor,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+        ),
+        padding: const EdgeInsets.all(24),
+        child: const ChangePasswordSheet(),
+      ),
+    );
+    if (result == true && context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(_changePasswordSuccess(context))),
+      );
+    }
   }
 
   Widget _buildLinkedAccountsTile(BuildContext context) {
@@ -397,6 +447,38 @@ String _pinDisabledText(BuildContext context) {
     case 'hr': return 'Zaključavanje onemogućeno';
     case 'de': return 'Sperre deaktiviert';
     default: return 'Lock disabled';
+  }
+}
+
+String _changePasswordSectionTitle(BuildContext context) {
+  switch (Localizations.localeOf(context).languageCode) {
+    case 'hr': return 'Račun';
+    case 'de': return 'Konto';
+    default: return 'Account';
+  }
+}
+
+String _changePasswordTileTitle(BuildContext context) {
+  switch (Localizations.localeOf(context).languageCode) {
+    case 'hr': return 'Promjena lozinke';
+    case 'de': return 'Passwort ändern';
+    default: return 'Change password';
+  }
+}
+
+String _changePasswordTileSubtitle(BuildContext context) {
+  switch (Localizations.localeOf(context).languageCode) {
+    case 'hr': return 'Postavi novu lozinku za prijavu';
+    case 'de': return 'Neues Passwort für die Anmeldung festlegen';
+    default: return 'Set a new password for sign-in';
+  }
+}
+
+String _changePasswordSuccess(BuildContext context) {
+  switch (Localizations.localeOf(context).languageCode) {
+    case 'hr': return 'Lozinka promijenjena';
+    case 'de': return 'Passwort geändert';
+    default: return 'Password changed';
   }
 }
 

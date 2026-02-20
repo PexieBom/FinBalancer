@@ -13,7 +13,7 @@ import 'main_bottom_nav.dart';
 class AdaptiveScaffold extends StatelessWidget {
   final PreferredSizeWidget? appBar;
   final Widget body;
-  final int activeNavIndex; // -1 = nema, 0=Home, 1=Add, 2=Stats, 3=Goals, 4=DecisionEngine, 5=Wallets
+  final int activeNavIndex; // -1 = nema, 0=Home, 1=Add, 2=Wallets, 3=Stats, 4=Goals, 5=DecisionEngine
   final Color? backgroundColor;
 
   const AdaptiveScaffold({
@@ -71,6 +71,11 @@ class AdaptiveScaffold extends StatelessWidget {
           label: Text(l10n.add),
         ),
         NavigationRailDestination(
+          icon: const Icon(Icons.account_balance_wallet_outlined),
+          selectedIcon: Icon(Icons.account_balance_wallet, color: AppTheme.accent(context)),
+          label: Text(l10n.walletsBudgets),
+        ),
+        NavigationRailDestination(
           icon: const Icon(Icons.bar_chart_outlined),
           selectedIcon: Icon(Icons.bar_chart, color: AppTheme.accent(context)),
           label: Text(l10n.stats),
@@ -84,11 +89,6 @@ class AdaptiveScaffold extends StatelessWidget {
           icon: const Icon(Icons.psychology_outlined),
           selectedIcon: Icon(Icons.psychology, color: AppTheme.accent(context)),
           label: Text(l10n.decisionEngine),
-        ),
-        NavigationRailDestination(
-          icon: const Icon(Icons.account_balance_wallet_outlined),
-          selectedIcon: Icon(Icons.account_balance_wallet, color: AppTheme.accent(context)),
-          label: Text(l10n.walletsBudgets),
         ),
       ],
     );
@@ -107,24 +107,24 @@ class AdaptiveScaffold extends StatelessWidget {
         );
         break;
       case 2:
+        if (currentRoute == '/wallets') return;
+        Navigator.pushNamed(context, '/wallets').then(
+          (_) => context.read<DataProvider>().loadAll(locale: context.read<LocaleProvider>().localeCode),
+        );
+        break;
+      case 3:
         if (currentRoute == '/statistics') return;
         Navigator.pushNamed(context, '/statistics');
         break;
-      case 3:
+      case 4:
         if (currentRoute == '/goals') return;
         Navigator.pushNamed(context, '/goals').then(
           (_) => context.read<DataProvider>().loadAll(locale: context.read<LocaleProvider>().localeCode),
         );
         break;
-      case 4:
+      case 5:
         if (currentRoute == '/decision-engine') return;
         Navigator.pushNamed(context, '/decision-engine');
-        break;
-      case 5:
-        if (currentRoute == '/wallets') return;
-        Navigator.pushNamed(context, '/wallets').then(
-          (_) => context.read<DataProvider>().loadAll(locale: context.read<LocaleProvider>().localeCode),
-        );
         break;
     }
   }

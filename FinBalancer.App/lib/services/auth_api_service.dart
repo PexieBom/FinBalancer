@@ -105,4 +105,27 @@ class AuthApiService {
     );
     return _parseAuthResponse(response);
   }
+
+  /// Change password for logged-in user. Requires auth token.
+  Future<String?> changePassword(String authToken, String currentPassword, String newPassword) async {
+    final response = await _client.post(
+      Uri.parse('${AppConfig.apiBaseUrl}/account/password/change'),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $authToken',
+      },
+      body: json.encode({
+        'currentPassword': currentPassword,
+        'newPassword': newPassword,
+      }),
+    );
+    if (response.statusCode == 200) return null;
+    try {
+      final decoded = json.decode(response.body);
+      if (decoded is Map && decoded['error'] != null) {
+        return decoded['error'] as String;
+      }
+    } catch (_) {}
+    return 'Failed to change password';
+  }
 }

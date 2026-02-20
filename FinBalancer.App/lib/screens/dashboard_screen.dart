@@ -23,6 +23,7 @@ import '../widgets/balance_card.dart';
 import '../widgets/transaction_tile.dart';
 import '../widgets/adaptive_scaffold.dart';
 import '../widgets/notifications_icon.dart';
+import 'onboarding_wizard_screen.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -45,7 +46,27 @@ class _DashboardScreenState extends State<DashboardScreen> {
           );
       context.read<LinkedAccountProvider>().loadLinks();
       context.read<NotificationsProvider>().loadUnreadCount();
+      _maybeShowOnboarding();
     });
+  }
+
+  Future<void> _maybeShowOnboarding() async {
+    final completed = await OnboardingStorage.isCompleted();
+    if (completed || !mounted) return;
+    await Future.delayed(const Duration(milliseconds: 500));
+    if (!mounted) return;
+    await showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => const OnboardingWizardScreen(fromMenu: false),
+    );
+  }
+
+  void _showOnboardingFromMenu() {
+    showDialog(
+      context: context,
+      builder: (_) => const OnboardingWizardScreen(fromMenu: true),
+    );
   }
 
   @override
@@ -651,12 +672,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
               if (v == 'settings') Navigator.pushNamed(context, '/settings');
               if (v == 'premium') Navigator.pushNamed(context, '/premium-features');
               if (v == 'customize') _showCustomizeDashboard(context);
+              if (v == 'howToUse') _showOnboardingFromMenu();
             },
             itemBuilder: (_) {
               final l10n = AppLocalizations.of(context)!;
               final isPremium = context.read<SubscriptionProvider>().isPremium;
               final iconColor = Theme.of(context).colorScheme.onSurface;
               return [
+                PopupMenuItem(value: 'howToUse', child: Row(children: [Icon(Icons.help_outline, size: 22, color: iconColor), const SizedBox(width: 12), Text(l10n.howToUseApp)])),
                 PopupMenuItem(value: 'categories', child: Row(children: [Icon(Icons.category, size: 22, color: iconColor), const SizedBox(width: 12), Text(l10n.categories)])),
                 PopupMenuItem(value: 'achievements', child: Row(children: [Icon(Icons.emoji_events, size: 22, color: iconColor), const SizedBox(width: 12), Text(l10n.achievements)])),
                 PopupMenuItem(value: 'export', child: Row(children: [Icon(Icons.upload_file, size: 22, color: iconColor), const SizedBox(width: 12), Text(l10n.exportData)])),

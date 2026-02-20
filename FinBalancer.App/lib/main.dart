@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:provider/provider.dart';
 
+import 'firebase_options.dart';
 import 'theme/app_theme.dart';
+import 'services/push_notification_service.dart';
 import 'providers/app_provider.dart';
 import 'providers/data_provider.dart';
 import 'providers/locale_provider.dart';
@@ -31,7 +34,14 @@ import 'screens/app_lock_screen.dart';
 import 'screens/linked_accounts_screen.dart';
 import 'screens/period_filter_screen.dart';
 
-void main() {
+void main() async {
+  WidgetsBinding.instance.ensureInitialized();
+  try {
+    await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+    await PushNotificationService().init();
+  } catch (_) {
+    // Firebase nije konfiguriran – push neće raditi
+  }
   runApp(const FinBalancerApp());
 }
 

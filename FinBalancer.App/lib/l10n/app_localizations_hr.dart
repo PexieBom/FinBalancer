@@ -599,4 +599,43 @@ class AppLocalizationsHr extends AppLocalizations {
 
   @override
   String get showLinkedAccounts => 'Povezani računi';
+
+  @override
+  String get howToUseApp => 'Kako se koristi';
+
+  @override
+  String get onboardingWelcomeTitle => 'Dobrodošli u FinBalancer!';
+
+  @override
+  String get onboardingWelcomeSubtitle => 'Kratki vodič za početak';
+
+  @override
+  String get onboardingStep1Title => 'Nadzorna ploča';
+
+  @override
+  String get onboardingStep1Body =>
+      'Pogledajte ukupni saldo, prihode i rashode na prvi pogled. Koristite filter razdoblja za promjenu vremenskog raspona.';
+
+  @override
+  String get onboardingStep2Title => 'Dodavanje transakcija';
+
+  @override
+  String get onboardingStep2Body =>
+      'Dodirnite gumb + u donjoj traci za dodavanje prihoda ili rashoda. Prvo dodajte novčanik ako ga nemate.';
+
+  @override
+  String get onboardingStep3Title => 'Novčanici, ciljevi i statistika';
+
+  @override
+  String get onboardingStep3Body =>
+      'Upravljajte novčanicima, postavite budžete, pratite ciljeve štednje i pregledajte statistiku iz donje navigacije.';
+
+  @override
+  String get onboardingDone => 'Započni';
+
+  @override
+  String get onboardingNext => 'Dalje';
+
+  @override
+  String get onboardingSkip => 'Preskoči';
 }

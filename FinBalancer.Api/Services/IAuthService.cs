@@ -10,6 +10,7 @@ public interface IAuthService
     Task<AuthResult> LoginWithAppleAsync(string appleId, string? email, string? displayName);
     Task<AuthResult?> RequestPasswordResetAsync(string email, bool returnTokenForDev = false);
     Task<AuthResult?> ResetPasswordAsync(string token, string newPassword);
+    Task<string?> ChangePasswordAsync(Guid userId, string currentPassword, string newPassword);
     Task<User?> GetUserByTokenAsync(string token);
     Task<AuthResult?> RefreshTokenAsync(string refreshToken);
 }

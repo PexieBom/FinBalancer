@@ -25,11 +25,14 @@ public class DbSubscriptionPlanRepository : ISubscriptionPlanRepository
 
     public async Task<SubscriptionPlan?> GetByPlatformProductIdAsync(string platform, string platformProductId)
     {
-        SubscriptionPlanEntity? e = platform.ToLowerInvariant() == "apple"
+        var plat = platform.ToLowerInvariant();
+        SubscriptionPlanEntity? e = plat == "apple"
             ? await _db.SubscriptionPlans.FirstOrDefaultAsync(p => p.AppleProductId == platformProductId)
-            : platform.ToLowerInvariant() == "google"
+            : plat == "google"
                 ? await _db.SubscriptionPlans.FirstOrDefaultAsync(p => p.GoogleProductId == platformProductId)
-                : null;
+                : plat == "paypal"
+                    ? await _db.SubscriptionPlans.FirstOrDefaultAsync(p => p.PayPalPlanId == platformProductId)
+                    : null;
         return e == null ? null : ToModel(e);
     }
 
@@ -40,6 +43,7 @@ public class DbSubscriptionPlanRepository : ISubscriptionPlanRepository
         ProductId = e.ProductId,
         AppleProductId = e.AppleProductId,
         GoogleProductId = e.GoogleProductId,
+        PayPalPlanId = e.PayPalPlanId,
         Duration = e.Duration,
         Price = e.Price,
         Currency = e.Currency,

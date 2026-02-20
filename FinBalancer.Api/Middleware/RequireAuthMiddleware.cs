@@ -8,7 +8,7 @@ public class RequireAuthMiddleware
 {
     private readonly RequestDelegate _next;
 
-    private static readonly string[] AuthExemptPaths = ["/api/auth", "/health", "/"];
+    private static readonly string[] AuthExemptPaths = ["/api/auth", "/api/webhooks", "/health", "/"];
     private static readonly JsonSerializerOptions JsonOptions = new() { PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
 
     public RequireAuthMiddleware(RequestDelegate next) => _next = next;

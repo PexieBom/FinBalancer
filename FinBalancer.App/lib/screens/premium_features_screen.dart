@@ -25,7 +25,23 @@ class _PremiumFeaturesScreenState extends State<PremiumFeaturesScreen> {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _loadSubscriptionData();
+      if (kIsWeb) _maybeHandlePayPalReturn();
     });
+  }
+
+  void _maybeHandlePayPalReturn() {
+    final uri = Uri.base;
+    if (uri.queryParameters['paypal_return'] == 'true') {
+      final subId = uri.queryParameters['subscription_id'] ?? uri.queryParameters['subscriptionId'];
+      final productCode = uri.queryParameters['productCode'];
+      if (subId != null && productCode != null) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          final sub = context.read<SubscriptionProvider>();
+          final app = context.read<AppProvider>();
+          sub.confirmPayPalReturn(app.user?.id, subId, productCode);
+        });
+      }
+    }
   }
 
   Future<void> _loadSubscriptionData() async {
@@ -37,6 +53,21 @@ class _PremiumFeaturesScreenState extends State<PremiumFeaturesScreen> {
     if (await sub.isStoreAvailable && sub.plans.isNotEmpty) {
       _loadStoreProducts(sub.plans);
     }
+  }
+
+  void _subscribeWithPayPal(BuildContext context, SubscriptionProvider sub, SubscriptionPlan plan) {
+    String returnUrl;
+    String cancelUrl;
+    if (kIsWeb) {
+      final base = Uri.base;
+      final productCode = Uri.encodeComponent(plan.productId);
+      returnUrl = base.replace(path: base.path, query: 'paypal_return=true&productCode=$productCode').toString();
+      cancelUrl = base.replace(path: base.path, query: 'paypal_cancel=true').toString();
+    } else {
+      returnUrl = 'https://app.finbalancer.com/premium?paypal_return=true&productCode=${Uri.encodeComponent(plan.productId)}';
+      cancelUrl = 'https://app.finbalancer.com/premium?paypal_cancel=true';
+    }
+    sub.subscribeWithPayPal(plan, returnUrl, cancelUrl);
   }
 
   Future<void> _loadStoreProducts(List<SubscriptionPlan> plans) async {
@@ -86,8 +117,22 @@ class _PremiumFeaturesScreenState extends State<PremiumFeaturesScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                if (sub.isPremium) _buildPremiumActiveBanner(sub, isDark),
-                if (sub.isPremium) const SizedBox(height: 24),
+                if (sub.isPremium)
+                  _buildPremiumActiveBanner(sub, isDark),
+                if (sub.isPremium)
+                  const SizedBox(height: 24),
+                if (!sub.isPremium) ...[
+                  Text(
+                    l10n.choosePlan,
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.bold,
+                          color: Theme.of(context).colorScheme.onSurface,
+                        ),
+                  ),
+                  const SizedBox(height: 12),
+                  _buildSubscriptionActions(context, sub, app),
+                  const SizedBox(height: 32),
+                ],
                 _FeatureSection(
                   title: 'Free',
                   icon: Icons.check_circle_outline,
@@ -122,18 +167,10 @@ class _PremiumFeaturesScreenState extends State<PremiumFeaturesScreen> {
                   isDark: isDark,
                   isHighlighted: sub.isPremium,
                 ),
-                const SizedBox(height: 24),
-                if (!sub.isPremium) ...[
-                  Text(
-                    l10n.choosePlan,
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.bold,
-                          color: Theme.of(context).colorScheme.onSurface,
-                        ),
-                  ),
-                  const SizedBox(height: 12),
+                if (sub.isPremium) ...[
+                  const SizedBox(height: 24),
+                  _buildSubscriptionActions(context, sub, app),
                 ],
-                _buildSubscriptionActions(context, sub, app),
               ],
             ),
           );
@@ -209,7 +246,7 @@ class _PremiumFeaturesScreenState extends State<PremiumFeaturesScreen> {
     return FutureBuilder<bool>(
       future: storeAvailable,
       builder: (context, snapshot) {
-        final available = snapshot.data ?? false;
+        final available = kIsWeb ? false : (snapshot.data ?? false);
 
         if (sub.isPremium) {
           return OutlinedButton.icon(
@@ -231,13 +268,26 @@ class _PremiumFeaturesScreenState extends State<PremiumFeaturesScreen> {
         }
 
         if (!available) {
+          final plansToShow = sub.plans.isEmpty && kIsWeb
+              ? [const SubscriptionPlan(
+                  id: 'premium-web',
+                  name: 'Premium',
+                  productId: 'finbalancer_premium_monthly',
+                  appleProductId: 'finbalancer_premium_monthly',
+                  googleProductId: 'finbalancer_premium_monthly',
+                  paypalPlanId: null,
+                  duration: 'monthly',
+                  price: 4.99,
+                  currency: 'EUR',
+                )]
+              : sub.plans;
           return Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              if (sub.plans.isEmpty)
+              if (sub.plans.isEmpty && !kIsWeb)
                 const Center(child: CircularProgressIndicator())
               else
-                ...sub.plans.map((plan) {
+                ...plansToShow.map((plan) {
                   final priceStr = '${plan.price.toStringAsFixed(2)} ${plan.currency}/${plan.duration == 'yearly' ? 'year' : 'month'}';
                   return Padding(
                     padding: const EdgeInsets.only(bottom: 12),
@@ -274,26 +324,53 @@ class _PremiumFeaturesScreenState extends State<PremiumFeaturesScreen> {
                                 ),
                           ),
                           const SizedBox(height: 8),
-                          Text(
-                            'Available on App Store and Google Play',
-                            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                  color: Theme.of(context).colorScheme.onSurfaceVariant,
-                                  fontStyle: FontStyle.italic,
-                                ),
-                          ),
+                          if (kIsWeb)
+                            TextButton.icon(
+                              onPressed: sub.isPurchasing
+                                  ? null
+                                  : () => _subscribeWithPayPal(context, sub, plan),
+                              icon: sub.isPurchasing
+                                  ? const SizedBox(
+                                      width: 18,
+                                      height: 18,
+                                      child: CircularProgressIndicator(strokeWidth: 2),
+                                    )
+                                  : const Icon(Icons.payment, size: 20),
+                              label: const Text('Subscribe with PayPal'),
+                              style: TextButton.styleFrom(
+                                foregroundColor: Colors.amber.shade800,
+                              ),
+                            )
+                          else
+                            Text(
+                              'Available on App Store and Google Play',
+                              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                                    fontStyle: FontStyle.italic,
+                                  ),
+                            ),
                         ],
                       ),
                     ),
                   );
                 }),
               const SizedBox(height: 12),
-              Text(
-                'Open the app on iOS or Android to subscribe.',
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: Theme.of(context).colorScheme.onSurfaceVariant,
-                    ),
-                textAlign: TextAlign.center,
-              ),
+              if (kIsWeb)
+                Text(
+                  'Subscribe with PayPal above, or use the app on iOS/Android.',
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
+                  textAlign: TextAlign.center,
+                )
+              else
+                Text(
+                  'Open the app on iOS or Android to subscribe.',
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
+                  textAlign: TextAlign.center,
+                ),
             ],
           );
         }

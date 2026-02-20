@@ -191,5 +191,17 @@
   "showBudget": "Budžet",
   "showStatistics": "Statistika",
   "showExpensesChart": "Graf rashoda",
-  "showLinkedAccounts": "Povezani računi"
+  "showLinkedAccounts": "Povezani računi",
+  "howToUseApp": "Kako se koristi",
+  "onboardingWelcomeTitle": "Dobrodošli u FinBalancer!",
+  "onboardingWelcomeSubtitle": "Kratki vodič za početak",
+  "onboardingStep1Title": "Nadzorna ploča",
+  "onboardingStep1Body": "Pogledajte ukupni saldo, prihode i rashode na prvi pogled. Koristite filter razdoblja za promjenu vremenskog raspona.",
+  "onboardingStep2Title": "Dodavanje transakcija",
+  "onboardingStep2Body": "Dodirnite gumb + u donjoj traci za dodavanje prihoda ili rashoda. Prvo dodajte novčanik ako ga nemate.",
+  "onboardingStep3Title": "Novčanici, ciljevi i statistika",
+  "onboardingStep3Body": "Upravljajte novčanicima, postavite budžete, pratite ciljeve štednje i pregledajte statistiku iz donje navigacije.",
+  "onboardingDone": "Započni",
+  "onboardingNext": "Dalje",
+  "onboardingSkip": "Preskoči"
 }

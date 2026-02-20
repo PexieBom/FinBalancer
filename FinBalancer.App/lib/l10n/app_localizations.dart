@@ -1237,6 +1237,78 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Linked accounts'**
   String get showLinkedAccounts;
+
+  /// No description provided for @howToUseApp.
+  ///
+  /// In en, this message translates to:
+  /// **'How to use'**
+  String get howToUseApp;
+
+  /// No description provided for @onboardingWelcomeTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Welcome to FinBalancer!'**
+  String get onboardingWelcomeTitle;
+
+  /// No description provided for @onboardingWelcomeSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Quick guide to get started'**
+  String get onboardingWelcomeSubtitle;
+
+  /// No description provided for @onboardingStep1Title.
+  ///
+  /// In en, this message translates to:
+  /// **'Dashboard'**
+  String get onboardingStep1Title;
+
+  /// No description provided for @onboardingStep1Body.
+  ///
+  /// In en, this message translates to:
+  /// **'See your total balance, income and expenses at a glance. Use the period filter to change the time range.'**
+  String get onboardingStep1Body;
+
+  /// No description provided for @onboardingStep2Title.
+  ///
+  /// In en, this message translates to:
+  /// **'Add transactions'**
+  String get onboardingStep2Title;
+
+  /// No description provided for @onboardingStep2Body.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap the + button in the bottom bar to add income or expenses. First add a wallet if you don\'t have one.'**
+  String get onboardingStep2Body;
+
+  /// No description provided for @onboardingStep3Title.
+  ///
+  /// In en, this message translates to:
+  /// **'Wallets, Goals & Stats'**
+  String get onboardingStep3Title;
+
+  /// No description provided for @onboardingStep3Body.
+  ///
+  /// In en, this message translates to:
+  /// **'Manage wallets, set budgets, track savings goals and view statistics from the bottom navigation.'**
+  String get onboardingStep3Body;
+
+  /// No description provided for @onboardingDone.
+  ///
+  /// In en, this message translates to:
+  /// **'Get started'**
+  String get onboardingDone;
+
+  /// No description provided for @onboardingNext.
+  ///
+  /// In en, this message translates to:
+  /// **'Next'**
+  String get onboardingNext;
+
+  /// No description provided for @onboardingSkip.
+  ///
+  /// In en, this message translates to:
+  /// **'Skip'**
+  String get onboardingSkip;
 }
 
 class _AppLocalizationsDelegate

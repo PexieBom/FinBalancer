@@ -9,6 +9,7 @@
 -- in_app_notifications, projects – nema podataka za migraciju.
 
 -- ==================== SUBSCRIPTION PLANS ====================
+-- Note: paypal_plan_id is added in 010_subscriptions_unified.sql; existing plans get NULL
 INSERT INTO subscription_plans (id, name, product_id, apple_product_id, google_product_id, duration, price, currency, is_active) VALUES
 ('c7902959-75da-4145-8f03-81abcefc499c', 'Premium Monthly', 'finbalancer_premium_monthly', 'finbalancer_premium_monthly', 'finbalancer_premium_monthly', 'monthly', 4.99, 'EUR', TRUE),
 ('0b21934d-19a5-480e-b0e5-be8321510a64', 'Premium Yearly', 'finbalancer_premium_yearly', 'finbalancer_premium_yearly', 'finbalancer_premium_yearly', 'yearly', 39.99, 'EUR', TRUE)

@@ -29,6 +29,7 @@ class SubscriptionPlan {
   final String productId;
   final String appleProductId;
   final String googleProductId;
+  final String? paypalPlanId;
   final String duration;
   final double price;
   final String currency;
@@ -39,6 +40,7 @@ class SubscriptionPlan {
     required this.productId,
     required this.appleProductId,
     required this.googleProductId,
+    this.paypalPlanId,
     required this.duration,
     required this.price,
     required this.currency,
@@ -51,6 +53,7 @@ class SubscriptionPlan {
       productId: json['productId'] as String,
       appleProductId: json['appleProductId'] as String? ?? json['productId'] as String,
       googleProductId: json['googleProductId'] as String? ?? json['productId'] as String,
+      paypalPlanId: json['paypalPlanId'] as String?,
       duration: json['duration'] as String? ?? 'monthly',
       price: (json['price'] as num?)?.toDouble() ?? 0,
       currency: json['currency'] as String? ?? 'EUR',

@@ -153,7 +153,7 @@ class _WalletsScreenState extends State<WalletsScreen> with SingleTickerProvider
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     return AdaptiveScaffold(
-      activeNavIndex: 5,
+      activeNavIndex: 2,
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
         backgroundColor: Theme.of(context).appBarTheme.backgroundColor,
@@ -836,27 +836,47 @@ class _BudgetCard extends StatelessWidget {
                 child: Text(
                   walletName,
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+                  overflow: TextOverflow.ellipsis,
+                  maxLines: 2,
                 ),
               ),
-              if (isMain) ...[
+            ],
+          ),
+          const SizedBox(height: 8),
+          Wrap(
+            spacing: 8,
+            runSpacing: 4,
+            crossAxisAlignment: WrapCrossAlignment.center,
+            children: [
+              if (isMain)
                 Chip(
                   label: Text('Main', style: TextStyle(fontSize: 11, color: AppTheme.accent(context))),
                   backgroundColor: AppTheme.accent(context).withOpacity(0.15),
                 ),
-                const SizedBox(width: 8),
-              ],
               Chip(
                 label: Text(paceLabel, style: TextStyle(fontSize: 12, color: paceColor)),
                 backgroundColor: paceColor.withOpacity(0.15),
               ),
               if (onSetMain != null)
                 IconButton(
-                  icon: const Icon(Icons.star_border),
+                  icon: const Icon(Icons.star_border, size: 22),
                   tooltip: 'Set as main',
                   onPressed: onSetMain,
+                  padding: const EdgeInsets.all(4),
+                  constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
                 ),
-              IconButton(icon: const Icon(Icons.edit), onPressed: onEdit),
-              IconButton(icon: Icon(Icons.delete, color: AppTheme.expense(context)), onPressed: onDelete),
+              IconButton(
+                icon: const Icon(Icons.edit, size: 22),
+                onPressed: onEdit,
+                padding: const EdgeInsets.all(4),
+                constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+              ),
+              IconButton(
+                icon: Icon(Icons.delete, size: 22, color: AppTheme.expense(context)),
+                onPressed: onDelete,
+                padding: const EdgeInsets.all(4),
+                constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+              ),
             ],
           ),
           const SizedBox(height: 12),

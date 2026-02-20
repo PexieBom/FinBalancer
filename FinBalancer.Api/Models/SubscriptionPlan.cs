@@ -12,6 +12,8 @@ public class SubscriptionPlan
     public string? AppleProductId { get; set; }
     /// <summary>Google Play product ID</summary>
     public string? GoogleProductId { get; set; }
+    /// <summary>PayPal subscription plan ID</summary>
+    public string? PayPalPlanId { get; set; }
     public string Duration { get; set; } = "monthly"; // monthly | yearly
     public decimal Price { get; set; }
     public string Currency { get; set; } = "EUR";

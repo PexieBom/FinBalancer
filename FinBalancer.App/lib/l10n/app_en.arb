@@ -196,5 +196,17 @@
   "showBudget": "Budget",
   "showStatistics": "Statistics",
   "showExpensesChart": "Expenses chart",
-  "showLinkedAccounts": "Linked accounts"
+  "showLinkedAccounts": "Linked accounts",
+  "howToUseApp": "How to use",
+  "onboardingWelcomeTitle": "Welcome to FinBalancer!",
+  "onboardingWelcomeSubtitle": "Quick guide to get started",
+  "onboardingStep1Title": "Dashboard",
+  "onboardingStep1Body": "See your total balance, income and expenses at a glance. Use the period filter to change the time range.",
+  "onboardingStep2Title": "Add transactions",
+  "onboardingStep2Body": "Tap the + button in the bottom bar to add income or expenses. First add a wallet if you don't have one.",
+  "onboardingStep3Title": "Wallets, Goals & Stats",
+  "onboardingStep3Body": "Manage wallets, set budgets, track savings goals and view statistics from the bottom navigation.",
+  "onboardingDone": "Get started",
+  "onboardingNext": "Next",
+  "onboardingSkip": "Skip"
 }

@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/foundation.dart';
 import 'package:in_app_purchase/in_app_purchase.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../models/subscription.dart';
 import '../services/api_service.dart';
@@ -157,6 +158,60 @@ class SubscriptionProvider extends ChangeNotifier {
     }
   }
 
+  /// Web: subscribe via PayPal. Opens approval URL; after return call confirmPayPalReturn.
+  Future<bool> subscribeWithPayPal(SubscriptionPlan plan, String returnUrl, String cancelUrl) async {
+    _isPurchasing = true;
+    _error = null;
+    notifyListeners();
+    try {
+      final result = await ApiService().createPayPalSubscription(
+        productCode: plan.productId,
+        paypalPlanId: plan.paypalPlanId,
+        returnUrl: returnUrl,
+        cancelUrl: cancelUrl,
+      );
+      if (result.approvalUrl != null && result.approvalUrl!.isNotEmpty) {
+        final uri = Uri.parse(result.approvalUrl!);
+        if (await canLaunchUrl(uri)) {
+          await launchUrl(uri, mode: LaunchMode.externalApplication);
+          return true;
+        }
+      }
+      _handleError('Could not open PayPal');
+      return false;
+    } catch (e) {
+      _handleError(e.toString().replaceAll('Exception: ', ''));
+      return false;
+    } finally {
+      _isPurchasing = false;
+      notifyListeners();
+    }
+  }
+
+  /// Web: after PayPal approval redirect, confirm subscription.
+  Future<void> confirmPayPalReturn(String? userId, String subscriptionId, String productCode) async {
+    if (userId == null || userId.isEmpty) return;
+    _isLoading = true;
+    notifyListeners();
+    try {
+      final status = await ApiService().confirmPayPalSubscription(
+        subscriptionId: subscriptionId,
+        productCode: productCode,
+      );
+      if (status != null && status.isPremium) {
+        _status = status;
+        _error = null;
+      } else {
+        _handleError('Subscription could not be confirmed');
+      }
+    } catch (e) {
+      _handleError(e.toString().replaceAll('Exception: ', ''));
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
   Future<void> restorePurchases(String? userId) async {
     if (userId == null || userId.isEmpty) {
       _handleError('Please sign in to restore');
@@ -196,10 +251,10 @@ class SubscriptionProvider extends ChangeNotifier {
     String? orderId,
   }) async {
     try {
-      final status = await _api.validatePurchase(
-        userId: userId,
+      final status = await _api.confirmMobilePurchase(
         platform: platform,
-        productId: productId,
+        productCode: productId,
+        storeProductId: productId,
         purchaseToken: purchaseToken,
         receiptData: receiptData,
         orderId: orderId,

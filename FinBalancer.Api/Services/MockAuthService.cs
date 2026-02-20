@@ -173,6 +173,19 @@ public class MockAuthService : IAuthService
         return new AuthResult { Success = true, Token = authToken, RefreshToken = refreshToken, TokenExpiresAt = DateTime.UtcNow.Add(AccessTokenLifetime), User = user };
     }
 
+    public async Task<string?> ChangePasswordAsync(Guid userId, string currentPassword, string newPassword)
+    {
+        var user = await _userRepository.GetByIdAsync(userId);
+        if (user == null) return "User not found";
+        if (user.PasswordHash == null) return "Please use password reset. This account uses Google or Apple sign-in.";
+        if (!VerifyPassword(currentPassword, user.PasswordHash)) return "Current password is incorrect";
+        if (newPassword.Length < 6) return "New password must be at least 6 characters";
+
+        user.PasswordHash = HashPassword(newPassword);
+        await _userRepository.UpdateAsync(user);
+        return null;
+    }
+
     public async Task<AuthResult?> RefreshTokenAsync(string refreshToken)
     {
         var stored = await _refreshTokenRepository.GetByTokenAsync(refreshToken);

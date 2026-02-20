@@ -444,6 +444,116 @@ class ApiService {
     throw Exception('Failed to load plans: ${response.statusCode}');
   }
 
+  /// Server-authoritative entitlement (preferred for premium gate).
+  Future<SubscriptionStatus> getEntitlement() async {
+    final response = await _client.get(
+      Uri.parse('$_baseUrl/billing/entitlement'),
+      headers: _headers,
+    );
+    if (response.statusCode == 200) {
+      final respJson = json.decode(response.body) as Map<String, dynamic>;
+      return SubscriptionStatus(
+        isPremium: respJson['isPremium'] as bool? ?? false,
+        expiresAt: respJson['premiumUntil'] != null
+            ? DateTime.tryParse(respJson['premiumUntil'] as String)
+            : null,
+        productId: null,
+        platform: respJson['sourcePlatform'] as String?,
+      );
+    }
+    if (response.statusCode == 401) {
+      return const SubscriptionStatus(isPremium: false);
+    }
+    throw Exception('Failed to load entitlement: ${response.statusCode}');
+  }
+
+  /// Confirm mobile purchase (iOS/Android) - server verifies with store.
+  Future<SubscriptionStatus?> confirmMobilePurchase({
+    required String platform,
+    required String productCode,
+    String? storeProductId,
+    String? purchaseToken,
+    String? receiptData,
+    String? orderId,
+  }) async {
+    final response = await _client.post(
+      Uri.parse('$_baseUrl/billing/mobile/confirm'),
+      headers: _headers,
+      body: json.encode({
+        'platform': platform,
+        'productCode': productCode,
+        'storeProductId': storeProductId,
+        'purchaseToken': purchaseToken,
+        'receiptData': receiptData,
+        'orderId': orderId,
+      }),
+    );
+    if (response.statusCode >= 200 && response.statusCode < 300) {
+      final respJson = json.decode(response.body) as Map<String, dynamic>;
+      return SubscriptionStatus(
+        isPremium: respJson['isPremium'] as bool? ?? false,
+        expiresAt: respJson['premiumUntil'] != null
+            ? DateTime.tryParse(respJson['premiumUntil'] as String)
+            : null,
+        platform: respJson['sourcePlatform'] as String?,
+      );
+    }
+    return null;
+  }
+
+  /// Create PayPal subscription for web. Returns approval URL.
+  Future<({String? approvalUrl, String? subscriptionId})> createPayPalSubscription({
+    required String productCode,
+    String? paypalPlanId,
+    required String returnUrl,
+    required String cancelUrl,
+  }) async {
+    final response = await _client.post(
+      Uri.parse('$_baseUrl/billing/paypal/create-subscription'),
+      headers: _headers,
+      body: json.encode({
+        'productCode': productCode,
+        'paypalPlanId': paypalPlanId,
+        'returnUrl': returnUrl,
+        'cancelUrl': cancelUrl,
+      }),
+    );
+    if (response.statusCode == 200) {
+      final respJson = json.decode(response.body) as Map<String, dynamic>;
+      return (
+        approvalUrl: respJson['approvalUrl'] as String?,
+        subscriptionId: respJson['paypalSubscriptionId'] as String?,
+      );
+    }
+    throw Exception('Failed to create PayPal subscription: ${response.statusCode}');
+  }
+
+  /// Confirm PayPal subscription after user approval.
+  Future<SubscriptionStatus?> confirmPayPalSubscription({
+    required String subscriptionId,
+    required String productCode,
+  }) async {
+    final response = await _client.post(
+      Uri.parse('$_baseUrl/billing/paypal/confirm'),
+      headers: _headers,
+      body: json.encode({
+        'subscriptionId': subscriptionId,
+        'productCode': productCode,
+      }),
+    );
+    if (response.statusCode >= 200 && response.statusCode < 300) {
+      final respJson = json.decode(response.body) as Map<String, dynamic>;
+      return SubscriptionStatus(
+        isPremium: respJson['isPremium'] as bool? ?? false,
+        expiresAt: respJson['premiumUntil'] != null
+            ? DateTime.tryParse(respJson['premiumUntil'] as String)
+            : null,
+        platform: respJson['sourcePlatform'] as String?,
+      );
+    }
+    return null;
+  }
+
   Future<SubscriptionStatus?> validatePurchase({
     required String userId,
     required String platform,
@@ -779,6 +889,28 @@ class ApiService {
     );
     if (response.statusCode != 200 && response.statusCode != 204) {
       throw Exception('Failed to mark all as read: ${response.statusCode}');
+    }
+  }
+
+  Future<void> registerDeviceToken({required String token, required String platform}) async {
+    final response = await _client.post(
+      Uri.parse('$_baseUrl/devicetokens/register'),
+      headers: _headers,
+      body: json.encode({'token': token, 'platform': platform}),
+    );
+    if (response.statusCode != 200 && response.statusCode != 204) {
+      throw Exception('Failed to register device token: ${response.statusCode}');
+    }
+  }
+
+  Future<void> unregisterDeviceToken(String token) async {
+    final response = await _client.post(
+      Uri.parse('$_baseUrl/devicetokens/unregister'),
+      headers: _headers,
+      body: json.encode({'token': token}),
+    );
+    if (response.statusCode != 200 && response.statusCode != 204) {
+      throw Exception('Failed to unregister device token: ${response.statusCode}');
     }
   }
 }

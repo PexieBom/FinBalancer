@@ -1,4 +1,5 @@
 using FinBalancer.Api.Configuration;
+using FinBalancer.Api.HostedServices;
 using FinBalancer.Api.Data;
 using FinBalancer.Api.Filters;
 using FinBalancer.Api.Infrastructure;
@@ -7,6 +8,7 @@ using FinBalancer.Api.Repositories;
 using FinBalancer.Api.Repositories.Db;
 using FinBalancer.Api.Repositories.Json;
 using FinBalancer.Api.Services;
+using FinBalancer.Api.Services.Billing;
 using Microsoft.EntityFrameworkCore;
 
 // Npgsql: tretiraj DateTimeKind.Unspecified kao UTC (za timestamptz)
@@ -27,6 +29,8 @@ builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
 // Config
 builder.Services.Configure<StorageOptions>(
     builder.Configuration.GetSection(StorageOptions.SectionName));
+builder.Services.Configure<PushOptions>(
+    builder.Configuration.GetSection(PushOptions.SectionName));
 
 var useMockData = builder.Configuration.GetValue<bool>("Storage:UseMockData");
 
@@ -49,6 +53,10 @@ if (useMockData)
     builder.Services.AddScoped<IWalletBudgetRepository, JsonWalletBudgetRepository>();
     builder.Services.AddScoped<IAccountLinkRepository, JsonAccountLinkRepository>();
     builder.Services.AddScoped<IInAppNotificationRepository, JsonInAppNotificationRepository>();
+    builder.Services.AddScoped<IDeviceTokenRepository, JsonDeviceTokenRepository>();
+    builder.Services.AddScoped<ISubscriptionPurchaseRepository, NullSubscriptionPurchaseRepository>();
+    builder.Services.AddScoped<IUserEntitlementRepository, NullUserEntitlementRepository>();
+    builder.Services.AddScoped<IWebhookEventRepository, NullWebhookEventRepository>();
     builder.Services.AddScoped<IAccessTokenRepository, NullAccessTokenRepository>();
     builder.Services.AddScoped<IUserPreferencesRepository, JsonUserPreferencesRepository>();
 }
@@ -74,6 +82,10 @@ else
     builder.Services.AddScoped<IWalletBudgetRepository, DbWalletBudgetRepository>();
     builder.Services.AddScoped<IAccountLinkRepository, DbAccountLinkRepository>();
     builder.Services.AddScoped<IInAppNotificationRepository, DbInAppNotificationRepository>();
+    builder.Services.AddScoped<IDeviceTokenRepository, DbDeviceTokenRepository>();
+    builder.Services.AddScoped<ISubscriptionPurchaseRepository, DbSubscriptionPurchaseRepository>();
+    builder.Services.AddScoped<IUserEntitlementRepository, DbUserEntitlementRepository>();
+    builder.Services.AddScoped<IWebhookEventRepository, DbWebhookEventRepository>();
     builder.Services.AddScoped<IAccessTokenRepository, DbAccessTokenRepository>();
     builder.Services.AddScoped<IUserPreferencesRepository, DbUserPreferencesRepository>();
 }
@@ -92,7 +104,20 @@ builder.Services.AddScoped<ISubscriptionValidationService, SubscriptionValidatio
 builder.Services.AddScoped<SubscriptionService>();
 builder.Services.AddScoped<BudgetService>();
 builder.Services.AddScoped<AccountLinkService>();
+builder.Services.AddScoped<PushNotificationService>();
+builder.Services.AddScoped<DeviceTokenService>();
 builder.Services.AddScoped<InAppNotificationService>();
+builder.Services.AddScoped<BillingService>();
+builder.Services.AddScoped<SubscriptionReconciliationService>();
+builder.Services.AddHostedService<SubscriptionReconciliationJob>();
+
+// Stub verifiers - replace with real implementations when ready
+builder.Services.AddScoped<IApplePurchaseVerifier, StubApplePurchaseVerifier>();
+builder.Services.AddScoped<IGooglePurchaseVerifier, StubGooglePurchaseVerifier>();
+builder.Services.AddScoped<IPayPalPurchaseVerifier, StubPayPalPurchaseVerifier>();
+builder.Services.AddScoped<StubAppleWebhookVerifier>();
+builder.Services.AddScoped<StubGoogleWebhookVerifier>();
+builder.Services.AddScoped<StubPayPalWebhookVerifier>();
 
 builder.Services.AddHealthChecks();
 

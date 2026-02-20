@@ -8,24 +8,29 @@ public class SubscriptionService
     private readonly ISubscriptionRepository _subscriptionRepo;
     private readonly ISubscriptionPlanRepository _planRepo;
     private readonly ISubscriptionValidationService _validationService;
+    private readonly BillingService _billingService;
 
     public SubscriptionService(
         ISubscriptionRepository subscriptionRepo,
         ISubscriptionPlanRepository planRepo,
-        ISubscriptionValidationService validationService)
+        ISubscriptionValidationService validationService,
+        BillingService billingService)
     {
         _subscriptionRepo = subscriptionRepo;
         _planRepo = planRepo;
         _validationService = validationService;
+        _billingService = billingService;
     }
 
     public async Task<SubscriptionStatusDto> GetStatusAsync(Guid userId)
     {
+        var ent = await _billingService.GetEntitlementAsync(userId);
+        if (ent.IsPremium)
+            return new SubscriptionStatusDto(true, ent.PremiumUntil, null, ent.SourcePlatform);
+
         var active = await _subscriptionRepo.GetActiveByUserIdAsync(userId);
         if (active != null)
-        {
             return new SubscriptionStatusDto(true, active.ExpiresAt, active.ProductId, active.Platform);
-        }
         return new SubscriptionStatusDto(false, null, null, null);
     }
 
@@ -38,6 +43,7 @@ public class SubscriptionService
             p.ProductId,
             p.AppleProductId ?? p.ProductId,
             p.GoogleProductId ?? p.ProductId,
+            p.PayPalPlanId,
             p.Duration,
             p.Price,
             p.Currency)).ToList();
@@ -47,6 +53,12 @@ public class SubscriptionService
     {
         if (string.IsNullOrWhiteSpace(request.Platform) || string.IsNullOrWhiteSpace(request.ProductId))
             return null;
+
+        var ent = await _billingService.ConfirmMobilePurchaseAsync(
+            userId, request.Platform, request.ProductId, request.ProductId,
+            request.PurchaseToken, request.ReceiptData, request.OrderId);
+        if (ent != null)
+            return new SubscriptionStatusDto(ent.IsPremium, ent.PremiumUntil, null, ent.SourcePlatform);
 
         var (isValid, expiresAt) = request.Platform.ToLowerInvariant() switch
         {
@@ -97,6 +109,6 @@ public class SubscriptionService
 
 public record SubscriptionStatusDto(bool IsPremium, DateTime? ExpiresAt, string? ProductId, string? Platform);
 
-public record SubscriptionPlanDto(Guid Id, string Name, string ProductId, string AppleProductId, string GoogleProductId, string Duration, decimal Price, string Currency);
+public record SubscriptionPlanDto(Guid Id, string Name, string ProductId, string AppleProductId, string GoogleProductId, string? PayPalPlanId, string Duration, decimal Price, string Currency);
 
 public record ValidatePurchaseRequest(string Platform, string ProductId, string? PurchaseToken, string? ReceiptData, string? OrderId);

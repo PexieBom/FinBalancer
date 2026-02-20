@@ -5,6 +5,7 @@ import '../models/user.dart';
 import '../models/auth_result.dart';
 import '../services/auth_api_service.dart';
 import '../services/api_service.dart';
+import '../services/push_notification_service.dart';
 
 class AppProvider extends ChangeNotifier {
   static const String _tokenKey = 'auth_token';
@@ -53,6 +54,9 @@ class AppProvider extends ChangeNotifier {
     } else {
       ApiService.authToken = null;
     }
+    if (_isLoggedIn && _token != null) {
+      _ = PushNotificationService().registerTokenIfNeeded(_token);
+    }
     _isLoading = false;
     notifyListeners();
   }
@@ -68,10 +72,12 @@ class AppProvider extends ChangeNotifier {
     if (userId.isNotEmpty) await prefs.setString(_userIdKey, userId);
     await prefs.setString(_displayNameKey, displayName);
     await prefs.setBool(_loggedInKey, true);
+    _ = PushNotificationService().registerTokenIfNeeded(token);
     notifyListeners();
   }
 
   Future<void> _clearAuth() async {
+    await PushNotificationService().unregisterToken();
     _token = null;
     _user = null;
     ApiService.authToken = null;
@@ -179,6 +185,15 @@ class AppProvider extends ChangeNotifier {
         return null;
       }
       return result.error ?? 'Reset failed';
+    } catch (e) {
+      return e.toString().replaceAll('Exception: ', '');
+    }
+  }
+
+  Future<String?> changePassword(String currentPassword, String newPassword) async {
+    if (_token == null || _token!.isEmpty) return 'Not logged in';
+    try {
+      return await _authApi.changePassword(_token!, currentPassword, newPassword);
     } catch (e) {
       return e.toString().replaceAll('Exception: ', '');
     }

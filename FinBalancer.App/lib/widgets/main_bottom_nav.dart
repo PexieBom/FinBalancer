@@ -7,7 +7,7 @@ import '../providers/data_provider.dart';
 import '../providers/locale_provider.dart';
 
 /// Jedinstveni donji navigacijski izbornik za sve glavne stranice.
-/// activeIndex: 0=Home, 1=Add, 2=Stats, 3=DecisionEngine, 4=Wallets. -1 = none active.
+/// activeIndex: 0=Home, 1=Add, 2=Wallets, 3=Stats, 4=Goals, 5=DecisionEngine. -1 = none active.
 class MainBottomNav extends StatelessWidget {
   final int activeIndex;
 
@@ -53,32 +53,32 @@ class MainBottomNav extends StatelessWidget {
                 },
               ),
               _NavItem(
-                icon: Icons.bar_chart,
-                label: l10n.stats,
-                isActive: activeIndex == 2,
-                onTap: () => _navigate(context, '/statistics'),
-              ),
-              _NavItem(
-                icon: Icons.flag,
-                label: l10n.goals,
-                isActive: activeIndex == 3,
-                onTap: () => _navigate(context, '/goals'),
-              ),
-              _NavItem(
-                icon: Icons.psychology,
-                label: l10n.decisionEngine,
-                isActive: activeIndex == 4,
-                onTap: () => _navigate(context, '/decision-engine'),
-              ),
-              _NavItem(
                 icon: Icons.account_balance_wallet,
                 label: l10n.walletsBudgets,
-                isActive: activeIndex == 5,
+                isActive: activeIndex == 2,
                 onTap: () {
                   if (ModalRoute.of(context)?.settings.name == '/wallets') return;
                   Navigator.pushNamed(context, '/wallets')
                       .then((_) => context.read<DataProvider>().loadAll(locale: context.read<LocaleProvider>().localeCode));
                 },
+              ),
+              _NavItem(
+                icon: Icons.bar_chart,
+                label: l10n.stats,
+                isActive: activeIndex == 3,
+                onTap: () => _navigate(context, '/statistics'),
+              ),
+              _NavItem(
+                icon: Icons.flag,
+                label: l10n.goals,
+                isActive: activeIndex == 4,
+                onTap: () => _navigate(context, '/goals'),
+              ),
+              _NavItem(
+                icon: Icons.psychology,
+                label: l10n.decisionEngine,
+                isActive: activeIndex == 5,
+                onTap: () => _navigate(context, '/decision-engine'),
               ),
             ],
           ),

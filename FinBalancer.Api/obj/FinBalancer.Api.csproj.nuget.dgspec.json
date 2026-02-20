@@ -54,6 +54,10 @@
               "target": "Package",
               "version": "[8.0.3, )"
             },
+            "FirebaseAdmin": {
+              "target": "Package",
+              "version": "[3.4.0, )"
+            },
             "Microsoft.AspNetCore.OpenApi": {
               "target": "Package",
               "version": "[8.0.8, )"

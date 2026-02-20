@@ -597,4 +597,43 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get showLinkedAccounts => 'Linked accounts';
+
+  @override
+  String get howToUseApp => 'How to use';
+
+  @override
+  String get onboardingWelcomeTitle => 'Welcome to FinBalancer!';
+
+  @override
+  String get onboardingWelcomeSubtitle => 'Quick guide to get started';
+
+  @override
+  String get onboardingStep1Title => 'Dashboard';
+
+  @override
+  String get onboardingStep1Body =>
+      'See your total balance, income and expenses at a glance. Use the period filter to change the time range.';
+
+  @override
+  String get onboardingStep2Title => 'Add transactions';
+
+  @override
+  String get onboardingStep2Body =>
+      'Tap the + button in the bottom bar to add income or expenses. First add a wallet if you don\'t have one.';
+
+  @override
+  String get onboardingStep3Title => 'Wallets, Goals & Stats';
+
+  @override
+  String get onboardingStep3Body =>
+      'Manage wallets, set budgets, track savings goals and view statistics from the bottom navigation.';
+
+  @override
+  String get onboardingDone => 'Get started';
+
+  @override
+  String get onboardingNext => 'Next';
+
+  @override
+  String get onboardingSkip => 'Skip';
 }

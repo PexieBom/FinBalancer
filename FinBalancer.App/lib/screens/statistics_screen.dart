@@ -7,6 +7,7 @@ import 'package:provider/provider.dart';
 
 import '../theme/app_theme.dart';
 import '../providers/notifications_provider.dart';
+import '../providers/data_provider.dart';
 import '../widgets/adaptive_scaffold.dart';
 import '../widgets/notifications_icon.dart';
 import '../services/api_service.dart';
@@ -47,13 +48,15 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
 
   Future<void> _loadData() async {
     setState(() { _isLoading = true; _error = null; });
+    if (!mounted) return;
+    final viewAsHostId = context.read<DataProvider>().viewAsHostId;
     try {
       final results = await Future.wait([
-        _api.getSpendingByCategory(dateFrom: _dateFrom, dateTo: _dateTo),
-        _api.getIncomeExpenseSummary(dateFrom: _dateFrom, dateTo: _dateTo),
-        _api.getBudgetPrediction(),
-        _api.getBudgetAlerts(),
-        _api.getCashflowTrend(months: _months, dateFrom: _dateFrom, dateTo: _dateTo),
+        _api.getSpendingByCategory(dateFrom: _dateFrom, dateTo: _dateTo, viewAsHostId: viewAsHostId),
+        _api.getIncomeExpenseSummary(dateFrom: _dateFrom, dateTo: _dateTo, viewAsHostId: viewAsHostId),
+        _api.getBudgetPrediction(viewAsHostId: viewAsHostId),
+        _api.getBudgetAlerts(viewAsHostId: viewAsHostId),
+        _api.getCashflowTrend(months: _months, dateFrom: _dateFrom, dateTo: _dateTo, viewAsHostId: viewAsHostId),
       ]);
       setState(() {
         _spendingData = results[0] as Map<String, dynamic>;
@@ -74,7 +77,7 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
   @override
   Widget build(BuildContext context) {
     return AdaptiveScaffold(
-      activeNavIndex: 2,
+      activeNavIndex: 3,
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
         backgroundColor: Theme.of(context).appBarTheme.backgroundColor,
@@ -122,9 +125,10 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
           ),
         ],
       ),
-      body: Consumer<SubscriptionProvider>(
-        builder: (context, sub, _) {
-          if (!sub.isPremium) {
+      body: Consumer2<SubscriptionProvider, DataProvider>(
+        builder: (context, sub, dataProvider, _) {
+          final hasStatsAccess = sub.isPremium || dataProvider.isViewingAsGuest;
+          if (!hasStatsAccess) {
             return _buildPremiumPlaceholder(context);
           }
           return _isLoading
@@ -296,8 +300,9 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
       to = now;
       from = DateTime(now.year, now.month - _months, now.day);
     }
+    final viewAsHostId = context.read<DataProvider>().viewAsHostId;
     try {
-      final txList = await _api.getTransactions(categoryId: categoryId, dateFrom: from, dateTo: to);
+      final txList = await _api.getTransactions(categoryId: categoryId, dateFrom: from, dateTo: to, viewAsHostId: viewAsHostId);
       if (!context.mounted) return;
       showDialog(
         context: context,
